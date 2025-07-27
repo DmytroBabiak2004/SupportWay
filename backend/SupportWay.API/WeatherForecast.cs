@@ -1,4 +1,4 @@
-namespace backend
+namespace SupportWay.API
 {
     public class WeatherForecast
     {
