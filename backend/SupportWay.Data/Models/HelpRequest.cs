@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,11 +10,19 @@ namespace SupportWay.Data.Models
 {
     public class HelpRequest
     {
-      [Key]
-      public int Id { get; set; }
-        [MaxLength(50)]
-    public int HelpTypeId { get; set; }
-    public HelpType HelpType { get; set; }
-
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public decimal TargetAmount { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string CreatedById { get; set; }
+        public User User { get; set; }
+        public int? LocationId { get; set; }
+        public Location Location { get; set; }
+        public int RequestStatusId { get; set; }
+        public RequestStatus RequestStatus { get; set; }
+        public ICollection<RequestItem> RequestItems { get; set; }
+        public ICollection<Payment> Payments { get; set; }
     }
+
 }

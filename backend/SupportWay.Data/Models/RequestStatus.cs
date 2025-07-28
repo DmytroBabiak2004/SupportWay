@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace SupportWay.Data.Models
 {
-    public class HelpType
+    public class RequestStatus
     {
         [Key]
         public int Id { get; set; }
         [MaxLength(100)]
-        public string NameOfType { get; set; }
+        public string NameOfStatus { get; set; }
     }
 }
