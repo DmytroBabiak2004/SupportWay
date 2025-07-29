@@ -12,5 +12,8 @@ namespace SupportWay.Data.Models
         public ICollection<Profile> Profiles { get; set; }
         public ICollection<HelpRequest> HelpRequests { get; set; }
         public ICollection<Payment> Payments { get; set; }
+        public ICollection<Post> Posts { get; set; }
+        public virtual ICollection<Follow> Followings { get; set; } 
+        public virtual ICollection<Follow> Followers { get; set; }
     }
 }

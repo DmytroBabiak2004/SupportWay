@@ -233,6 +233,24 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("Conversations");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.Follow", b =>
+                {
+                    b.Property<string>("FollowerId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FollowedId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("FollowedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("FollowerId", "FollowedId");
+
+                    b.HasIndex("FollowedId");
+
+                    b.ToTable("Follows");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.HelpRequest", b =>
                 {
                     b.Property<int>("Id")
@@ -385,6 +403,76 @@ namespace SupportWay.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PaymentStatuses");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.Post", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.PostLike", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("HelpRequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("LikedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HelpRequestId");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PostLikes");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Profile", b =>
@@ -649,6 +737,25 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.Follow", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.User", "Followed")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.User", "Follower")
+                        .WithMany("Followings")
+                        .HasForeignKey("FollowerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Followed");
+
+                    b.Navigation("Follower");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.HelpRequest", b =>
                 {
                     b.HasOne("SupportWay.Data.Models.User", "User")
@@ -709,6 +816,48 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.Post", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.User", "User")
+                        .WithMany("Posts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.PostLike", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.HelpRequest", null)
+                        .WithMany("Likes")
+                        .HasForeignKey("HelpRequestId");
+
+                    b.HasOne("SupportWay.Data.Models.Post", "Post")
+                        .WithMany("Likes")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.HelpRequest", "HelpRequest")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HelpRequest");
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.Profile", b =>
                 {
                     b.HasOne("SupportWay.Data.Models.User", "User")
@@ -746,6 +895,8 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.HelpRequest", b =>
                 {
+                    b.Navigation("Likes");
+
                     b.Navigation("Payments");
 
                     b.Navigation("RequestItems");
@@ -761,11 +912,22 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("Payments");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.Post", b =>
+                {
+                    b.Navigation("Likes");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.User", b =>
                 {
+                    b.Navigation("Followers");
+
+                    b.Navigation("Followings");
+
                     b.Navigation("HelpRequests");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("Posts");
 
                     b.Navigation("Profiles");
                 });

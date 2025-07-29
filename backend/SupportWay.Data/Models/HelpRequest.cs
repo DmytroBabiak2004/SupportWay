@@ -23,6 +23,8 @@ namespace SupportWay.Data.Models
         public RequestStatus RequestStatus { get; set; }
         public ICollection<RequestItem> RequestItems { get; set; }
         public ICollection<Payment> Payments { get; set; }
+        public ICollection<PostLike> Likes { get; set; }
+
     }
 
 }
