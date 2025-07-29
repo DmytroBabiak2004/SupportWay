@@ -22,19 +22,19 @@ namespace SupportWay.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ConversationUser", b =>
+            modelBuilder.Entity("ChatUser", b =>
                 {
-                    b.Property<int>("ConversationId")
+                    b.Property<int>("ChatId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("User1Id")
+                    b.Property<string>("UserId")
                         .HasColumnType("text");
 
-                    b.HasKey("ConversationId", "User1Id");
+                    b.HasKey("ChatId", "UserId");
 
-                    b.HasIndex("User1Id");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("UserConversations", (string)null);
+                    b.ToTable("UserChats", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -169,6 +169,26 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.Chat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Conversations");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.ChatMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -177,7 +197,7 @@ namespace SupportWay.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ConversationId")
+                    b.Property<int>("ChatId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsRead")
@@ -200,37 +220,11 @@ namespace SupportWay.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ConversationId");
+                    b.HasIndex("ChatId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("ChatMessages");
-                });
-
-            modelBuilder.Entity("SupportWay.Data.Models.Conversation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Follow", b =>
@@ -438,6 +432,42 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("Posts");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.PostComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequestId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("RequestId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PostComments");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.PostLike", b =>
                 {
                     b.Property<int>("Id")
@@ -585,6 +615,9 @@ namespace SupportWay.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("ChatId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -631,6 +664,8 @@ namespace SupportWay.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ChatId");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -641,17 +676,17 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ConversationUser", b =>
+            modelBuilder.Entity("ChatUser", b =>
                 {
-                    b.HasOne("SupportWay.Data.Models.Conversation", null)
+                    b.HasOne("SupportWay.Data.Models.Chat", null)
                         .WithMany()
-                        .HasForeignKey("ConversationId")
+                        .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SupportWay.Data.Models.User", null)
                         .WithMany()
-                        .HasForeignKey("User1Id")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -709,9 +744,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.ChatMessage", b =>
                 {
-                    b.HasOne("SupportWay.Data.Models.Conversation", "Conversation")
+                    b.HasOne("SupportWay.Data.Models.Chat", "Chat")
                         .WithMany("Messages")
-                        .HasForeignKey("ConversationId")
+                        .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -721,18 +756,7 @@ namespace SupportWay.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Conversation");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SupportWay.Data.Models.Conversation", b =>
-                {
-                    b.HasOne("SupportWay.Data.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Chat");
 
                     b.Navigation("User");
                 });
@@ -827,6 +851,33 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.PostComment", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.Post", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.HelpRequest", "Request")
+                        .WithMany("Comments")
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("Request");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.PostLike", b =>
                 {
                     b.HasOne("SupportWay.Data.Models.HelpRequest", null)
@@ -888,13 +939,24 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("SupportType");
                 });
 
-            modelBuilder.Entity("SupportWay.Data.Models.Conversation", b =>
+            modelBuilder.Entity("SupportWay.Data.Models.User", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.Chat", null)
+                        .WithMany("Users")
+                        .HasForeignKey("ChatId");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.Chat", b =>
                 {
                     b.Navigation("Messages");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.HelpRequest", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Likes");
 
                     b.Navigation("Payments");
@@ -914,6 +976,8 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Post", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Likes");
                 });
 

@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 
 namespace SupportWay.Data.Models
 {
-    public class Conversation
+    public class Chat
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public DateTime StartedAt { get; set; }
-        public string UserId { get; set; }
-        public User User { get; set; }
+        public ICollection<User> Users { get; set; }
         public ICollection<ChatMessage> Messages { get; set; }
     }
 }

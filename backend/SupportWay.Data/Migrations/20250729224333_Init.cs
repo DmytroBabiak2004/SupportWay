@@ -27,28 +27,17 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
+                name: "Conversations",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.PrimaryKey("PK_Conversations", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -141,6 +130,37 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AspNetUsers",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    ChatId = table.Column<int>(type: "integer", nullable: true),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AspNetUsers_Conversations_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Conversations",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
@@ -226,22 +246,31 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Conversations",
+                name: "ChatMessages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false)
+                    MessageText = table.Column<string>(type: "text", nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ChatId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Conversations", x => x.Id);
+                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Conversations_AspNetUsers_UserId",
+                        name: "FK_ChatMessages_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_Conversations_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Conversations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -269,6 +298,43 @@ namespace SupportWay.Data.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HelpRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    TargetAmount = table.Column<decimal>(type: "numeric", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<string>(type: "text", nullable: false),
+                    LocationId = table.Column<int>(type: "integer", nullable: true),
+                    RequestStatusId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HelpRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HelpRequests_AspNetUsers_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_HelpRequests_Locations_LocationId",
+                        column: x => x.LocationId,
+                        principalTable: "Locations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_HelpRequests_RequestStatuses_RequestStatusId",
+                        column: x => x.RequestStatusId,
+                        principalTable: "RequestStatuses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -318,91 +384,24 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HelpRequests",
+                name: "UserChats",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    TargetAmount = table.Column<decimal>(type: "numeric", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<string>(type: "text", nullable: false),
-                    LocationId = table.Column<int>(type: "integer", nullable: true),
-                    RequestStatusId = table.Column<int>(type: "integer", nullable: false)
+                    ChatId = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HelpRequests", x => x.Id);
+                    table.PrimaryKey("PK_UserChats", x => new { x.ChatId, x.UserId });
                     table.ForeignKey(
-                        name: "FK_HelpRequests_AspNetUsers_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_HelpRequests_Locations_LocationId",
-                        column: x => x.LocationId,
-                        principalTable: "Locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_HelpRequests_RequestStatuses_RequestStatusId",
-                        column: x => x.RequestStatusId,
-                        principalTable: "RequestStatuses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChatMessages",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    MessageText = table.Column<string>(type: "text", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
-                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    ConversationId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChatMessages_AspNetUsers_UserId",
+                        name: "FK_UserChats_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ChatMessages_Conversations_ConversationId",
-                        column: x => x.ConversationId,
-                        principalTable: "Conversations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserConversations",
-                columns: table => new
-                {
-                    ConversationId = table.Column<int>(type: "integer", nullable: false),
-                    User1Id = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserConversations", x => new { x.ConversationId, x.User1Id });
-                    table.ForeignKey(
-                        name: "FK_UserConversations_AspNetUsers_User1Id",
-                        column: x => x.User1Id,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserConversations_Conversations_ConversationId",
-                        column: x => x.ConversationId,
+                        name: "FK_UserChats_Conversations_ChatId",
+                        column: x => x.ChatId,
                         principalTable: "Conversations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -453,6 +452,70 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RequestItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "numeric", nullable: false),
+                    SupportTypeId = table.Column<int>(type: "integer", nullable: false),
+                    HelpRequestId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RequestItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RequestItems_HelpRequests_HelpRequestId",
+                        column: x => x.HelpRequestId,
+                        principalTable: "HelpRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RequestItems_SupportTypes_SupportTypeId",
+                        column: x => x.SupportTypeId,
+                        principalTable: "SupportTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PostComments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    PostId = table.Column<int>(type: "integer", nullable: false),
+                    RequestId = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    Text = table.Column<string>(type: "text", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PostComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PostComments_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostComments_HelpRequests_RequestId",
+                        column: x => x.RequestId,
+                        principalTable: "HelpRequests",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostComments_Posts_PostId",
+                        column: x => x.PostId,
+                        principalTable: "Posts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PostLikes",
                 columns: table => new
                 {
@@ -492,35 +555,6 @@ namespace SupportWay.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "RequestItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Quantity = table.Column<int>(type: "integer", nullable: false),
-                    UnitPrice = table.Column<decimal>(type: "numeric", nullable: false),
-                    SupportTypeId = table.Column<int>(type: "integer", nullable: false),
-                    HelpRequestId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RequestItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_RequestItems_HelpRequests_HelpRequestId",
-                        column: x => x.HelpRequestId,
-                        principalTable: "HelpRequests",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RequestItems_SupportTypes_SupportTypeId",
-                        column: x => x.SupportTypeId,
-                        principalTable: "SupportTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -553,24 +587,24 @@ namespace SupportWay.Data.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_ChatId",
+                table: "AspNetUsers",
+                column: "ChatId");
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatMessages_ConversationId",
+                name: "IX_ChatMessages_ChatId",
                 table: "ChatMessages",
-                column: "ConversationId");
+                column: "ChatId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_UserId",
                 table: "ChatMessages",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Conversations_UserId",
-                table: "Conversations",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -614,6 +648,21 @@ namespace SupportWay.Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PostComments_PostId",
+                table: "PostComments",
+                column: "PostId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostComments_RequestId",
+                table: "PostComments",
+                column: "RequestId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostComments_UserId",
+                table: "PostComments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PostLikes_HelpRequestId",
                 table: "PostLikes",
                 column: "HelpRequestId");
@@ -654,9 +703,9 @@ namespace SupportWay.Data.Migrations
                 column: "SupportTypeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserConversations_User1Id",
-                table: "UserConversations",
-                column: "User1Id");
+                name: "IX_UserChats_UserId",
+                table: "UserChats",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -687,6 +736,9 @@ namespace SupportWay.Data.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
+                name: "PostComments");
+
+            migrationBuilder.DropTable(
                 name: "PostLikes");
 
             migrationBuilder.DropTable(
@@ -696,7 +748,7 @@ namespace SupportWay.Data.Migrations
                 name: "RequestItems");
 
             migrationBuilder.DropTable(
-                name: "UserConversations");
+                name: "UserChats");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -717,7 +769,7 @@ namespace SupportWay.Data.Migrations
                 name: "SupportTypes");
 
             migrationBuilder.DropTable(
-                name: "Conversations");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Locations");
@@ -726,7 +778,7 @@ namespace SupportWay.Data.Migrations
                 name: "RequestStatuses");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Conversations");
         }
     }
 }

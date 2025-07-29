@@ -20,11 +20,12 @@ namespace SupportWay.Data.Context
         public DbSet<SupportType> SupportTypes { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
+        public DbSet<PostComment> PostComments { get; set; }
         public DbSet<Follow> Follows { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentProvider> PaymentProviders { get; set; }
         public DbSet<PaymentStatus> PaymentStatuses { get; set; }
-        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Chat> Conversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
 
 
@@ -85,14 +86,14 @@ namespace SupportWay.Data.Context
                 .HasForeignKey(p => p.PaymentProviderId);
 
             modelBuilder.Entity<ChatMessage>()
-                .HasOne(m => m.Conversation)
+                .HasOne(m => m.Chat)
                 .WithMany(c => c.Messages)
-                .HasForeignKey(m => m.ConversationId);
+                .HasForeignKey(m => m.ChatId);
 
-            modelBuilder.Entity<Conversation>()
+            modelBuilder.Entity<Chat>()
                 .HasMany<User>()
                 .WithMany()
-                .UsingEntity(j => j.ToTable("UserConversations"));
+                .UsingEntity(j => j.ToTable("UserChats"));
 
             modelBuilder.Entity<Post>()
                 .HasOne(p => p.User)
@@ -135,7 +136,26 @@ namespace SupportWay.Data.Context
                 .HasForeignKey(pl => pl.RequestId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<PostComment>()
+                .HasKey(c => c.Id);
 
+            modelBuilder.Entity<PostComment>()
+                .HasOne(c => c.Post)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PostComment>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PostComment>()
+                .HasOne(c => c.Request)
+                .WithMany(p => p.Comments)
+                .HasForeignKey(c => c.RequestId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
     }

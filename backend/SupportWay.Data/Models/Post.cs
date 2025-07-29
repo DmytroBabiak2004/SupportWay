@@ -16,6 +16,7 @@ namespace SupportWay.Data.Models
         public string UserId { get; set; }
         public User User { get; set; }
         public ICollection<PostLike> Likes { get; set; }
+        public ICollection<PostComment> Comments { get; set; }
 
     }
 

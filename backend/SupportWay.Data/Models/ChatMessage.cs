@@ -16,8 +16,8 @@ namespace SupportWay.Data.Models
         public DateTime SentAt { get; set; }
         public string UserId { get; set; }
         public User User { get; set; }
-        public int ConversationId { get; set; }
-        public Conversation Conversation { get; set; }
+        public int ChatId { get; set; }
+        public Chat Chat { get; set; }
     }
 
 }

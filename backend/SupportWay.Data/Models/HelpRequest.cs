@@ -24,6 +24,7 @@ namespace SupportWay.Data.Models
         public ICollection<RequestItem> RequestItems { get; set; }
         public ICollection<Payment> Payments { get; set; }
         public ICollection<PostLike> Likes { get; set; }
+        public ICollection<PostComment> Comments { get; set; }
 
     }
 
