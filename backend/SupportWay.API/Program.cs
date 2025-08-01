@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SupportWay.API.Services;
+using SupportWay.API.Services.Implementations;
+using SupportWay.API.Services.Interface;
 using SupportWay.Data.Context;
-using SupportWay.API;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,12 +54,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Налаштування DbContext
-var connectionString = builder.Configuration.GetConnectionString("PersonItDb");
+var connectionString = builder.Configuration.GetConnectionString("SupportWayDB");
 
 builder.Services.AddDbContext<SupportWayContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDb"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDB"));
 });
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 // Налаштування Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
@@ -77,7 +80,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    });
     app.UseCors("AllowAll");
 }
 else

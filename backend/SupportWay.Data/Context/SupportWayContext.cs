@@ -2,13 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
-using System.Data;
+using SupportWay.Data.Configurations;
 
 namespace SupportWay.Data.Context
 {
-    public class SupportWayContext : IdentityDbContext<User>
-
+    public class SupportWayContext : IdentityDbContext<IdentityUser>
     {
         public SupportWayContext(DbContextOptions<SupportWayContext> options) : base(options) { }
 
@@ -27,136 +25,21 @@ namespace SupportWay.Data.Context
         public DbSet<PaymentStatus> PaymentStatuses { get; set; }
         public DbSet<Chat> Conversations { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
-
-
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Profile>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Profiles)
-                .HasForeignKey(p => p.UserId);
-
-            modelBuilder.Entity<HelpRequest>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.HelpRequests)
-                .HasForeignKey(r => r.CreatedById);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Payments)
-                .HasForeignKey(p => p.UserId);
-
-            modelBuilder.Entity<HelpRequest>()
-                .HasOne(r => r.Location)
-                .WithMany()
-                .HasForeignKey(r => r.LocationId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<HelpRequest>()
-                .HasOne(r => r.RequestStatus)
-                .WithMany()
-                .HasForeignKey(r => r.RequestStatusId);
-
-            modelBuilder.Entity<RequestItem>()
-                .HasOne(i => i.HelpRequest)
-                .WithMany(r => r.RequestItems)
-                .HasForeignKey(i => i.HelpRequestId);
-
-            modelBuilder.Entity<RequestItem>()
-                .HasOne(i => i.SupportType)
-                .WithMany()
-                .HasForeignKey(i => i.SupportTypeId);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.HelpRequest)
-                .WithMany(r => r.Payments)
-                .HasForeignKey(p => p.HelpRequestId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.PaymentStatus)
-                .WithMany(s => s.Payments)
-                .HasForeignKey(p => p.PaymentStatusId);
-
-            modelBuilder.Entity<Payment>()
-                .HasOne(p => p.PaymentProvider)
-                .WithMany(pp => pp.Payments)
-                .HasForeignKey(p => p.PaymentProviderId);
-
-            modelBuilder.Entity<ChatMessage>()
-                .HasOne(m => m.Chat)
-                .WithMany(c => c.Messages)
-                .HasForeignKey(m => m.ChatId);
-
-            modelBuilder.Entity<Chat>()
-                .HasMany<User>()
-                .WithMany()
-                .UsingEntity(j => j.ToTable("UserChats"));
-
-            modelBuilder.Entity<Post>()
-                .HasOne(p => p.User)
-                .WithMany(u => u.Posts)
-                .HasForeignKey(p => p.UserId);
-
-            modelBuilder.Entity<Follow>()
-                .HasKey(f => new { f.FollowerId, f.FollowedId });
-
-            modelBuilder.Entity<Follow>()
-                .HasOne(f => f.Follower)
-                .WithMany(u => u.Followings)
-                .HasForeignKey(f => f.FollowerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Follow>()
-                .HasOne(f => f.Followed)
-                .WithMany(u => u.Followers)
-                .HasForeignKey(f => f.FollowedId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-           modelBuilder.Entity<PostLike>()
-                .HasKey(pl => pl.Id);
-
-            modelBuilder.Entity<PostLike>()
-                .HasOne(pl => pl.User)
-                .WithMany()
-                .HasForeignKey(pl => pl.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PostLike>()
-                .HasOne(pl => pl.Post)
-                .WithMany(p => p.Likes)
-                .HasForeignKey(pl => pl.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PostLike>()
-                .HasOne(pl => pl.HelpRequest)
-                .WithMany()
-                .HasForeignKey(pl => pl.RequestId)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<PostComment>()
-                .HasKey(c => c.Id);
-
-            modelBuilder.Entity<PostComment>()
-                .HasOne(c => c.Post)
-                .WithMany(p => p.Comments)
-                .HasForeignKey(c => c.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PostComment>()
-                .HasOne(c => c.User)
-                .WithMany()
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PostComment>()
-                .HasOne(c => c.Request)
-                .WithMany(p => p.Comments)
-                .HasForeignKey(c => c.RequestId)
-                .OnDelete(DeleteBehavior.Cascade);
-
+            modelBuilder.ApplyConfiguration(new ChatConfiguration());
+            modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
+            modelBuilder.ApplyConfiguration(new FollowConfiguration());
+            modelBuilder.ApplyConfiguration(new PaymentConfiguration());
+            modelBuilder.ApplyConfiguration(new PostConfiguration());
+            modelBuilder.ApplyConfiguration(new HelpRequestConfiguration());
+            modelBuilder.ApplyConfiguration(new PostLikeConfiguration());
+            modelBuilder.ApplyConfiguration(new PostCommentConfiguration());
+            modelBuilder.ApplyConfiguration(new ProfileConfiguration());
+            modelBuilder.ApplyConfiguration(new RequestItemConfiguration());
         }
     }
 }
