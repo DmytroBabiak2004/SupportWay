@@ -5,10 +5,10 @@ using SupportWay.Data.Repositories.Interfaces;
 
 namespace SupportWay.Data.Repositories.Implementations
 {
-    public class PostLikeRepository : IPostLikeRepoository
+    public class PostLikesRepository : IPostLikesRepoository
     {
         private readonly SupportWayContext _context;
-        public PostLikeRepository(SupportWayContext context) 
+        public PostLikesRepository(SupportWayContext context) 
         {
             _context = context;
         }

@@ -9,8 +9,8 @@ namespace SupportWay.Data.Configurations
         public void Configure(EntityTypeBuilder<Profile> builder)
         {
             builder.HasOne(p => p.User)
-                   .WithMany(u => u.Profiles)
-                   .HasForeignKey(p => p.UserId);
+                   .WithOne(u => u.Profile)
+                   .HasForeignKey<Profile>(p => p.UserId);
         }
     }
 }

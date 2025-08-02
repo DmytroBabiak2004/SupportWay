@@ -9,8 +9,8 @@ namespace SupportWay.Data.Models
 {
     public class User : IdentityUser
     {
-        public ICollection<Profile> Profiles { get; set; }
-        public ICollection<HelpRequest> HelpRequests { get; set; }
+        public int ProfileId { get; set; }
+        public Profile Profile { get; set; }
         public ICollection<Payment> Payments { get; set; }
         public ICollection<Post> Posts { get; set; }
         public virtual ICollection<Follow> Followings { get; set; } 

@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SupportWay.API.Services;
-using SupportWay.API.Services.Implementations;
-using SupportWay.API.Services.Interface;
 using SupportWay.Data.Context;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,7 +58,6 @@ builder.Services.AddDbContext<SupportWayContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDB"));
 });
-builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Налаштування Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>

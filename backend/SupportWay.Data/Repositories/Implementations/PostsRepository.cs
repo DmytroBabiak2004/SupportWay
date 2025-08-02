@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SupportWay.Data.Repositories.Implementations
 {
-    public class PostRepository : IPostRepository
+    public class PostsRepository : IPostRepository
     {
         private readonly SupportWayContext _context;
 
-        public PostRepository(SupportWayContext context)
+        public PostsRepository(SupportWayContext context)
         {
             _context = context;
         }

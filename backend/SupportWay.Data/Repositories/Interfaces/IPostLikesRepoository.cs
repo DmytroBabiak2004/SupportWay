@@ -2,7 +2,7 @@
 
 namespace SupportWay.Data.Repositories.Interfaces
 {
-    public interface IPostLikeRepoository
+    public interface IPostLikesRepoository
     {
         Task<int> GetLikesCountAsync(int postId);
         Task AddPostLikeAsync(int postId, string userId);

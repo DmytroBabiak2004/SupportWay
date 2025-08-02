@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using SupportWay.Data.Models;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
-
+using SupportWay.Data.Models;
 
 namespace SupportWay.Data.Configurations
 {
@@ -12,8 +9,12 @@ namespace SupportWay.Data.Configurations
         public void Configure(EntityTypeBuilder<Post> builder)
         {
             builder.HasOne(p => p.User)
-            .WithMany(u => u.Posts)
-            .HasForeignKey(p => p.UserId);
+                .WithMany(u => u.Posts)
+                .HasForeignKey(p => p.UserId);
+
+            builder.HasDiscriminator<string>("PostType")
+                .HasValue<Post>("Post")
+                .HasValue<HelpRequest>("HelpRequest");
         }
     }
 }

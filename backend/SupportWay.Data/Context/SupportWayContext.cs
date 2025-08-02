@@ -23,9 +23,9 @@ namespace SupportWay.Data.Context
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PaymentProvider> PaymentProviders { get; set; }
         public DbSet<PaymentStatus> PaymentStatuses { get; set; }
-        public DbSet<Chat> Conversations { get; set; }
+        public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
-        
+        public DbSet<User> Users { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
