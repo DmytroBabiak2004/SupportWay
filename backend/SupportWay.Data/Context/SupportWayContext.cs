@@ -6,7 +6,7 @@ using SupportWay.Data.Configurations;
 
 namespace SupportWay.Data.Context
 {
-    public class SupportWayContext : IdentityDbContext<IdentityUser>
+    public class SupportWayContext : IdentityDbContext<User>
     {
         public SupportWayContext(DbContextOptions<SupportWayContext> options) : base(options) { }
 
@@ -40,6 +40,13 @@ namespace SupportWay.Data.Context
             modelBuilder.ApplyConfiguration(new PostCommentConfiguration());
             modelBuilder.ApplyConfiguration(new ProfileConfiguration());
             modelBuilder.ApplyConfiguration(new RequestItemConfiguration());
+
+            modelBuilder.Entity<IdentityRole>().HasData(
+              new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },
+              new IdentityRole { Id = "2", Name = "User", NormalizedName = "USER" },
+              new IdentityRole { Id = "3", Name = "Volunteer", NormalizedName = "VOLUNTEER" },
+              new IdentityRole { Id = "4", Name = "Military", NormalizedName = "MILITARY" }
+          );
         }
     }
 }

@@ -17,15 +17,6 @@ namespace SupportWay.Data.Configurations
                 .HasForeignKey(c => c.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(c => c.User)
-                .WithMany()
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne(c => c.Request)
-                .WithMany(p => p.Comments)
-                .HasForeignKey(c => c.RequestId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

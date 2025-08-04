@@ -5,11 +5,11 @@ using SupportWay.Data.Repositories.Interfaces;
 
 namespace SupportWay.Data.Repositories.Implementations
 {
-    public class ProfileRepository : IProfileRepository
+    public class ProfilesRepository : IProfilesRepository
     {
         private readonly SupportWayContext _context;
 
-        public ProfileRepository(SupportWayContext context)
+        public ProfilesRepository(SupportWayContext context)
         {
             _context = context;
         }

@@ -19,11 +19,10 @@ namespace SupportWay.Data.Repositories.Implementations
             _context = context;
         }
         public async Task<List<User>> SearchUsersByNameAsync(string name)
-        {
+        {        
             return await _context.Users
-                    .Include(u => u.Profile) 
                 .Where(u => u.UserName.Contains(name))
-                .ToListAsync();
+                .ToListAsync(); ;
         }
     }
 }

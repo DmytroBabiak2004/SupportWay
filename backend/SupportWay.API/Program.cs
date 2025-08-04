@@ -1,13 +1,31 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SupportWay.API.Services;
+using SupportWay.API.Services.Implementations;
+using SupportWay.API.Services.Interface;
+using SupportWay.Core.Services;
 using SupportWay.Data.Context;
+using SupportWay.Services.Implementations;
+using SupportWay.Services.Interfaces;
+using SupportWay.Services;
+using SupportWay.Data.Repositories.Implementations;
+using SupportWay.Data.Repositories.Interfaces;
+using SupportWay.Data.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "SupportWay API", Version = "v1" });
+
+    c.SupportNonNullableReferenceTypes(); 
+
+    c.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
+    });
+
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
@@ -32,6 +50,29 @@ builder.Services.AddSwaggerGen(c =>
      });
 });
 
+builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
+builder.Services.AddScoped<IFollowRepository, FollowsRepository>();
+builder.Services.AddScoped<IRequestStatusesRepository, RequestStatusesRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
+builder.Services.AddScoped<IPostCommentsRepository, PostCommentsRepository>();
+builder.Services.AddScoped<IPostLikesRepoository, PostLikesRepository>();
+builder.Services.AddScoped<IPostRepository, PostsRepository>();
+builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
+builder.Services.AddScoped<IRequestItemsRepository, RequestItemsRepository>();
+builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+
+
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IFollowService, FollowService>();
+builder.Services.AddScoped<IHelpRequestService, HelpRequestService>();
+builder.Services.AddScoped<IPostCommentService, PostCommentService>();
+builder.Services.AddScoped<IPostLikeService, PostLikeService>();
+builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IRequestItemService, RequestItemService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddCors(options =>
@@ -49,7 +90,6 @@ builder.Services.AddCors(options =>
 // Додаємо сервіси
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // Налаштування DbContext
 var connectionString = builder.Configuration.GetConnectionString("SupportWayDB");
@@ -60,7 +100,7 @@ builder.Services.AddDbContext<SupportWayContext>(options =>
 });
 
 // Налаштування Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 6;

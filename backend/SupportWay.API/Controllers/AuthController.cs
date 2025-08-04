@@ -6,6 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using SupportWay.API.Models;
+using SupportWay.Data.Models;
 
 namespace SupportWay.API.Controllers
 {
@@ -13,13 +14,13 @@ namespace SupportWay.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
 
         public AuthController(
-            UserManager<IdentityUser> userManager,
-            SignInManager<IdentityUser> signInManager,
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
             IConfiguration configuration)
         {
             _userManager = userManager;
@@ -35,7 +36,7 @@ namespace SupportWay.API.Controllers
                 return BadRequest("Invalid registration data");
             }
 
-            var user = new IdentityUser { UserName = request.Username };
+            var user = new User { UserName = request.Username };
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
@@ -105,7 +106,7 @@ namespace SupportWay.API.Controllers
             });
         }
 
-        private async Task<string> GenerateJwtToken(IdentityUser user)
+        private async Task<string> GenerateJwtToken(User user)
         {
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
 

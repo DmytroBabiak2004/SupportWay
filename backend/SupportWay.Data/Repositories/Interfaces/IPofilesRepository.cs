@@ -2,7 +2,7 @@
 
 namespace SupportWay.Data.Repositories.Interfaces
 {
-    public interface IProfileRepository
+    public interface IProfilesRepository
     {
         Task<Profile?> GetByUserIdAsync(string userId);
         Task AddAsync(Profile profile);
