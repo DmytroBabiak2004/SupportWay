@@ -60,7 +60,10 @@ builder.Services.AddScoped<IPostLikesRepoository, PostLikesRepository>();
 builder.Services.AddScoped<IPostRepository, PostsRepository>();
 builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
 builder.Services.AddScoped<IRequestItemsRepository, RequestItemsRepository>();
+builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<ProfileRatingRepository>();
+
 
 
 builder.Services.AddScoped<IChatService, ChatService>();

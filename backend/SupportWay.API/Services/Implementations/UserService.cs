@@ -1,11 +1,14 @@
 ﻿using SupportWay.API.DTOs;
+using SupportWay.Data.Context;
 using SupportWay.Data.Repositories.Interfaces;
+using SupportWay.Repositories;
 
 namespace SupportWay.Services
 {
     public class UserService : IUserService
     {
         private readonly IUsersRepository _usersRepository;
+       
 
         public UserService(IUsersRepository usersRepository)
         {
@@ -19,8 +22,7 @@ namespace SupportWay.Services
             {
                 Id = u.Id,
                 UserName = u.UserName,
-                Email = u.Email,
-                ProfileId = u.ProfileId
+                Photo = u.Profile.Photo
             }).ToList();
         }
     }

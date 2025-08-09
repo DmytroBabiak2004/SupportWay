@@ -29,7 +29,7 @@ namespace SupportWay.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetChatById(int id)
+        public async Task<IActionResult> GetChatById(Guid id)
         {
             var chat = await _chatService.GetByIdAsync(id);
             if (chat == null) return NotFound();
@@ -48,14 +48,14 @@ namespace SupportWay.Api.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChat(int id)
+        public async Task<IActionResult> DeleteChat(Guid id)
         {
             await _chatService.DeleteChatAsync(id);
             return NoContent();
         }
 
         [HttpGet("{id}/is-user-in-chat")]
-        public async Task<IActionResult> IsUserInChat(int id)
+        public async Task<IActionResult> IsUserInChat(Guid id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();

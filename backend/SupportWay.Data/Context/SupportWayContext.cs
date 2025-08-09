@@ -9,7 +9,8 @@ namespace SupportWay.Data.Context
     public class SupportWayContext : IdentityDbContext<User>
     {
         public SupportWayContext(DbContextOptions<SupportWayContext> options) : base(options) { }
-
+        public DbSet<DefaultAvatar> DefaultAvatars { get; set; }
+        public DbSet<ProfileRating> ProfileRatings { get; set; }
         public DbSet<Profile> Profiles { get; set; }
         public DbSet<HelpRequest> HelpRequests { get; set; }
         public DbSet<RequestItem> RequestItems { get; set; }
@@ -26,6 +27,7 @@ namespace SupportWay.Data.Context
         public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<User> Users { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -40,6 +42,7 @@ namespace SupportWay.Data.Context
             modelBuilder.ApplyConfiguration(new PostCommentConfiguration());
             modelBuilder.ApplyConfiguration(new ProfileConfiguration());
             modelBuilder.ApplyConfiguration(new RequestItemConfiguration());
+            modelBuilder.ApplyConfiguration(new ProfileRatingConfiguration());
 
             modelBuilder.Entity<IdentityRole>().HasData(
               new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },

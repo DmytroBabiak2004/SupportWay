@@ -16,14 +16,14 @@ namespace SupportWay.API.Controllers
         }
 
         [HttpGet("by-helprequest/{helpRequestId}")]
-        public async Task<IActionResult> GetByHelpRequestId(int helpRequestId)
+        public async Task<IActionResult> GetByHelpRequestId(Guid helpRequestId)
         {
             var items = await _service.GetByHelpRequestIdAsync(helpRequestId);
             return Ok(items);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(Guid id)
         {
             var item = await _service.GetByIdAsync(id);
             return item == null ? NotFound() : Ok(item);
@@ -37,7 +37,7 @@ namespace SupportWay.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, RequestItem item)
+        public async Task<IActionResult> Update(Guid id, RequestItem item)
         {
             if (id != item.Id)
                 return BadRequest("ID in URL does not match ID in body");
@@ -47,7 +47,7 @@ namespace SupportWay.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _service.DeleteAsync(id);
             return NoContent();

@@ -13,25 +13,10 @@ namespace SupportWay.API.Services.Implementations
             _commentRepo = commentRepo;
         }
 
-        public async Task<IEnumerable<PostCommentDto>> GetCommentsByPostAsync(int postId)
+        public async Task<IEnumerable<PostCommentDto>> GetCommentsByPostAsync(Guid postId)
         {
             var comments = await _commentRepo.GetCommentsByPostAsync(postId);
             return comments.Select(c => new PostCommentDto
-            {
-                Id = c.Id,
-                UserId = c.UserId,
-                UserName = c.User.UserName,
-                Text = c.Text,
-                CreatedAt = c.CreatedAt
-            });
-        }
-
-        public async Task<IEnumerable<PostCommentDto>> GetCommentsByRequestAsync(int requestId)
-        {
-            var allComments = await _commentRepo.GetCommentsByUserAsync(""); // оптимізуй при потребі
-            var filtered = allComments.Where(c => c.RequestId == requestId);
-
-            return filtered.Select(c => new PostCommentDto
             {
                 Id = c.Id,
                 UserId = c.UserId,
@@ -46,8 +31,7 @@ namespace SupportWay.API.Services.Implementations
             var comment = new PostComment
             {
                 UserId = userId,
-                PostId = dto.PostId ?? 0,
-                RequestId = dto.RequestId ?? 0,
+                PostId = dto.PostId,
                 Text = dto.Text,
                 CreatedAt = DateTime.UtcNow
             };
@@ -55,7 +39,7 @@ namespace SupportWay.API.Services.Implementations
             await _commentRepo.AddCommentAsync(comment);
         }
 
-        public async Task DeleteCommentAsync(int commentId, string userId)
+        public async Task DeleteCommentAsync(Guid commentId, string userId)
         {
             var comment = await _commentRepo.GetCommentByIdAsync(commentId);
             if (comment == null || comment.UserId != userId)

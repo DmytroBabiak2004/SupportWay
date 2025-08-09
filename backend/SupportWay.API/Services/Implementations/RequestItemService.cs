@@ -12,10 +12,10 @@ namespace SupportWay.Services
             _repository = repository;
         }
 
-        public Task<IEnumerable<RequestItem>> GetByHelpRequestIdAsync(int helpRequestId) =>
+        public Task<IEnumerable<RequestItem>> GetByHelpRequestIdAsync(Guid helpRequestId) =>
             _repository.GetByHelpRequestIdAsync(helpRequestId);
 
-        public Task<RequestItem> GetByIdAsync(int id) =>
+        public Task<RequestItem> GetByIdAsync(Guid id) =>
             _repository.GetByIdAsync(id);
 
         public Task AddAsync(RequestItem item) =>
@@ -24,7 +24,7 @@ namespace SupportWay.Services
         public Task UpdateAsync(RequestItem item) =>
             _repository.UpdateAsync(item);
 
-        public Task DeleteAsync(int id) =>
+        public Task DeleteAsync(Guid id) =>
             _repository.DeleteAsync(id);
     }
 }

@@ -23,7 +23,7 @@ public class HelpRequestsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         var result = await _service.GetHelpRequestByIdAsync(id);
         return result is null ? NotFound() : Ok(result);
@@ -38,7 +38,7 @@ public class HelpRequestsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         await _service.DeleteHelpRequestAsync(id);
         return NoContent();

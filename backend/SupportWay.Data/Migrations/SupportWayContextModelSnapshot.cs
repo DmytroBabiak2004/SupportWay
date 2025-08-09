@@ -24,8 +24,8 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("ChatUser", b =>
                 {
-                    b.Property<int>("ChatId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
                         .HasColumnType("text");
@@ -197,11 +197,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Chat", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -217,14 +215,12 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.ChatMessage", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChatId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ChatId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("boolean");
@@ -253,6 +249,21 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("ChatMessages");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.DefaultAvatar", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DefaultAvatars");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.Follow", b =>
                 {
                     b.Property<string>("FollowerId")
@@ -273,11 +284,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Location", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -302,11 +311,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Payment", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("numeric");
@@ -318,14 +325,14 @@ namespace SupportWay.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("HelpRequestId")
-                        .HasColumnType("integer");
+                    b.Property<Guid?>("HelpRequestId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("PaymentProviderId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PaymentProviderId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("PaymentStatusId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PaymentStatusId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("TransactionId")
                         .IsRequired()
@@ -350,11 +357,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.PaymentProvider", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("NameOfProvider")
                         .IsRequired()
@@ -367,11 +372,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.PaymentStatus", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("NameOfStatus")
                         .IsRequired()
@@ -384,11 +387,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Post", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -426,20 +427,15 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.PostComment", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RequestId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -453,8 +449,6 @@ namespace SupportWay.Data.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.HasIndex("RequestId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("PostComments");
@@ -462,20 +456,15 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.PostLike", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("LikedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RequestId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PostId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -485,8 +474,6 @@ namespace SupportWay.Data.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.HasIndex("RequestId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("PostLikes");
@@ -494,11 +481,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Profile", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -510,9 +495,6 @@ namespace SupportWay.Data.Migrations
                     b.Property<byte[]>("Photo")
                         .IsRequired()
                         .HasColumnType("bytea");
-
-                    b.Property<double>("Rating")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -526,16 +508,48 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("Profiles");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.ProfileRating", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("RatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("RatedProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RaterUserId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId");
+
+                    b.HasIndex("RatedProfileId");
+
+                    b.HasIndex("RaterUserId", "RatedProfileId")
+                        .IsUnique();
+
+                    b.ToTable("ProfileRatings");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.RequestItem", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("HelpRequestId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("HelpRequestId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -544,8 +558,8 @@ namespace SupportWay.Data.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SupportTypeId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("SupportTypeId")
+                        .HasColumnType("uuid");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("numeric");
@@ -561,11 +575,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.RequestStatus", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("NameOfStatus")
                         .IsRequired()
@@ -579,11 +591,9 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.SupportType", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("NameOfType")
                         .IsRequired()
@@ -603,8 +613,8 @@ namespace SupportWay.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ChatId")
-                        .HasColumnType("integer");
+                    b.Property<Guid?>("ChatId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -640,8 +650,8 @@ namespace SupportWay.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("ProfileId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
@@ -671,11 +681,11 @@ namespace SupportWay.Data.Migrations
                 {
                     b.HasBaseType("SupportWay.Data.Models.Post");
 
-                    b.Property<int>("LocationId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("RequestStatusId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("RequestStatusId")
+                        .HasColumnType("uuid");
 
                     b.HasIndex("LocationId");
 
@@ -841,12 +851,6 @@ namespace SupportWay.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SupportWay.Data.Models.HelpRequest", "Request")
-                        .WithMany()
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SupportWay.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -854,8 +858,6 @@ namespace SupportWay.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Post");
-
-                    b.Navigation("Request");
 
                     b.Navigation("User");
                 });
@@ -868,19 +870,11 @@ namespace SupportWay.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SupportWay.Data.Models.HelpRequest", "HelpRequest")
-                        .WithMany()
-                        .HasForeignKey("RequestId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
-
                     b.HasOne("SupportWay.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("HelpRequest");
 
                     b.Navigation("Post");
 
@@ -896,6 +890,29 @@ namespace SupportWay.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.ProfileRating", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.Profile", null)
+                        .WithMany("ProfileRatings")
+                        .HasForeignKey("ProfileId");
+
+                    b.HasOne("SupportWay.Data.Models.Profile", "RatedProfile")
+                        .WithMany()
+                        .HasForeignKey("RatedProfileId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.User", "RaterUser")
+                        .WithMany()
+                        .HasForeignKey("RaterUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("RatedProfile");
+
+                    b.Navigation("RaterUser");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.RequestItem", b =>
@@ -965,6 +982,11 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Likes");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.Profile", b =>
+                {
+                    b.Navigation("ProfileRatings");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.User", b =>

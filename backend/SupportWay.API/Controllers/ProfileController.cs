@@ -45,30 +45,30 @@ namespace SupportWay.Api.Controllers
             return Ok(profile);
         }
 
-        [HttpPut("description")]
-        public async Task<IActionResult> UpdateDescription([FromBody] string description)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _profileService.UpdateDescriptionAsync(userId, description);
-            return NoContent();
-        }
+        //[HttpPut("description")]
+        //public async Task<IActionResult> UpdateDescription([FromBody] string description)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    await _profileService.UpdateDescriptionAsync(userId, description);
+        //    return NoContent();
+        //}
 
-        [HttpPut("photo")]
-        [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UpdatePhoto([FromForm] IFormFile photo)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //[HttpPut("photo")]
+        //[Consumes("multipart/form-data")]
+        //public async Task<IActionResult> UpdatePhoto([FromForm] IFormFile photo)
+        //{
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (photo == null || photo.Length == 0)
-                return BadRequest("Photo file is missing.");
+        //    if (photo == null || photo.Length == 0)
+        //        return BadRequest("Photo file is missing.");
 
-            using var memoryStream = new MemoryStream();
-            await photo.CopyToAsync(memoryStream);
-            var photoBytes = memoryStream.ToArray();
+        //    using var memoryStream = new MemoryStream();
+        //    await photo.CopyToAsync(memoryStream);
+        //    var photoBytes = memoryStream.ToArray();
 
-            await _profileService.UpdatePhotoAsync(userId, photoBytes);
-            return NoContent();
-        }
+        //    await _profileService.UpdatePhotoAsync(userId, photoBytes);
+        //    return NoContent();
+        //}
 
     }
 }

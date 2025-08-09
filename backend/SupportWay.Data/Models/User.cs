@@ -9,7 +9,7 @@ namespace SupportWay.Data.Models
 {
     public class User : IdentityUser
     {
-        public int ProfileId { get; set; }
+        public Guid ProfileId { get; set; }
         public Profile Profile { get; set; }
         public ICollection<Payment> Payments { get; set; }
         public ICollection<Post> Posts { get; set; }

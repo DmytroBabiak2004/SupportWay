@@ -8,10 +8,12 @@ namespace SupportWay.Data.Repositories.Implementations
     public class ProfilesRepository : IProfilesRepository
     {
         private readonly SupportWayContext _context;
+        private readonly ProfileRatingRepository _ratingRepository;
 
-        public ProfilesRepository(SupportWayContext context)
+        public ProfilesRepository(SupportWayContext context, ProfileRatingRepository ratingRepository)
         {
             _context = context;
+            _ratingRepository = ratingRepository;
         }
 
         public async Task<Profile?> GetByUserIdAsync(string userId)
@@ -50,6 +52,19 @@ namespace SupportWay.Data.Repositories.Implementations
             profile.Photo = photo;
             _context.Profiles.Update(profile);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<double?> GetProfileRatingAsync(Guid ratedProfileId)
+        {
+            return await _ratingRepository.GetAverageRatingAsync(ratedProfileId);
+        }
+
+        public async Task RateProfileAsync(string raterUserId, Guid ratedProfileId, int value)
+        {
+            if (value < 1 || value > 10)
+                throw new ArgumentOutOfRangeException(nameof(value), "Rating must be between 1 and 10.");
+
+            await _ratingRepository.RateProfileAsync(raterUserId, ratedProfileId, value);
         }
     }
 }

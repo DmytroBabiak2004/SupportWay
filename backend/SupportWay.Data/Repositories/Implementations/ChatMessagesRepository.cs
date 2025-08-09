@@ -12,7 +12,7 @@ public class ChatMessageRepository : IChatMessagesRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<ChatMessage>> GetMessagesByChatIdAsync(int chatId)
+    public async Task<IEnumerable<ChatMessage>> GetMessagesByChatIdAsync(Guid chatId)
     {
         return await _context.ChatMessages
             .Where(m => m.ChatId == chatId)
@@ -20,7 +20,7 @@ public class ChatMessageRepository : IChatMessagesRepository
             .ToListAsync();
     }
 
-    public async Task<ChatMessage?> GetByIdAsync(int messageId)
+    public async Task<ChatMessage?> GetByIdAsync(Guid messageId)
     {
         return await _context.ChatMessages.FirstOrDefaultAsync(m => m.Id == messageId);
     }
@@ -31,7 +31,7 @@ public class ChatMessageRepository : IChatMessagesRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task MarkAsReadAsync(int messageId)
+    public async Task MarkAsReadAsync(Guid messageId)
     {
         var message = await _context.ChatMessages.FindAsync(messageId);
         if (message != null && !message.IsRead)

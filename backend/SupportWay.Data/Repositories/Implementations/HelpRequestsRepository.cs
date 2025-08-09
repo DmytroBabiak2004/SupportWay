@@ -17,7 +17,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         await _context.HelpRequests.AddAsync(helpRequest);
     }
 
-    public async Task DeleteHelpRequestAsync(int id)
+    public async Task DeleteHelpRequestAsync(Guid id)
     {
         var helpRequest = await _context.HelpRequests.FindAsync(id);
         if (helpRequest != null)
@@ -27,7 +27,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         }
     }
 
-    public async Task<HelpRequest?> GetHelpRequestByIdAsync(int helpRequestId)
+    public async Task<HelpRequest?> GetHelpRequestByIdAsync(Guid helpRequestId)
     {
         return await _context.HelpRequests
             .Include(h => h.User)

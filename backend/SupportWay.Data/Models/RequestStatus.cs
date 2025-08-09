@@ -10,7 +10,7 @@ namespace SupportWay.Data.Models
     public class RequestStatus
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [MaxLength(100)]
         public string NameOfStatus { get; set; }
     }

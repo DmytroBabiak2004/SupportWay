@@ -14,7 +14,7 @@ namespace SupportWay.Data.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<Location> GetByIdAsync(int id)
+        public async Task<Location> GetByIdAsync(Guid id)
         {
             return await _context.Locations.FindAsync(id);
         }
@@ -36,7 +36,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var location = await _context.Locations.FindAsync(id);
             if (location != null)

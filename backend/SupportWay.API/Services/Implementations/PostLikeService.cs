@@ -22,7 +22,7 @@ namespace SupportWay.Core.Services
             await _postLikesRepo.DeletePostLikeAsync(dto.PostId, dto.UserId);
         }
 
-        public async Task<int> GetLikesCountAsync(int postId)
+        public async Task<int> GetLikesCountAsync(Guid postId)
         {
             return await _postLikesRepo.GetLikesCountAsync(postId);
         }

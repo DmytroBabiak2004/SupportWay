@@ -14,7 +14,7 @@ namespace SupportWay.Data.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<Payment> GetByIdAsync(int id)
+        public async Task<Payment> GetByIdAsync(Guid id)
         {
             return await _context.Payments
                 .Include(p => p.User)
@@ -43,14 +43,14 @@ namespace SupportWay.Data.Repositories.Implementations
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Payment>> GetByStatusAsync(int statusId)
+        public async Task<IEnumerable<Payment>> GetByStatusAsync(Guid statusId)
         {
             return await _context.Payments
                 .Where(p => p.PaymentStatusId == statusId)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Payment>> GetByProviderAsync(int providerId)
+        public async Task<IEnumerable<Payment>> GetByProviderAsync(Guid providerId)
         {
             return await _context.Payments
                 .Where(p => p.PaymentProviderId == providerId)
@@ -69,7 +69,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var payment = await _context.Payments.FindAsync(id);
             if (payment != null)

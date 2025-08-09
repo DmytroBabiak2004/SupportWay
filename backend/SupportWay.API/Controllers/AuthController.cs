@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using SupportWay.API.Models;
 using SupportWay.Data.Models;
+using SupportWay.API.Services.Interface;
 
 namespace SupportWay.API.Controllers
 {
@@ -17,15 +18,18 @@ namespace SupportWay.API.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
+        private readonly IProfileService _profileService;
 
         public AuthController(
             UserManager<User> userManager,
             SignInManager<User> signInManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IProfileService profileService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _profileService = profileService;
         }
 
         [HttpPost("register")]
@@ -43,6 +47,7 @@ namespace SupportWay.API.Controllers
             {
                 return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
             }
+            await _profileService.AddProfileAsync(user.Id);
 
             if (!string.IsNullOrEmpty(request.Role))
             {

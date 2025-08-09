@@ -33,7 +33,7 @@ public class HelpRequestService : IHelpRequestService
         });
     }
 
-    public async Task<HelpRequestDto?> GetHelpRequestByIdAsync(int id)
+    public async Task<HelpRequestDto?> GetHelpRequestByIdAsync(Guid id)
     {
         var r = await _helpRepo.GetHelpRequestByIdAsync(id);
         if (r == null) return null;
@@ -70,7 +70,7 @@ public class HelpRequestService : IHelpRequestService
         await _helpRepo.AddHelpRequestAsync(helpRequest);
     }
 
-    public async Task DeleteHelpRequestAsync(int id)
+    public async Task DeleteHelpRequestAsync(Guid id)
     {
         await _helpRepo.DeleteHelpRequestAsync(id);
     }

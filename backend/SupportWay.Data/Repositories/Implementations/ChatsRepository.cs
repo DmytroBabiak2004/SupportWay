@@ -13,7 +13,7 @@ public class ChatsRepository : IChatsRepository
         _context = context;
     }
 
-    public async Task<Chat?> GetByIdAsync(int chatId)
+    public async Task<Chat?> GetByIdAsync(Guid chatId)
     {
         return await _context.Chats
             .Include(c => c.Users)
@@ -39,7 +39,7 @@ public class ChatsRepository : IChatsRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> IsUserInChatAsync(int chatId, string userId)
+    public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
     {
         var chat = await _context.Chats
             .Include(c => c.Users)

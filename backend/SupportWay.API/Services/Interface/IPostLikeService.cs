@@ -7,7 +7,7 @@ namespace SupportWay.Core.Services
     {
         public  Task AddLikeAsync(PostLikeDto dto);
         public  Task RemoveLikeAsync(PostLikeDto dto);
-        public  Task<int> GetLikesCountAsync(int postId);
+        public  Task<int> GetLikesCountAsync(Guid postId);
        
     }
 }

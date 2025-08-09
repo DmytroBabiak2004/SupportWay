@@ -20,7 +20,7 @@ namespace SupportWay.Data.Repositories.Implementations
         public async Task<IEnumerable<RequestStatus>> GetAllAsync() =>
             await _context.RequestStatuses.ToListAsync();
 
-        public async Task<RequestStatus> GetByIdAsync(int id) =>
+        public async Task<RequestStatus> GetByIdAsync(Guid id) =>
             await _context.RequestStatuses.FindAsync(id);
 
         public async Task AddAsync(RequestStatus status)
@@ -35,7 +35,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var status = await _context.RequestStatuses.FindAsync(id);
             if (status != null)

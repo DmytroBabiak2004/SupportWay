@@ -1,6 +1,6 @@
 ﻿public class PostCommentDto
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string UserId { get; set; }
     public string UserName { get; set; } 
     public string Text { get; set; }
@@ -9,7 +9,7 @@
 
 public class CreatePostCommentDto
 {
-    public int? PostId { get; set; }
-    public int? RequestId { get; set; }
+    public Guid PostId { get; set; }
+    public Guid RequestId { get; set; }
     public string Text { get; set; }
 }

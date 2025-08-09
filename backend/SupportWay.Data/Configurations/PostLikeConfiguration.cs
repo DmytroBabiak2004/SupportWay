@@ -20,10 +20,6 @@ namespace SupportWay.Data.Configurations
                 .HasForeignKey(pl => pl.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(pl => pl.HelpRequest)
-                .WithMany()
-                .HasForeignKey(pl => pl.RequestId)
-                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

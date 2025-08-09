@@ -13,7 +13,7 @@ namespace SupportWay.Data.Repositories.Implementations
             _context = context;
         }
 
-        public async Task AddPostLikeAsync(int postId, string userId)
+        public async Task AddPostLikeAsync(Guid postId, string userId)
         {
             var like = new PostLike
             {
@@ -25,7 +25,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeletePostLikeAsync(int postId, string userId)
+        public async Task DeletePostLikeAsync(Guid postId, string userId)
         {
             var like = await  _context.PostLikes
                 .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
@@ -36,7 +36,7 @@ namespace SupportWay.Data.Repositories.Implementations
             }
         }
 
-        public async Task<int> GetLikesCountAsync(int postId)
+        public async Task<int> GetLikesCountAsync(Guid postId)
         {
             return await _context.PostLikes
                 .Where(l => l.PostId == postId)

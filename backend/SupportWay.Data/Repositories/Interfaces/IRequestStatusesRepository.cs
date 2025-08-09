@@ -5,9 +5,9 @@ namespace SupportWay.Data.Repositories.Interfaces
     public interface IRequestStatusesRepository
     {
         Task<IEnumerable<RequestStatus>> GetAllAsync();
-        Task<RequestStatus> GetByIdAsync(int id);
+        Task<RequestStatus> GetByIdAsync(Guid id);
         Task AddAsync(RequestStatus status);
         Task UpdateAsync(RequestStatus status);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(Guid id);
     }
 }

@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SupportWay.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,8 +32,7 @@ namespace SupportWay.Data.Migrations
                 name: "Chats",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -43,11 +42,22 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DefaultAvatars",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Image = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DefaultAvatars", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Locations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     DistrictName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Latitude = table.Column<double>(type: "double precision", nullable: true),
@@ -62,8 +72,7 @@ namespace SupportWay.Data.Migrations
                 name: "PaymentProviders",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NameOfProvider = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -75,8 +84,7 @@ namespace SupportWay.Data.Migrations
                 name: "PaymentStatuses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NameOfStatus = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -88,8 +96,7 @@ namespace SupportWay.Data.Migrations
                 name: "RequestStatuses",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NameOfStatus = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
@@ -101,8 +108,7 @@ namespace SupportWay.Data.Migrations
                 name: "SupportTypes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     NameOfType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
@@ -136,8 +142,8 @@ namespace SupportWay.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    ProfileId = table.Column<int>(type: "integer", nullable: false),
-                    ChatId = table.Column<int>(type: "integer", nullable: true),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChatId = table.Column<Guid>(type: "uuid", nullable: true),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -252,14 +258,13 @@ namespace SupportWay.Data.Migrations
                 name: "ChatMessages",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     MessageText = table.Column<string>(type: "text", nullable: false),
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    ChatId = table.Column<int>(type: "integer", nullable: false)
+                    ChatId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -307,16 +312,15 @@ namespace SupportWay.Data.Migrations
                 name: "Posts",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Image = table.Column<byte[]>(type: "bytea", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     PostType = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
-                    LocationId = table.Column<int>(type: "integer", nullable: true),
-                    RequestStatusId = table.Column<int>(type: "integer", nullable: true)
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: true),
+                    RequestStatusId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -345,10 +349,8 @@ namespace SupportWay.Data.Migrations
                 name: "Profiles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Rating = table.Column<double>(type: "double precision", nullable: false),
                     Photo = table.Column<byte[]>(type: "bytea", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false)
@@ -368,7 +370,7 @@ namespace SupportWay.Data.Migrations
                 name: "UserChats",
                 columns: table => new
                 {
-                    ChatId = table.Column<int>(type: "integer", nullable: false),
+                    ChatId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -392,16 +394,15 @@ namespace SupportWay.Data.Migrations
                 name: "Payments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Amount = table.Column<decimal>(type: "numeric", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     TransactionId = table.Column<string>(type: "text", nullable: false),
                     Comment = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    HelpRequestId = table.Column<int>(type: "integer", nullable: true),
-                    PaymentStatusId = table.Column<int>(type: "integer", nullable: false),
-                    PaymentProviderId = table.Column<int>(type: "integer", nullable: false)
+                    HelpRequestId = table.Column<Guid>(type: "uuid", nullable: true),
+                    PaymentStatusId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PaymentProviderId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -436,10 +437,8 @@ namespace SupportWay.Data.Migrations
                 name: "PostComments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    PostId = table.Column<int>(type: "integer", nullable: false),
-                    RequestId = table.Column<int>(type: "integer", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PostId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     Text = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -459,22 +458,14 @@ namespace SupportWay.Data.Migrations
                         principalTable: "Posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PostComments_Posts_RequestId",
-                        column: x => x.RequestId,
-                        principalTable: "Posts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
                 name: "PostLikes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    RequestId = table.Column<int>(type: "integer", nullable: false),
-                    PostId = table.Column<int>(type: "integer", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PostId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     LikedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -493,25 +484,18 @@ namespace SupportWay.Data.Migrations
                         principalTable: "Posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PostLikes_Posts_RequestId",
-                        column: x => x.RequestId,
-                        principalTable: "Posts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
                 name: "RequestItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "numeric", nullable: false),
-                    SupportTypeId = table.Column<int>(type: "integer", nullable: false),
-                    HelpRequestId = table.Column<int>(type: "integer", nullable: false)
+                    SupportTypeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    HelpRequestId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -528,6 +512,37 @@ namespace SupportWay.Data.Migrations
                         principalTable: "SupportTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProfileRatings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    RaterUserId = table.Column<string>(type: "text", nullable: false),
+                    RatedProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Value = table.Column<int>(type: "integer", nullable: false),
+                    RatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProfileRatings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProfileRatings_AspNetUsers_RaterUserId",
+                        column: x => x.RaterUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProfileRatings_Profiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "Profiles",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ProfileRatings_Profiles_RatedProfileId",
+                        column: x => x.RatedProfileId,
+                        principalTable: "Profiles",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.InsertData(
@@ -624,11 +639,6 @@ namespace SupportWay.Data.Migrations
                 column: "PostId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostComments_RequestId",
-                table: "PostComments",
-                column: "RequestId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PostComments_UserId",
                 table: "PostComments",
                 column: "UserId");
@@ -637,11 +647,6 @@ namespace SupportWay.Data.Migrations
                 name: "IX_PostLikes_PostId",
                 table: "PostLikes",
                 column: "PostId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PostLikes_RequestId",
-                table: "PostLikes",
-                column: "RequestId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PostLikes_UserId",
@@ -662,6 +667,22 @@ namespace SupportWay.Data.Migrations
                 name: "IX_Posts_UserId",
                 table: "Posts",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProfileRatings_ProfileId",
+                table: "ProfileRatings",
+                column: "ProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProfileRatings_RatedProfileId",
+                table: "ProfileRatings",
+                column: "RatedProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProfileRatings_RaterUserId_RatedProfileId",
+                table: "ProfileRatings",
+                columns: new[] { "RaterUserId", "RatedProfileId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Profiles_UserId",
@@ -707,6 +728,9 @@ namespace SupportWay.Data.Migrations
                 name: "ChatMessages");
 
             migrationBuilder.DropTable(
+                name: "DefaultAvatars");
+
+            migrationBuilder.DropTable(
                 name: "Follows");
 
             migrationBuilder.DropTable(
@@ -719,7 +743,7 @@ namespace SupportWay.Data.Migrations
                 name: "PostLikes");
 
             migrationBuilder.DropTable(
-                name: "Profiles");
+                name: "ProfileRatings");
 
             migrationBuilder.DropTable(
                 name: "RequestItems");
@@ -735,6 +759,9 @@ namespace SupportWay.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "PaymentStatuses");
+
+            migrationBuilder.DropTable(
+                name: "Profiles");
 
             migrationBuilder.DropTable(
                 name: "Posts");

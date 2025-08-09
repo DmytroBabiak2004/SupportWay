@@ -30,7 +30,7 @@ namespace SupportWay.Api.Controllers
         }
 
         [HttpGet("count/{postId}")]
-        public async Task<IActionResult> GetLikesCount(int postId)
+        public async Task<IActionResult> GetLikesCount(Guid postId)
         {
             var count = await _postLikeService.GetLikesCountAsync(postId);
             return Ok(count);

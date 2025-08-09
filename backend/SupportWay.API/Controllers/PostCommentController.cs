@@ -18,16 +18,9 @@ namespace SupportWay.API.Controllers
         }
 
         [HttpGet("post/{postId}")]
-        public async Task<IActionResult> GetByPost(int postId)
+        public async Task<IActionResult> GetByPost(Guid postId)
         {
             var comments = await _commentService.GetCommentsByPostAsync(postId);
-            return Ok(comments);
-        }
-
-        [HttpGet("request/{requestId}")]
-        public async Task<IActionResult> GetByRequest(int requestId)
-        {
-            var comments = await _commentService.GetCommentsByRequestAsync(requestId);
             return Ok(comments);
         }
 
@@ -42,7 +35,7 @@ namespace SupportWay.API.Controllers
 
         [Authorize]
         [HttpDelete("{commentId}")]
-        public async Task<IActionResult> Delete(int commentId)
+        public async Task<IActionResult> Delete(Guid commentId)
         {
             var userId = User.FindFirst("sub")?.Value ?? User.Identity.Name;
             await _commentService.DeleteCommentAsync(commentId, userId);

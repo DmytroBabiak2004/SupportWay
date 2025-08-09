@@ -18,7 +18,7 @@ namespace SupportWay.Data.Repositories.Implementations
         public async Task<IEnumerable<SupportType>> GetAllAsync() =>
             await _context.SupportTypes.ToListAsync();
 
-        public async Task<SupportType> GetByIdAsync(int id) =>
+        public async Task<SupportType> GetByIdAsync(Guid id) =>
             await _context.SupportTypes.FindAsync(id);
 
         public async Task AddAsync(SupportType type)
@@ -33,7 +33,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var type = await _context.SupportTypes.FindAsync(id);
             if (type != null)

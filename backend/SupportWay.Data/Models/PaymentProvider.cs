@@ -8,7 +8,7 @@ namespace SupportWay.Data.Models
 {
     public class PaymentProvider
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string NameOfProvider { get; set; }
 
         public ICollection<Payment> Payments { get; set; }

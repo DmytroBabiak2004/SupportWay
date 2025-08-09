@@ -9,10 +9,10 @@ namespace SupportWay.Data.Repositories.Interfaces
 {
     public interface IPostCommentsRepository
     {
-        Task <IEnumerable<PostComment>> GetCommentsByPostAsync(int postId);
+        Task <IEnumerable<PostComment>> GetCommentsByPostAsync(Guid postId);
         Task <IEnumerable <PostComment>> GetCommentsByUserAsync(string userId);
-        Task<PostComment> GetCommentByIdAsync(int id);
+        Task<PostComment> GetCommentByIdAsync(Guid id);
         Task AddCommentAsync(PostComment comment);
-        Task DeleteCommentAsync(int id);
+        Task DeleteCommentAsync(Guid id);
     }
 }

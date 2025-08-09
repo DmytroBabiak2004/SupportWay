@@ -4,7 +4,7 @@ namespace SupportWay.Data.Models
 {
     public class Location
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         [MaxLength(255)]
         public string Address { get; set; }
         [MaxLength(100)]

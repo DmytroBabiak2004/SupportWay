@@ -14,13 +14,13 @@ namespace SupportWay.Data.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<IEnumerable<RequestItem>> GetByHelpRequestIdAsync(int helpRequestId) =>
+        public async Task<IEnumerable<RequestItem>> GetByHelpRequestIdAsync(Guid helpRequestId) =>
             await _context.RequestItems
                 .Where(i => i.HelpRequestId == helpRequestId)
                 .Include(i => i.SupportType)
                 .ToListAsync();
 
-        public async Task<RequestItem> GetByIdAsync(int id) =>
+        public async Task<RequestItem> GetByIdAsync(Guid id) =>
             await _context.RequestItems
                 .Include(i => i.SupportType)
                 .Include(i => i.HelpRequest)
@@ -38,7 +38,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var item = await _context.RequestItems.FindAsync(id);
             if (item != null)

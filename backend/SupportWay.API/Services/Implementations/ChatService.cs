@@ -13,7 +13,7 @@ namespace SupportWay.Services
             _chatRepository = chatRepository;
         }
 
-        public async Task<Chat?> GetByIdAsync(int chatId)
+        public async Task<Chat?> GetByIdAsync(Guid chatId)
         {
             return await _chatRepository.GetByIdAsync(chatId);
         }
@@ -28,7 +28,7 @@ namespace SupportWay.Services
             await _chatRepository.AddAsync(chat);
         }
 
-        public async Task DeleteChatAsync(int chatId)
+        public async Task DeleteChatAsync(Guid chatId)
         {
             var chat = await _chatRepository.GetByIdAsync(chatId);
             if (chat is not null)
@@ -37,7 +37,7 @@ namespace SupportWay.Services
             }
         }
 
-        public async Task<bool> IsUserInChatAsync(int chatId, string userId)
+        public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
         {
             return await _chatRepository.IsUserInChatAsync(chatId, userId);
         }

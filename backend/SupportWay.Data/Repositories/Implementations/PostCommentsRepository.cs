@@ -23,7 +23,7 @@ namespace SupportWay.Data.Repositories.Implementations
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteCommentAsync(int id)
+        public async Task DeleteCommentAsync(Guid id)
         {
             var comment = await _context.PostComments.FindAsync(id);
             if (comment != null)
@@ -33,7 +33,7 @@ namespace SupportWay.Data.Repositories.Implementations
             }
         }
 
-        public async Task<PostComment> GetCommentByIdAsync(int id)
+        public async Task<PostComment> GetCommentByIdAsync(Guid id)
         {
             return await _context.PostComments
                 .Include(c => c.User)
@@ -41,7 +41,7 @@ namespace SupportWay.Data.Repositories.Implementations
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<IEnumerable<PostComment>> GetCommentsByPostAsync(int postId)
+        public async Task<IEnumerable<PostComment>> GetCommentsByPostAsync(Guid postId)
         {
             return await _context.PostComments
                 .Where(c => c.PostId == postId)
