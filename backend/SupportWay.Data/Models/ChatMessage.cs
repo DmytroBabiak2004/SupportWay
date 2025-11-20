@@ -9,7 +9,7 @@ namespace SupportWay.Data.Models
 {
     public class ChatMessage
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string MessageText { get; set; }
         public bool IsRead { get; set; }
@@ -18,6 +18,10 @@ namespace SupportWay.Data.Models
         public User User { get; set; }
         public Guid ChatId { get; set; }
         public Chat Chat { get; set; }
+        public Guid MessageTypeId { get; set; }
+        public MessageType MessageType { get; set; }
+        public ICollection<MessageStatus> Statuses { get; set; }
+
     }
 
 }

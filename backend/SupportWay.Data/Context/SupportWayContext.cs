@@ -27,6 +27,8 @@ namespace SupportWay.Data.Context
         public DbSet<Chat> Chats { get; set; }
         public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<MessageStatus> MessageStatuses { get; set; }
+        public DbSet<MessageType> MessageTypes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +45,8 @@ namespace SupportWay.Data.Context
             modelBuilder.ApplyConfiguration(new ProfileConfiguration());
             modelBuilder.ApplyConfiguration(new RequestItemConfiguration());
             modelBuilder.ApplyConfiguration(new ProfileRatingConfiguration());
+            modelBuilder.ApplyConfiguration(new MessageTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new MessageStatusConfiguration());
 
             modelBuilder.Entity<IdentityRole>().HasData(
               new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },

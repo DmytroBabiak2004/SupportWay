@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SupportWay.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -66,6 +66,18 @@ namespace SupportWay.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Locations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MessageTypes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    NameOfType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MessageTypes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -264,7 +276,8 @@ namespace SupportWay.Data.Migrations
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
-                    ChatId = table.Column<Guid>(type: "uuid", nullable: false)
+                    ChatId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MessageTypeId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -281,6 +294,12 @@ namespace SupportWay.Data.Migrations
                         principalTable: "Chats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ChatMessages_MessageTypes_MessageTypeId",
+                        column: x => x.MessageTypeId,
+                        principalTable: "MessageTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -386,6 +405,24 @@ namespace SupportWay.Data.Migrations
                         name: "FK_UserChats_Chats_ChatId",
                         column: x => x.ChatId,
                         principalTable: "Chats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MessageStatuses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    NameOfStatus = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MessageStatuses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MessageStatuses_ChatMessages_Id",
+                        column: x => x.Id,
+                        principalTable: "ChatMessages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -604,6 +641,11 @@ namespace SupportWay.Data.Migrations
                 column: "ChatId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChatMessages_MessageTypeId",
+                table: "ChatMessages",
+                column: "MessageTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_UserId",
                 table: "ChatMessages",
                 column: "UserId");
@@ -725,13 +767,13 @@ namespace SupportWay.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "ChatMessages");
-
-            migrationBuilder.DropTable(
                 name: "DefaultAvatars");
 
             migrationBuilder.DropTable(
                 name: "Follows");
+
+            migrationBuilder.DropTable(
+                name: "MessageStatuses");
 
             migrationBuilder.DropTable(
                 name: "Payments");
@@ -755,6 +797,9 @@ namespace SupportWay.Data.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "ChatMessages");
+
+            migrationBuilder.DropTable(
                 name: "PaymentProviders");
 
             migrationBuilder.DropTable(
@@ -768,6 +813,9 @@ namespace SupportWay.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "SupportTypes");
+
+            migrationBuilder.DropTable(
+                name: "MessageTypes");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

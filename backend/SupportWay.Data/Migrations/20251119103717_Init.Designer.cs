@@ -12,8 +12,8 @@ using SupportWay.Data.Context;
 namespace SupportWay.Data.Migrations
 {
     [DbContext(typeof(SupportWayContext))]
-    [Migration("20250806143953_Initial")]
-    partial class Initial
+    [Migration("20251119103717_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -232,6 +232,9 @@ namespace SupportWay.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("MessageTypeId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -246,6 +249,8 @@ namespace SupportWay.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ChatId");
+
+                    b.HasIndex("MessageTypeId");
 
                     b.HasIndex("UserId");
 
@@ -310,6 +315,37 @@ namespace SupportWay.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.MessageStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NameOfStatus")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MessageStatuses");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.MessageType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NameOfType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MessageTypes");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Payment", b =>
@@ -771,6 +807,12 @@ namespace SupportWay.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SupportWay.Data.Models.MessageType", "MessageType")
+                        .WithMany("Messages")
+                        .HasForeignKey("MessageTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("SupportWay.Data.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -778,6 +820,8 @@ namespace SupportWay.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Chat");
+
+                    b.Navigation("MessageType");
 
                     b.Navigation("User");
                 });
@@ -799,6 +843,17 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("Followed");
 
                     b.Navigation("Follower");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.MessageStatus", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.ChatMessage", "Message")
+                        .WithMany("Statuses")
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Payment", b =>
@@ -968,6 +1023,16 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("Messages");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.ChatMessage", b =>
+                {
+                    b.Navigation("Statuses");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.MessageType", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.PaymentProvider", b =>

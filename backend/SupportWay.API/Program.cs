@@ -65,7 +65,6 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ProfileRatingRepository>();
 
 
-
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IHelpRequestService, HelpRequestService>();
@@ -95,11 +94,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Налаштування DbContext
-var connectionString = builder.Configuration.GetConnectionString("SupportWayDB");
+var connectionString = builder.Configuration.GetConnectionString("SupportWayDb");
 
 builder.Services.AddDbContext<SupportWayContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDB"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDb"));
 });
 
 // Налаштування Identity
