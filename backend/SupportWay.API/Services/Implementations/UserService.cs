@@ -22,7 +22,7 @@ namespace SupportWay.Services
             {
                 Id = u.Id,
                 UserName = u.UserName,
-                Photo = u.Profile.Photo
+                //Photo = u.Profile.Photo
             }).ToList();
         }
     }

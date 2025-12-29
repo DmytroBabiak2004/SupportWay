@@ -1,53 +1,56 @@
-using Microsoft.AspNetCore.Identity;
+п»їusing Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 using SupportWay.API.Services;
 using SupportWay.API.Services.Implementations;
 using SupportWay.API.Services.Interface;
 using SupportWay.Core.Services;
 using SupportWay.Data.Context;
-using SupportWay.Services.Implementations;
-using SupportWay.Services.Interfaces;
-using SupportWay.Services;
+using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Implementations;
 using SupportWay.Data.Repositories.Interfaces;
-using SupportWay.Data.Models;
+using SupportWay.Services;
+using SupportWay.Services.Implementations;
+using SupportWay.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "SupportWay API", Version = "v1" });
 
-    c.SupportNonNullableReferenceTypes(); 
+    c.SupportNonNullableReferenceTypes();
 
-    c.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+    c.MapType<IFormFile>(() => new OpenApiSchema
     {
         Type = "string",
         Format = "binary"
     });
 
-    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Please enter JWT with Bearer into field",
+        In = ParameterLocation.Header,
+        Description = "Please enter JWT with Bearer into field (Example: 'Bearer eyJ...')",
         Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-     {
-         {
-             new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-             {
-                 Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                 {
-                     Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                     Id = "Bearer"
-                 }
-             },
-             new string[] {}
-         }
-     });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
@@ -64,7 +67,6 @@ builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ProfileRatingRepository>();
 
-
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IHelpRequestService, HelpRequestService>();
@@ -79,29 +81,27 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddCors(options =>
 {
-    // Політика для розробки (дозволяє все)
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-
+    options.AddPolicy("AllowAngular",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:4200") 
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
+        });
 });
 
-// Додаємо сервіси
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
 
-// Налаштування DbContext
-var connectionString = builder.Configuration.GetConnectionString("SupportWayDb");
+builder.Services.AddSignalR();
+
+builder.Services.AddControllers();
 
 builder.Services.AddDbContext<SupportWayContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDb"));
 });
 
-// Налаштування Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -113,26 +113,24 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.ConfigAuthentication(builder.Configuration);
+
 var app = builder.Build();
 
-// Налаштування pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-    });
-    app.UseCors("AllowAll");
-}
-else
-{
-    app.UseCors("AllowSpecificOrigin");
-}
-
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+app.UseCors("AllowAngular");
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub")
+   .RequireCors("AllowAngular");
+
 
 app.Run();

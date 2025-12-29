@@ -16,16 +16,22 @@ public class ChatsRepository : IChatsRepository
     public async Task<Chat?> GetByIdAsync(Guid chatId)
     {
         return await _context.Chats
-            .Include(c => c.Users)
+            .Include(c => c.UserChats)
+                .ThenInclude(uc => uc.User)
+            .Include(c => c.Messages)
             .FirstOrDefaultAsync(c => c.Id == chatId);
     }
 
     public async Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId)
     {
         return await _context.Chats
-            .Where(c => c.Users.Any(u => u.Id == userId))
+            .Include(c => c.UserChats)
+                .ThenInclude(uc => uc.User)
+            .Include(c => c.Messages)
+            .Where(c => c.UserChats.Any(uc => uc.UserId == userId))
             .ToListAsync();
     }
+
 
     public async Task AddAsync(Chat chat)
     {
@@ -41,10 +47,7 @@ public class ChatsRepository : IChatsRepository
 
     public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
     {
-        var chat = await _context.Chats
-            .Include(c => c.Users)
-            .FirstOrDefaultAsync(c => c.Id == chatId);
-
-        return chat != null && chat.Users.Any(u => u.Id == userId);
+        return await _context.UserChats
+            .AnyAsync(uc => uc.ChatId == chatId && uc.UserId == userId);
     }
 }

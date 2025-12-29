@@ -6,43 +6,63 @@ namespace SupportWay.API.Services
 {
     public static class ServicesExtension
     {
-        public static IServiceCollection ConfigAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static void ConfigAuthentication(this IServiceCollection services, IConfiguration config)
         {
+            var key = Encoding.ASCII.GetBytes(config["Jwt:Key"]);
+
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultForbidScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options =>
             {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = configuration["Jwt:Issuer"],
-                    ValidAudience = configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = config["Jwt:Issuer"],
+                    ValidAudience = config["Jwt:Audience"],
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 options.Events = new JwtBearerEvents
                 {
                     OnChallenge = async context =>
                     {
+                        // Забороняємо дефолтну поведінку (щоб не було "response already started")
                         context.HandleResponse();
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        await context.Response.WriteAsync($"Unauthorized: {context.Error}");
+
+                        context.Response.StatusCode = 401;
+                        context.Response.ContentType = "application/json";
+
+                        var result = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            error = "Unauthorized"
+                        });
+
+                        await context.Response.WriteAsync(result);
                     },
-                    OnAuthenticationFailed = async context =>
+
+                    OnForbidden = async context =>
                     {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        await context.Response.WriteAsync("Authentication failed.");
-                    },
+                        context.Response.StatusCode = 403;
+                        context.Response.ContentType = "application/json";
+
+                        var result = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            error = "Forbidden"
+                        });
+
+                        await context.Response.WriteAsync(result);
+                    }
                 };
             });
-
-            return services;
         }
     }
+
 }

@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using SupportWay.API.Models;
+using SupportWay.API.Services.Interface;
+using SupportWay.Data.Models;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using SupportWay.API.Models;
-using SupportWay.Data.Models;
-using SupportWay.API.Services.Interface;
 
 namespace SupportWay.API.Controllers
 {
@@ -47,7 +48,7 @@ namespace SupportWay.API.Controllers
             {
                 return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
             }
-            await _profileService.AddProfileAsync(user.Id);
+            //await _profileService.AddProfileAsync(user.Id);
 
             if (!string.IsNullOrEmpty(request.Role))
             {
@@ -57,9 +58,16 @@ namespace SupportWay.API.Controllers
                     return BadRequest(new { Errors = roleResult.Errors.Select(e => e.Description) });
                 }
             }
-
+            var roles = await _userManager.GetRolesAsync(user);
             var token = await GenerateJwtToken(user);
-            return Ok(new { Token = token });
+            return Ok(new
+            {
+                id = user.Id,
+                username = user.UserName,
+                Roles = roles,
+                Token = token
+            });
+
         }
 
         [HttpPost("login")]
@@ -83,7 +91,16 @@ namespace SupportWay.API.Controllers
             }
 
             var token = await GenerateJwtToken(user);
-            return Ok(new { Token = token });
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return Ok(new
+            {
+                id = user.Id,
+                username = user.UserName,
+                Roles = roles,
+                Token = token
+            });
+
         }
 
         [HttpGet("check-session")]
@@ -107,7 +124,8 @@ namespace SupportWay.API.Controllers
             {
                 Message = "Session is valid",
                 Username = username,
-                Roles = roles
+                Roles = roles,
+                id = user.Id
             });
         }
 
@@ -119,11 +137,11 @@ namespace SupportWay.API.Controllers
             var username = user.UserName ?? throw new InvalidOperationException("UserName cannot be null");
 
             var claims = new List<Claim>
-{
-    new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-    new Claim(ClaimTypes.Name, user.UserName)
-};
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
 
             claims.AddRange(roles.Where(role => role != null).Select(role => new Claim(ClaimTypes.Role, role)));
 

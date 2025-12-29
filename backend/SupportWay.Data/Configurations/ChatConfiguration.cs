@@ -13,10 +13,6 @@ namespace SupportWay.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Chat> builder)
         {
-            builder.HasMany<User>()
-                .WithMany()
-                .UsingEntity(j => j.ToTable("UserChats"));
-            
             builder.HasMany(c => c.Messages)
                 .WithOne(m => m.Chat)
                 .HasForeignKey(m => m.ChatId)

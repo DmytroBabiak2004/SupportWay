@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SupportWay.Data.Models;
 using SupportWay.Services.Interfaces;
@@ -37,13 +38,16 @@ namespace SupportWay.Api.Controllers
             return Ok(chat);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateChat([FromBody] Chat chat)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateChat([FromBody] CreateChatRequest request)
         {
-            if (chat == null || chat.Users == null || !chat.Users.Any())
-                return BadRequest("Chat must contain users.");
+            if (string.IsNullOrEmpty(request.User1Id) || string.IsNullOrEmpty(request.User2Id))
+                return BadRequest("User ids are required");
 
-            await _chatService.AddChatAsync(chat);
+            Console.WriteLine($"USER 1 ID = {request.User1Id}");
+            Console.WriteLine($"USER 2 ID = {request.User2Id}");
+
+            var chat = await _chatService.AddChatAsync(request.User1Id, request.User2Id);
             return Ok(chat);
         }
 

@@ -1,0 +1,30 @@
+<div class="user-chats-container">
+  <div class="chat-list">
+    <div *ngFor="let chat of chats" class="chat-item">
+  <span (click)="selectChat(chat)">
+    {{ getOtherUserName(chat) }}
+  </span>
+    </div>
+
+  </div>
+
+  <div class="chat-window" *ngIf="selectedChat">
+    <div class="messages">
+      <div *ngFor="let msg of messages" [class.self]="msg.senderId === currentUserId">
+        <span>{{ msg.text }}</span>
+      </div>
+    </div>
+
+    ```
+    <div class="input-box">
+      <input type="text" [formControl]="newMessage" placeholder="Написати повідомлення..." />
+      <button (click)="sendMessage()">Відправити</button>
+    </div>
+    ```
+
+  </div>
+
+  <div *ngIf="!selectedChat" class="placeholder">
+    Виберіть чат або створіть новий
+  </div>
+</div>

@@ -9,10 +9,12 @@ namespace SupportWay.Data.Models
 {
     public class Chat
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Name { get; set; }
+        public Guid Id { get; set; }
+        public string Name { get; set; } = null!;
         public DateTime StartedAt { get; set; }
-        public ICollection<User> Users { get; set; }
-        public ICollection<ChatMessage> Messages { get; set; }
+
+        public ICollection<UserChat> UserChats { get; set; } = new List<UserChat>();
+        public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
     }
+
 }

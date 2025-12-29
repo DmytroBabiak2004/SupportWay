@@ -1,0 +1,51 @@
+<div class="login-container">
+  <div class="login-box">
+    <h1 *ngIf="!isRegisterMode">Вхід</h1>
+    <h1 *ngIf="isRegisterMode">Реєстрація</h1>
+    <p *ngIf="!isRegisterMode">Ваш персональний доступ онлайн</p>
+    <p *ngIf="isRegisterMode">Створіть акаунт для доступу</p>
+
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
+      <div class="input-group">
+        <input type="text" formControlName="username" placeholder="Логін" required>
+        <div *ngIf="authForm.get('username')?.invalid && authForm.get('username')?.touched">
+          <small class="error">Введіть правильний логін</small>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <input type="password" formControlName="password" placeholder="Пароль" required>
+        <div *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched">
+          <small class="error">Пароль повинен містити мінімум 6 символів</small>
+        </div>
+      </div>
+
+      <!-- Поле ролей тільки під час реєстрації -->
+      <div class="input-group" *ngIf="isRegisterMode">
+        <select formControlName="role" required>
+          <option value="" disabled selected>Оберіть роль</option>
+          <option value="User">Користувач</option>
+          <option value="Volunteer">Волонтер</option>
+          <option value="Military">Військовий</option>
+        </select>
+        <div *ngIf="authForm.get('role')?.invalid && authForm.get('role')?.touched">
+          <small class="error">Оберіть роль</small>
+        </div>
+      </div>
+
+      <a *ngIf="!isRegisterMode" href="#" class="forgot-password">Забули пароль?</a>
+      <button type="submit" class="login-btn" [disabled]="authForm.invalid">
+        {{ isRegisterMode ? 'Зареєструватися' : 'Увійти' }}
+      </button>
+    </form>
+
+    <div *ngIf="errorMessage" class="error-message">
+      <small>{{ errorMessage }}</small>
+    </div>
+
+    <div class="divider"><span>або</span></div>
+    <button (click)="toggleMode()" class="signup-btn">
+      {{ isRegisterMode ? 'Маєте акаунт? Увійти' : 'Створити акаунт' }}
+    </button>
+  </div>
+</div>

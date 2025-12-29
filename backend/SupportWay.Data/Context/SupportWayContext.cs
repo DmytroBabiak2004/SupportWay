@@ -29,12 +29,14 @@ namespace SupportWay.Data.Context
         public DbSet<User> Users { get; set; }
         public DbSet<MessageStatus> MessageStatuses { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
+        public DbSet<UserChat> UserChats { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfiguration(new ChatConfiguration());
+            modelBuilder.ApplyConfiguration(new UserChatConfiguration());
             modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
             modelBuilder.ApplyConfiguration(new FollowConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());

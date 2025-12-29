@@ -1,0 +1,24 @@
+<div class="search-wrapper">
+  <input
+    type="text"
+    [(ngModel)]="searchText"
+    (input)="searchUsers()"
+    placeholder="Пошук користувачів…"
+  />
+
+  <div class="dropdown" *ngIf="searchText">
+
+    <div *ngIf="isLoading" class="loading">Пошук…</div>
+
+    <div *ngFor="let user of results" class="user-item"
+         (click)="createChatWith(user)">
+      <span>{{ user.userName }}</span>
+      <button class="chat-btn">Написати</button>
+    </div>
+
+    <div *ngIf="!isLoading && results.length === 0" class="empty">
+      Нічого не знайдено
+    </div>
+
+  </div>
+</div>

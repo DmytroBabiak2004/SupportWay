@@ -1,45 +1,68 @@
-﻿using SupportWay.Data.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
-using SupportWay.Services.Interfaces;
 
-namespace SupportWay.Services
+public class ChatService : IChatService
 {
-    public class ChatService : IChatService
+    private readonly IChatsRepository _repo;
+    private readonly UserManager<User> _userManager;
+
+    public ChatService(IChatsRepository repo, UserManager<User> userManager)
     {
-        private readonly IChatsRepository _chatRepository;
+        _repo = repo;
+        _userManager = userManager;
+    }
 
-        public ChatService(IChatsRepository chatRepository)
-        {
-            _chatRepository = chatRepository;
-        }
+    public async Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId)
+    {
+        return await _repo.GetChatsByUserIdAsync(userId);
+    }
 
-        public async Task<Chat?> GetByIdAsync(Guid chatId)
-        {
-            return await _chatRepository.GetByIdAsync(chatId);
-        }
+    public async Task<Chat?> GetByIdAsync(Guid id)
+    {
+        return await _repo.GetByIdAsync(id);
+    }
+    public async Task<ChatDto> AddChatAsync(string user1Id, string user2Id)
+    {
+        var user1 = await _userManager.FindByIdAsync(user1Id);
+        var user2 = await _userManager.FindByIdAsync(user2Id);
 
-        public async Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId)
-        {
-            return await _chatRepository.GetChatsByUserIdAsync(userId);
-        }
+        if (user1 == null || user2 == null)
+            throw new Exception("User not found");
 
-        public async Task AddChatAsync(Chat chat)
+        var chat = new Chat
         {
-            await _chatRepository.AddAsync(chat);
+            Id = Guid.NewGuid(),
+            Name = $"{user1.UserName} & {user2.UserName}",
+            StartedAt = DateTime.UtcNow,
+            UserChats = new List<UserChat>
+        {
+            new UserChat { UserId = user1.Id },
+            new UserChat { UserId = user2.Id }
         }
+        };
 
-        public async Task DeleteChatAsync(Guid chatId)
-        {
-            var chat = await _chatRepository.GetByIdAsync(chatId);
-            if (chat is not null)
-            {
-                await _chatRepository.DeleteAsync(chat);
-            }
-        }
+        await _repo.AddAsync(chat);
 
-        public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
+        return new ChatDto
         {
-            return await _chatRepository.IsUserInChatAsync(chatId, userId);
-        }
+            Id = chat.Id,
+            Name = chat.Name,
+            StartedAt = chat.StartedAt
+        };
+    }
+
+
+    public async Task DeleteChatAsync(Guid chatId)
+    {
+        var chat = await _repo.GetByIdAsync(chatId);
+        if (chat == null) return;
+
+        await _repo.DeleteAsync(chat);
+    }
+
+    public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
+    {
+        return await _repo.IsUserInChatAsync(chatId, userId);
     }
 }
