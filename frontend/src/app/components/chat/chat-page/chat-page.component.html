@@ -1,75 +1,39 @@
-<div class="chat-wrapper" [class.chat-opened]="selectedChat">
+<div class="chat-wrapper" [class.chat-opened]="!!selectedChat">
+
   <app-chat-sidebar
+    class="sidebar-slot"
     [chats]="chats"
     [selectedChat]="selectedChat"
-    [isOpen]="true"
     (chatSelected)="openChat($event)"
-    (chatDeleted)="onChatDeleted($event)"
   ></app-chat-sidebar>
 
-  <main class="chat-window" *ngIf="selectedChat; else emptyState">
-    <header class="chat-header">
-      <div class="header-left">
-        <button class="back-btn" (click)="closeChat()">
-          <i class="icon-arrow-left">←</i>
-        </button>
+  <main class="chat-window">
+    <ng-container *ngIf="selectedChat; else emptyStateTempl">
 
-        <div class="avatar-wrapper">
-          <div class="avatar">{{ getChatName(selectedChat)[0] }}</div>
-          <div class="status-indicator online"></div>
-        </div>
+      <app-chat-header
+        [chat]="selectedChat"
+        [title]="getChatName(selectedChat)"
+        [typingText]="typingText"
+        (back)="closeChat()"
+        (deleteChat)="onDeleteChatFromHeader()"
+      ></app-chat-header>
+      <app-message-list
+        [messages]="messages"
+        [currentUserId]="userId"
+      ></app-message-list>
 
-        <div class="header-info">
-          <div class="name">{{ getChatName(selectedChat) }}</div>
+      <app-chat-composer
+        [value]="newMessage"
+        (valueChange)="newMessage = $event"
+        (typing)="onTyping()"
+        (send)="sendMessage()"
+      ></app-chat-composer>
 
-          <div class="status-text typing" *ngIf="typingText; else defaultStatus">
-            {{ typingText }}
-          </div>
-          <ng-template #defaultStatus>
-            <div class="status-text">в мережі</div>
-          </ng-template>
-        </div>
-      </div>
+    </ng-container>
 
-      <div class="header-actions">
-        <button class="action-btn">⋮</button>
-      </div>
-    </header>
+    <ng-template #emptyStateTempl>
+      <app-empty-state></app-empty-state>
+    </ng-template>
 
-    <section class="messages-box" #scrollBox>
-      <div
-        *ngFor="let msg of messages"
-        class="message-container"
-        [class.mine]="msg.senderId === userId"
-      >
-        <div class="message-group">
-          <div class="bubble">
-            {{ msg.content }}
-            <div class="time">{{ msg.sentAt | date:'HH:mm' }}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="input-box">
-      <div class="input-wrapper">
-        <input
-          [(ngModel)]="newMessage"
-          (input)="onTyping()"
-          (keydown.enter)="sendMessage()"
-          placeholder="Написати повідомлення..."
-        />
-        <button class="send-btn" (click)="sendMessage()" [disabled]="!newMessage.trim()">
-          <span class="send-icon">➤</span>
-        </button>
-      </div>
-    </footer>
   </main>
-
-  <ng-template #emptyState>
-    <div class="empty-screen">
-      <div class="empty-icon">💬</div>
-      <h3>Виберіть чат, щоб почати спілкування</h3>
-    </div>
-  </ng-template>
 </div>

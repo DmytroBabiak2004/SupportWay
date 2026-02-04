@@ -52,19 +52,17 @@ export class UserSearchComponent {
   }
 
   createChatWith(user: UserSearch): void {
-    const body = {
-      user1Id: this.currentUserId,
-      user2Id: user.id
-    };
-
-    this.chatService.createChat(body).subscribe({
-      next: chat => {
-        console.log('Chat created:', chat);
+    // Передаємо аргументи окремо: спочатку свій ID, потім ID знайденого користувача
+    this.chatService.createChat(this.currentUserId, user.id).subscribe({
+      next: (chat) => {
+        console.log('Chat created or found:', chat);
+        // Переходимо на сторінку чату і передаємо ID чату через queryParams
         this.router.navigate(['/home'], { queryParams: { chatId: chat.id } });
       },
-      error: err => console.error('Помилка створення чату:', err)
+      error: (err) => {
+        console.error('Помилка при створенні чату:', err);
+      }
     });
   }
-
 
 }

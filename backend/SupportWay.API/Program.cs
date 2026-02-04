@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using SupportWay.API.Infrastructure;
 using SupportWay.API.Services;
 using SupportWay.API.Services.Implementations;
 using SupportWay.API.Services.Interface;
@@ -12,6 +14,7 @@ using SupportWay.Data.Repositories.Interfaces;
 using SupportWay.Services;
 using SupportWay.Services.Implementations;
 using SupportWay.Services.Interfaces;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +68,7 @@ builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
 builder.Services.AddScoped<IRequestItemsRepository, RequestItemsRepository>();
 builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IMessagesRepository, ChatMessageRepository>();
 builder.Services.AddScoped<ProfileRatingRepository>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
@@ -76,6 +80,11 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IRequestItemService, RequestItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
+
+
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
@@ -95,7 +104,12 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSignalR();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+    {
+        o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
+
 
 builder.Services.AddDbContext<SupportWayContext>(options =>
 {

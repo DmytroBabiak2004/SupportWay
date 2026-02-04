@@ -1,0 +1,90 @@
+/* theme.css — Design Tokens + Themes */
+
+/* ========== Theme Tokens ========== */
+:root{
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  --sidebar-w: 340px;
+
+  /* spacing scale */
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+
+  /* radius */
+  --r-2: 10px;
+  --r-3: 12px;
+  --r-4: 16px;
+
+  /* borders & shadows */
+  --b-1: 1px;
+  --shadow-1: 0 1px 1px rgba(17, 24, 39, 0.05);
+  --shadow-2: 0 6px 18px rgba(17, 24, 39, 0.06);
+
+  /* motion */
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --dur-1: 140ms;
+  --dur-2: 220ms;
+
+  /* focus ring */
+  --ring: 0 0 0 4px rgba(59, 130, 246, 0.16);
+  --ring-border: rgba(59, 130, 246, 0.35);
+}
+
+/* Light */
+body[data-theme="light"]{
+  --bg: #fbfbfa;
+  --panel: #f7f7f5;
+  --panel-elev: #ffffff;
+
+  --text: #1f2937;
+  --muted: #6b7280;
+  --muted-2: #8b8f97;
+
+  --border: rgba(31, 41, 55, 0.10);
+  --border-2: rgba(31, 41, 55, 0.14);
+
+  --item-hover: rgba(31, 41, 55, 0.045);
+  --item-active: rgba(59, 130, 246, 0.10);
+
+  --accent: #3b82f6;
+  --accent-2: rgba(59, 130, 246, 0.16);
+
+  --avatar-bg: rgba(31, 41, 55, 0.06);
+  --avatar-border: rgba(31, 41, 55, 0.12);
+
+  --scrollbar: rgba(31, 41, 55, 0.18);
+  --scrollbar-hover: rgba(31, 41, 55, 0.28);
+}
+
+/* Dark */
+body[data-theme="dark"]{
+  --bg: #0f1113;
+  --panel: #121417;
+  --panel-elev: #15181c;
+
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.62);
+  --muted-2: rgba(255,255,255,0.48);
+
+  --border: rgba(255,255,255,0.10);
+  --border-2: rgba(255,255,255,0.14);
+
+  --item-hover: rgba(255,255,255,0.06);
+  --item-active: rgba(59, 130, 246, 0.18);
+
+  --accent: #60a5fa;
+  --accent-2: rgba(96, 165, 250, 0.18);
+
+  --avatar-bg: rgba(255,255,255,0.08);
+  --avatar-border: rgba(255,255,255,0.14);
+
+  --scrollbar: rgba(255,255,255,0.18);
+  --scrollbar-hover: rgba(255,255,255,0.28);
+
+  --shadow-1: 0 1px 1px rgba(0, 0, 0, 0.25);
+  --shadow-2: 0 10px 24px rgba(0, 0, 0, 0.32);
+
+  --ring: 0 0 0 4px rgba(96, 165, 250, 0.18);
+  --ring-border: rgba(96, 165, 250, 0.35);
+}

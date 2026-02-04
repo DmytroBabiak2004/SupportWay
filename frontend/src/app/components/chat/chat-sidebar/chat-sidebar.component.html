@@ -1,0 +1,45 @@
+<aside class="sidebar-container" [class.is-open]="isOpen">
+  <div class="sidebar-header">
+    <h2>Повідомлення</h2>
+
+    <div class="search-bar">
+      <input
+        type="text"
+        placeholder="Пошук чатів..."
+        [(ngModel)]="searchText"
+        (ngModelChange)="filterChats()"
+      />
+    </div>
+  </div>
+
+  <div class="chat-list">
+    <div
+      *ngFor="let chat of filteredChats"
+      class="chat-item"
+      [class.active]="selectedChat?.id === chat.id"
+      (click)="openChat(chat)"
+    >
+      <div class="avatar">
+        {{ getChatName(chat).charAt(0) | uppercase }}
+      </div>
+
+      <div class="chat-info">
+        <div class="chat-top">
+          <span class="chat-name">{{ getChatName(chat) }}</span>
+          <span class="chat-time">14:30</span>
+        </div>
+
+        <div class="chat-bottom">
+          <span class="last-message">
+             {{ chat.lastMessage || 'Натисніть, щоб відкрити...' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredChats.length === 0 && searchText" style="text-align: center; padding: 20px; color: #999;">
+      Нічого не знайдено
+    </div>
+
+  </div>
+</aside>

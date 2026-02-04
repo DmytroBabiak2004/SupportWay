@@ -1,0 +1,23 @@
+<footer class="input-box">
+  <div class="input-wrapper">
+    <input
+      [ngModel]="value"
+      (ngModelChange)="onInput($event)"
+      (keydown.enter)="onEnter()"
+      [placeholder]="placeholder"
+      autocomplete="off"
+    />
+
+    <button
+      type="button"
+      class="send-btn"
+      (click)="onSendClick()"
+      [disabled]="isSendDisabled"
+      aria-label="Надіслати"
+    >
+      <svg viewBox="0 0 24 24" class="send-icon">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+      </svg>
+    </button>
+  </div>
+</footer>

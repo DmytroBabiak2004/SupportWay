@@ -1,0 +1,224 @@
+/* chat-sidebar.component.scss */
+
+// --- Ті ж змінні для гармонії ---
+$primary-color: #2563eb;      /* Основний синій (кінець вашого градієнта) */
+$bg-sidebar: #ffffff;         /* Білий фон сайдбару (чистота) */
+$bg-chat-area: #f3f4f6;       /* Той самий сірий, що й у повідомленнях (для інпуту) */
+$bg-hover: #f9fafb;           /* Дуже легкий сірий для ховера */
+$bg-active: #eff6ff;          /* Світло-блакитний для активного чату */
+$text-main: #1f2937;          /* Темний текст */
+$text-secondary: #6b7280;     /* Сірий текст (останнє повідомлення) */
+$border-color: #f3f4f6;       /* Легкі межі */
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: $bg-sidebar;
+  border-right: 1px solid $border-color;
+
+  /* На мобільних сайдбар може перекривати все */
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* --- Хедер сайдбару (Заголовок і Пошук) --- */
+.sidebar-header {
+  padding: 20px 16px 12px;
+  background: $bg-sidebar;
+  /* Липкий хедер, щоб пошук не тікав */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  h2 {
+    margin: 0 0 16px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: $text-main;
+    letter-spacing: -0.5px;
+  }
+
+  .search-bar {
+    position: relative;
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      /* Використовуємо колір фону чату для інпуту - це створює зв'язок */
+      background: $bg-chat-area;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      font-size: 15px;
+      color: $text-main;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+
+      &::placeholder {
+        color: #9ca3af;
+      }
+
+      &:focus {
+        background: #ffffff;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+    }
+  }
+}
+
+/* --- Список чатів --- */
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px; /* Відступи з боків для "карточного" вигляду елементів */
+
+  /* Тонкий скролбар */
+  &::-webkit-scrollbar { width: 5px; }
+  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+}
+
+/* --- Елемент чату --- */
+.chat-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-radius: 12px; /* Сучасні округлі кути */
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative;
+
+  /* Ховер ефект */
+  &:hover {
+    background-color: $bg-hover;
+
+    .delete-btn {
+      opacity: 1; /* Показуємо кнопку видалення */
+    }
+  }
+
+  /* --- АКТИВНИЙ ЧАТ --- */
+  &.active {
+    background-color: $bg-active; /* Світло-блакитний фон */
+
+    .chat-name {
+      color: $primary-color;
+      font-weight: 700;
+    }
+
+    /* Декоративна смужка зліва (опціонально) */
+    /*
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 20px;
+      width: 3px;
+      background: $primary-color;
+      border-radius: 0 3px 3px 0;
+    }
+    */
+  }
+
+  /* Аватар */
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    /* Градієнт трохи світліший, ніж у повідомленнях, щоб не тиснув */
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.25);
+  }
+
+  /* Інформація про чат */
+  .chat-info {
+    flex: 1;
+    min-width: 0; /* Важливо для text-overflow */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+
+    .chat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+
+      .chat-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: $text-main;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .chat-time {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-left: 8px;
+        white-space: nowrap;
+      }
+    }
+
+    .chat-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .last-message {
+        font-size: 13px;
+        color: $text-secondary;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+    }
+  }
+
+  /* Кнопка видалення (з'являється при ховері) */
+  .delete-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: #ef4444; /* Червоний */
+    font-size: 16px;
+    padding: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 4px;
+    border-radius: 50%;
+
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+    }
+
+    /* На мобільних показувати завжди або через свайп,
+       але тут поки залишимо так */
+    @media (hover: none) {
+      opacity: 1;
+      color: #d1d5db; // Сірий, щоб не відволікав
+    }
+  }
+}

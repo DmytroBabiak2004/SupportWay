@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Middlewares\**" />
+    <Content Remove="Middlewares\**" />
+    <EmbeddedResource Remove="Middlewares\**" />
+    <None Remove="Middlewares\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.7" />
@@ -28,12 +35,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Hubs\" />
-    <Folder Include="Middlewares\" />
+    <None Include="Infrastructure\IUserIdProvider.cs">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>IUserIdProvider.txt</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SupportWay.Data\SupportWay.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Infrastructure\IUserIdProvider.txt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>IUserIdProvider.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,46 @@
+<header class="chat-header">
+  <div class="header-left">
+    <button class="back-btn" type="button" (click)="back.emit()">
+      <i class="icon-arrow-left">←</i>
+    </button>
+
+    <div class="avatar-wrapper">
+      <div class="avatar">{{ initial }}</div>
+      <div class="status-indicator online"></div>
+    </div>
+
+    <div class="header-info">
+      <div class="name">{{ title }}</div>
+
+      <div class="status-text typing" *ngIf="typingText; else defaultStatus">
+        {{ typingText }}
+      </div>
+
+      <ng-template #defaultStatus>
+        <div class="status-text">в мережі</div>
+      </ng-template>
+    </div>
+  </div>
+
+  <div class="header-actions">
+
+    <button
+      class="action-btn"
+      type="button"
+      (click)="toggleMenu($event)"
+      [class.active]="isMenuOpen"
+    >
+      ⋮
+    </button>
+
+    <div class="dropdown-menu" *ngIf="isMenuOpen">
+      <button class="menu-item delete" (click)="onDeleteClick()">
+        <span class="icon">🗑️</span>
+        <span>Видалити чат</span>
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<div class="menu-backdrop" *ngIf="isMenuOpen" (click)="closeMenu()"></div>

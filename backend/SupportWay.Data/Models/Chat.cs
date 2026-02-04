@@ -14,7 +14,7 @@ namespace SupportWay.Data.Models
         public DateTime StartedAt { get; set; }
 
         public ICollection<UserChat> UserChats { get; set; } = new List<UserChat>();
-        public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+        public ICollection<Message> Messages { get; set; } = new List<Message>();
     }
 
 }

@@ -7,20 +7,15 @@ using System.Threading.Tasks;
 
 namespace SupportWay.Data.Models
 {
-    public class ChatMessage
+    public class Message
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string MessageText { get; set; }
+        public string Content { get; set; }
         public bool IsRead { get; set; }
         public DateTime SentAt { get; set; }
-        public string UserId { get; set; }
-        public User User { get; set; }
+        public string SenderId { get; set; }
         public Guid ChatId { get; set; }
         public Chat Chat { get; set; }
-        public Guid MessageTypeId { get; set; }
-        public MessageType MessageType { get; set; }
-        public ICollection<MessageStatus> Statuses { get; set; }
 
     }
 

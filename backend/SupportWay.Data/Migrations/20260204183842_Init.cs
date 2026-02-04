@@ -95,18 +95,6 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MessageTypes",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    NameOfType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MessageTypes", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "PaymentProviders",
                 columns: table => new
                 {
@@ -307,6 +295,34 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Messages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    SenderId = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<string>(type: "text", nullable: true),
+                    ChatId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Messages_Chats_ChatId",
+                        column: x => x.ChatId,
+                        principalTable: "Chats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserChats",
                 columns: table => new
                 {
@@ -329,42 +345,6 @@ namespace SupportWay.Data.Migrations
                         principalTable: "Chats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChatMessages",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    MessageText = table.Column<string>(type: "text", nullable: false),
-                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
-                    SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: false),
-                    ChatId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MessageTypeId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChatMessages_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ChatMessages_Chats_ChatId",
-                        column: x => x.ChatId,
-                        principalTable: "Chats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ChatMessages_MessageTypes_MessageTypeId",
-                        column: x => x.MessageTypeId,
-                        principalTable: "MessageTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -433,24 +413,6 @@ namespace SupportWay.Data.Migrations
                         column: x => x.RatedProfileId,
                         principalTable: "Profiles",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MessageStatuses",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    NameOfStatus = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MessageStatuses", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MessageStatuses_ChatMessages_Id",
-                        column: x => x.Id,
-                        principalTable: "ChatMessages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -626,24 +588,19 @@ namespace SupportWay.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatMessages_ChatId",
-                table: "ChatMessages",
-                column: "ChatId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ChatMessages_MessageTypeId",
-                table: "ChatMessages",
-                column: "MessageTypeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ChatMessages_UserId",
-                table: "ChatMessages",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Follows_FollowedId",
                 table: "Follows",
                 column: "FollowedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_ChatId",
+                table: "Messages",
+                column: "ChatId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Messages_UserId",
+                table: "Messages",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_HelpRequestId",
@@ -768,7 +725,7 @@ namespace SupportWay.Data.Migrations
                 name: "Follows");
 
             migrationBuilder.DropTable(
-                name: "MessageStatuses");
+                name: "Messages");
 
             migrationBuilder.DropTable(
                 name: "Payments");
@@ -792,9 +749,6 @@ namespace SupportWay.Data.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "ChatMessages");
-
-            migrationBuilder.DropTable(
                 name: "PaymentProviders");
 
             migrationBuilder.DropTable(
@@ -811,9 +765,6 @@ namespace SupportWay.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Chats");
-
-            migrationBuilder.DropTable(
-                name: "MessageTypes");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

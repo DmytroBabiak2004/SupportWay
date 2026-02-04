@@ -32,22 +32,26 @@ namespace SupportWay.API.Services
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    },
                     OnChallenge = async context =>
                     {
-                        // Забороняємо дефолтну поведінку (щоб не було "response already started")
-                        context.HandleResponse();
+                        // Перевіряємо, чи ми вже не почали писати відповідь у контролері
+                        if (context.Response.HasStarted) return;
 
+                        context.HandleResponse();
                         context.Response.StatusCode = 401;
                         context.Response.ContentType = "application/json";
-
-                        var result = System.Text.Json.JsonSerializer.Serialize(new
-                        {
-                            error = "Unauthorized"
-                        });
-
-                        await context.Response.WriteAsync(result);
+                        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new { error = "Unauthorized" }));
                     },
-
                     OnForbidden = async context =>
                     {
                         context.Response.StatusCode = 403;
@@ -64,5 +68,4 @@ namespace SupportWay.API.Services
             });
         }
     }
-
 }

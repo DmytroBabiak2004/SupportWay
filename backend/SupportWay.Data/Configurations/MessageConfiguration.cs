@@ -4,9 +4,9 @@ using SupportWay.Data.Models;
 
 namespace SupportWay.Data.Configurations
 {
-    public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessage>
+    public class MessageConfiguration : IEntityTypeConfiguration<Message>
     {
-        public void Configure(EntityTypeBuilder<ChatMessage> builder)
+        public void Configure(EntityTypeBuilder<Message> builder)
         {
             builder.HasOne(m => m.Chat)
                 .WithMany(c => c.Messages)

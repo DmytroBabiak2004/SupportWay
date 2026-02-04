@@ -37,11 +37,11 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('auth_token');
   }
 
   private saveToken(token: string) {
-    localStorage.setItem('token', token);
+    localStorage.setItem('auth_token', token);
   }
 
   login(username: string, password: string): Observable<UserInfo> {
@@ -114,7 +114,7 @@ export class AuthService {
 
   logout() {
     this.userInfo.next(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem('auth_token');
     localStorage.removeItem('userInfo');
     this.router.navigate(['/login']);
   }

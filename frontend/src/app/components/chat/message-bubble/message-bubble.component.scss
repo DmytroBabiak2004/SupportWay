@@ -1,0 +1,93 @@
+/* --- Palette (Збігається з Sidebar та Chat Window) --- */
+$primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
+$bg-bubble-theirs: #ffffff;
+$text-main: #1f2937;       /* Темно-сірий замість чорного */
+$text-time: #9ca3af;       /* Світло-сірий */
+$shadow-soft: 0 2px 4px rgba(0, 0, 0, 0.05);
+$shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.25); /* Кольорова тінь для моїх */
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Контейнер одного повідомлення */
+.message-container {
+  display: flex;
+  margin-bottom: 12px; /* Більше простору між повідомленнями */
+  width: 100%;
+
+  /* Анімація появи */
+  animation: slideUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+
+  /* --- МОЇ ПОВІДОМЛЕННЯ --- */
+  &.mine {
+    justify-content: flex-end;
+
+    .bubble {
+      background: $primary-gradient;
+      color: #ffffff;
+      /* Хвостик справа внизу */
+      border-radius: 20px 20px 4px 20px;
+      box-shadow: $shadow-primary; /* Синя тінь */
+      border: none;
+
+      .time {
+        color: rgba(255, 255, 255, 0.8); /* Напівпрозорий білий */
+      }
+
+      /* Колір виділення тексту на синьому фоні */
+      ::selection {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+    }
+  }
+}
+
+.message-group {
+  display: flex;
+  /* На мобільних повідомлення ширші (85%), на десктопі вужчі (65%) */
+  max-width: 85%;
+
+  @media(min-width: 768px) {
+    max-width: 65%;
+  }
+}
+
+/* --- ЧУЖІ ПОВІДОМЛЕННЯ (За замовчуванням) --- */
+.bubble {
+  padding: 10px 16px; /* Трохи більше паддінгу для читабельності */
+  background: $bg-bubble-theirs;
+  color: $text-main;
+
+  /* Хвостик зліва внизу */
+  border-radius: 20px 20px 20px 4px;
+
+  /* Легка рамка та тінь, щоб не зливалося з сірим фоном чату */
+  box-shadow: $shadow-soft;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  word-break: break-word;
+  position: relative;
+}
+
+/* Час */
+.time {
+  font-size: 11px;
+  font-weight: 400;
+  color: $text-time;
+  text-align: right;
+  margin-top: 4px;
+  display: block;
+
+  /* Опціонально: трохи менший міжрядковий інтервал для часу */
+  line-height: 1.2;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

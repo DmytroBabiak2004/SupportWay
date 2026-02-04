@@ -1,90 +1,133 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
 
+[Authorize]
 public class ChatHub : Hub
-{
-    private static Dictionary<string, string> Users = new();
 
-    private readonly IChatMessagesRepository _messageRepo;
+{
+    private readonly IMessagesRepository _messageRepo;
     private readonly SupportWayContext _context;
 
     public ChatHub(
-        IChatMessagesRepository messageRepo,
+        IMessagesRepository messageRepo,
         SupportWayContext context)
     {
         _messageRepo = messageRepo;
         _context = context;
     }
 
-    public override Task OnConnectedAsync()
+    /// <summary>
+    /// Підключення користувача.
+    /// UserId береться з Identity (JWT / Cookie).
+    /// </summary>
+    public override async Task OnConnectedAsync()
     {
-        return base.OnConnectedAsync();
+        var userId = Context.UserIdentifier;
+
+        if (string.IsNullOrEmpty(userId))
+            throw new HubException("Unauthorized");
+
+        Console.WriteLine("USER ID: " + Context.UserIdentifier);
+        await base.OnConnectedAsync();
     }
 
-    public override Task OnDisconnectedAsync(Exception? ex)
+    /// <summary>
+    /// Відправка повідомлення в чат
+    /// </summary>
+    public async Task SendMessage(string chatId, string text)
     {
-        var entry = Users.FirstOrDefault(x => x.Value == Context.ConnectionId);
-        if (!string.IsNullOrEmpty(entry.Key))
-            Users.Remove(entry.Key);
+        var fromUserId = Context.UserIdentifier;
+        if (fromUserId is null)
+            throw new HubException("Unauthorized");
 
-        return base.OnDisconnectedAsync(ex);
-    }
-
-    public Task RegisterUser(string userId)
-    {
-        Users[userId] = Context.ConnectionId;
-        return Task.CompletedTask;
-    }
-
-    public async Task SendMessage(string chatId, string fromUserId, string text)
-    {
         Guid chatGuid = Guid.Parse(chatId);
 
-        var message = new ChatMessage
+        // 🔒 Перевіряємо, що користувач є учасником чату
+        bool isMember = await _context.UserChats
+            .AnyAsync(x => x.ChatId == chatGuid && x.UserId == fromUserId);
+
+        if (!isMember)
+            throw new HubException("Access denied");
+
+        var message = new Message
         {
             Id = Guid.NewGuid(),
             ChatId = chatGuid,
-            UserId = fromUserId,
-            MessageText = text,
+            SenderId = fromUserId,
+            Content = text,
             SentAt = DateTime.UtcNow,
-            IsRead = false,
-            MessageTypeId = Guid.Empty
+            IsRead = false
         };
 
         await _messageRepo.AddAsync(message);
 
-        var chatUsers = await _context.UserChats
-            .Where(uc => uc.ChatId == chatGuid)
-            .Select(uc => uc.UserId)
+        // Отримуємо всіх учасників чату
+        var users = await _context.UserChats
+            .Where(x => x.ChatId == chatGuid)
+            .Select(x => x.UserId)
             .ToListAsync();
 
-
-        foreach (var userId in chatUsers)
+        // Надсилаємо кожному користувачу
+        foreach (var userId in users)
         {
-            if (Users.TryGetValue(userId, out var connId))
-            {
-                await Clients.Client(connId).SendAsync(
-                    "receiveMessage",
-                    fromUserId,
-                    text,
-                    chatId,
-                    message.SentAt.ToString("O")
-                );
-            }
+            await Clients.User(userId).SendAsync(
+                "receiveMessage",
+                message.Id,
+                fromUserId,
+                text,
+                chatId,
+                message.SentAt.ToString("O")
+            );
         }
     }
 
-    public async Task Typing(string fromUserId, string toUserId)
+    /// <summary>
+    /// Індикатор набору тексту
+    /// </summary>
+    public async Task Typing(string chatId)
     {
-        if (Users.TryGetValue(toUserId, out string conn))
-            await Clients.Client(conn).SendAsync("typing", fromUserId);
+        var fromUserId = Context.UserIdentifier;
+        if (fromUserId is null) return;
+
+        var users = await _context.UserChats
+            .Where(x => x.ChatId == Guid.Parse(chatId) && x.UserId != fromUserId)
+            .Select(x => x.UserId)
+            .ToListAsync();
+
+        foreach (var userId in users)
+        {
+            await Clients.User(userId)
+                .SendAsync("typing", fromUserId, chatId);
+        }
     }
 
-    public async Task Seen(string messageId, string userId)
+    /// <summary>
+    /// Повідомлення прочитано
+    /// </summary>
+    public async Task Seen(Guid messageId)
     {
-        await Clients.All.SendAsync("messageSeen", messageId, userId);
+        var userId = Context.UserIdentifier;
+        if (userId is null) return;
+
+        var message = await _context.Messages.FindAsync(messageId);
+        if (message is null) return;
+
+        message.IsRead = true;
+        await _context.SaveChangesAsync();
+
+        var users = await _context.UserChats
+            .Where(x => x.ChatId == message.ChatId)
+            .Select(x => x.UserId)
+            .ToListAsync();
+
+        foreach (var u in users)
+        {
+            await Clients.User(u)
+                .SendAsync("messageSeen", messageId, userId);
+        }
     }
 }

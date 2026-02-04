@@ -1,0 +1,7 @@
+<section class="messages-box" #scrollBox>
+  <app-message-bubble
+    *ngFor="let msg of messages; trackBy: trackByMsgId"
+    [msg]="msg"
+    [isMine]="msg.senderId === currentUserId"
+  ></app-message-bubble>
+</section>

@@ -1,7 +1,11 @@
-export interface ChatMessage {
+export interface Chat {
   id: string;
-  fromUserId: string;
-  text: string;
-  chatId: string;
-  sentAt: string;
+  name?: string;
+  userChats?: {
+    userId: string;
+    user: {
+      userName: string;
+    };
+  }[];
+  participants?: { id: string; userName: string }[];
 }

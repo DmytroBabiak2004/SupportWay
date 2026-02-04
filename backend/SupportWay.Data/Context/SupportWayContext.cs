@@ -25,10 +25,8 @@ namespace SupportWay.Data.Context
         public DbSet<PaymentProvider> PaymentProviders { get; set; }
         public DbSet<PaymentStatus> PaymentStatuses { get; set; }
         public DbSet<Chat> Chats { get; set; }
-        public DbSet<ChatMessage> ChatMessages { get; set; }
+        public DbSet<Message> Messages { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<MessageStatus> MessageStatuses { get; set; }
-        public DbSet<MessageType> MessageTypes { get; set; }
         public DbSet<UserChat> UserChats { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -37,7 +35,7 @@ namespace SupportWay.Data.Context
 
             modelBuilder.ApplyConfiguration(new ChatConfiguration());
             modelBuilder.ApplyConfiguration(new UserChatConfiguration());
-            modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
+            modelBuilder.ApplyConfiguration(new MessageConfiguration());
             modelBuilder.ApplyConfiguration(new FollowConfiguration());
             modelBuilder.ApplyConfiguration(new PaymentConfiguration());
             modelBuilder.ApplyConfiguration(new PostConfiguration());
@@ -47,8 +45,6 @@ namespace SupportWay.Data.Context
             modelBuilder.ApplyConfiguration(new ProfileConfiguration());
             modelBuilder.ApplyConfiguration(new RequestItemConfiguration());
             modelBuilder.ApplyConfiguration(new ProfileRatingConfiguration());
-            modelBuilder.ApplyConfiguration(new MessageTypeConfiguration());
-            modelBuilder.ApplyConfiguration(new MessageStatusConfiguration());
 
             modelBuilder.Entity<IdentityRole>().HasData(
               new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },

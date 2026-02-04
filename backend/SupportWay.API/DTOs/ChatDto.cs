@@ -4,3 +4,4 @@ public class ChatDto
     public string Name { get; set; }
     public DateTime StartedAt { get; set; }
 }
+

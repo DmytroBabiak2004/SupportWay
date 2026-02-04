@@ -1,17 +1,30 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { ChatService, Chat, Message } from '../../services/chat.service';
-import { AuthService } from '../../services/auth.service';
-import { ChatSidebarComponent } from '../chat/chat-sidebar/chat-sidebar.component';
+import { ChatService, Chat, Message } from '../../../services/chat.service';
+import { AuthService } from '../../../services/auth.service';
+
+import { ChatSidebarComponent } from '../chat-sidebar/chat-sidebar.component';
+import { ChatHeaderComponent } from '../chat-header/chat-header.component';
+import { MessageListComponent } from '../message-list/message-list.component';
+import { ChatComposerComponent } from '../chat-composer/chat-composer.component';
+import { EmptyStateComponent } from '../empty-state/empty-state.component';
 
 @Component({
   selector: 'app-chat-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatSidebarComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ChatSidebarComponent,
+    ChatHeaderComponent,
+    MessageListComponent,
+    ChatComposerComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './chat-page.component.html',
   styleUrls: ['./chat-page.component.scss'],
 })
@@ -25,9 +38,8 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   userId!: string;
   typingText: string | null = null;
 
-  isSidebarOpen = false;
-
-  @ViewChild('scrollBox') private scrollBox?: ElementRef<HTMLElement>;
+  // ✅ mobile drawer state
+  isSidebarOpen = true;
 
   private subs = new Subscription();
   private typingTimer?: ReturnType<typeof setTimeout>;
@@ -51,8 +63,8 @@ export class ChatPageComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.chatService.messageReceived$.subscribe((msg: Message) => {
         if (this.selectedChat && msg.chatId === this.selectedChat.id) {
+          // message-list сам скролить вниз
           this.messages = [...this.messages, msg];
-          setTimeout(() => this.autoScroll(), 50);
         }
       })
     );
@@ -68,8 +80,6 @@ export class ChatPageComponent implements OnInit, OnDestroy {
         }
       })
     );
-
-    this.isSidebarOpen = !this.selectedChat;
   }
 
   ngOnDestroy(): void {
@@ -105,13 +115,14 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   openChat(chat: Chat): void {
     this.selectedChat = chat;
     this.messages = [];
+
+    // ✅ на телефоні ховаємо список після вибору
     this.isSidebarOpen = false;
 
     this.subs.add(
       this.chatService.getMessages(chat.id).subscribe({
         next: (msgs) => {
-          this.messages = msgs;
-          setTimeout(() => this.autoScroll(), 100);
+          this.messages = msgs; // message-list сам автоскролить
         },
         error: (err) => console.error(err),
       })
@@ -120,6 +131,9 @@ export class ChatPageComponent implements OnInit, OnDestroy {
 
   closeChat(): void {
     this.selectedChat = null;
+    this.messages = [];
+
+    // ✅ на телефоні повертаємо список
     this.isSidebarOpen = true;
   }
 
@@ -147,25 +161,30 @@ export class ChatPageComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  private autoScroll(): void {
-    const el = this.scrollBox?.nativeElement;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }
-
   getChatName(chat: Chat): string {
-    if (chat.name) return chat.name;
+    if ((chat as any).name) return (chat as any).name;
     const other = chat.userChats?.find(uc => uc.userId !== this.userId);
     return other?.user.userName ?? 'Користувач';
   }
-  onChatDeleted(chatId: string): void {
-    this.chats = this.chats.filter(c => c.id !== chatId);
 
-    if (this.selectedChat?.id === chatId) {
-      this.selectedChat = null;
-      this.messages = [];
-      this.isSidebarOpen = true;
+  onDeleteChatFromHeader() {
+    // 1. Створюємо локальну константу. Це фіксує значення.
+    const chat = this.selectedChat;
+
+    // 2. Перевіряємо локальну змінну
+    if (!chat) return;
+
+    // Тепер TypeScript точно знає, що 'chat' не є null у всьому цьому блоці
+    const confirmDelete = confirm(`Ви точно хочете видалити чат "${chat.name}"?`);
+
+    if (confirmDelete) {
+      // 3. Використовуємо 'chat.id' замість 'this.selectedChat.id'
+      this.chatService.deleteChat(chat.id).subscribe(() => {
+        this.chats = this.chats.filter(c => c.id !== chat.id);
+        this.selectedChat = null;
+        // Якщо є масив повідомлень, очищаємо його
+        // this.messages = [];
+      });
     }
   }
-
 }

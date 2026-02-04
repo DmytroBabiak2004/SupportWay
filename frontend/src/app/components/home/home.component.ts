@@ -3,9 +3,7 @@ import {UserSearchComponent} from '../user-search/user-search.component';
 
 @Component({
   selector: 'app-home',
-  imports: [
-    UserSearchComponent
-  ],
+  imports: [],
   templateUrl: './home.component.html',
   standalone: true,
   styleUrl: './home.component.scss'
