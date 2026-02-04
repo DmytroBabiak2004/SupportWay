@@ -1,0 +1,400 @@
+// Змінні
+$primary: #0084ff;
+$bg-sidebar: #ffffff;
+$bg-chat: #f0f2f5; // Сіруватий фон для повідомлень
+$border-color: #e5e5e5;
+$text-main: #050505;
+$text-secondary: #65676b;
+
+// Глобальні стилі для компонента (важливо!)
+:host {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; // Щоб не було подвійного скролу
+}
+
+.chat-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%; // Займає всю висоту host-елемента
+  background: $bg-chat;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  // Адаптив: на мобільному нічого не змінюємо глобально, логіка перемикання залишається
+  @media (max-width: 768px) {
+    position: relative;
+  }
+}
+
+/* --- ЛІВА ПАНЕЛЬ (Сайдбар) --- */
+.sidebar {
+  width: 360px; // Фіксована ширина списку чатів (стандарт индустрії)
+  background: $bg-sidebar;
+  border-right: 1px solid $border-color;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  z-index: 2; // Щоб тінь накладалася на чат
+
+  .sidebar-header {
+    padding: 20px;
+    height: 60px; // Фіксована висота шапки
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid $border-color;
+
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: $text-main;
+      margin: 0;
+    }
+  }
+
+  .chat-list {
+    flex: 1;
+    overflow-y: auto; // Скрол тільки всередині списку
+
+    // Кастомний скролбар (тонкий)
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    // Ховаємо, якщо відкрито чат
+    .chat-opened & { display: none; }
+  }
+}
+
+/* --- ЕЛЕМЕНТ СПИСКУ ЧАТІВ --- */
+.chat-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px; // Трохи компактніше
+  cursor: pointer;
+  transition: background-color 0.1s;
+  position: relative;
+
+  &:hover { background-color: #f5f5f5; }
+  &.active { background-color: #ebf5ff; } // Світло-блакитний для активного
+
+  .avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary, #00c6ff);
+    color: white;
+    font-size: 18px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0; // Щоб аватар не стискався
+  }
+
+  .chat-info {
+    flex: 1;
+    min-width: 0; // Важливо для text-overflow
+
+    .chat-title {
+      font-weight: 600;
+      color: $text-main;
+      font-size: 15px;
+      margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chat-status {
+      font-size: 13px;
+      color: $text-secondary;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+  }
+}
+
+/* --- ПРАВА ПАНЕЛЬ (Вікно чату) --- */
+.chat-window {
+  flex: 1; // Займає весь простір, що залишився
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: $bg-chat;
+  position: relative;
+
+  /* Шапка чату */
+  .chat-header {
+    height: 60px;
+    background: $bg-sidebar;
+    border-bottom: 1px solid $border-color;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    flex-shrink: 0; // Не стискається
+
+    .back-btn {
+      display: none; // Тільки для мобільних
+      margin-right: 15px;
+      background: none; border: none; font-size: 24px; color: $primary; cursor: pointer;
+      @media (max-width: 768px) { display: block; }
+    }
+
+    .name { font-weight: 600; font-size: 17px; color: $text-main; }
+    .typing { font-size: 12px; color: $primary; margin-left: 10px; font-weight: 500; }
+  }
+
+  /* Область повідомлень */
+  .messages-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 5%; // Відступи по боках, щоб на широкому екрані текст не лип до країв
+    display: flex;
+    flex-direction: column;
+
+    // Кастомний скролбар
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: #rgba(0,0,0,0.2); border-radius: 3px; }
+
+    .message-container {
+      display: flex;
+      margin-bottom: 8px;
+
+      &.mine {
+        justify-content: flex-end;
+        .bubble {
+          background: $primary;
+          color: white;
+          border-radius: 18px 18px 4px 18px; // "Хвостик" справа
+          box-shadow: none; // На синьому фоні тінь не обов'язкова
+
+          .time { color: rgba(255,255,255, 0.7); }
+        }
+      }
+    }
+
+    .bubble {
+      max-width: 600px; // Обмеження ширини повідомлення, щоб не було на весь екран
+      padding: 10px 16px;
+      background: #ffffff;
+      border-radius: 18px 18px 18px 4px; // "Хвостик" зліва
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      font-size: 15px;
+      line-height: 1.5;
+      position: relative;
+      word-wrap: break-word;
+
+      .time {
+        font-size: 11px;
+        color: #999;
+        text-align: right;
+        margin-top: 4px;
+        display: block;
+      }
+    }
+  }
+
+  /* Поле вводу */
+  .input-box {
+    background: $bg-sidebar;
+    padding: 20px;
+    border-top: 1px solid $border-color;
+    flex-shrink: 0;
+
+    .input-wrapper {
+      max-width: 1000px; // Обмежуємо ширину поля вводу для краси
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      background: #f0f2f5;
+      padding: 8px 16px;
+      border-radius: 24px;
+
+      input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        padding: 8px;
+        font-size: 15px;
+        outline: none;
+      }
+
+      .send-btn {
+        background: none;
+        border: none;
+        color: $primary;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
+        transition: transform 0.2s;
+
+        &:hover { transform: scale(1.1); }
+        &:disabled { color: #ccc; cursor: default; }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+    position: absolute; top: 0; left: 0; width: 100%; z-index: 10;
+    .chat-opened & { display: flex; }
+  }
+}
+
+// Порожній екран
+.empty-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: $bg-chat;
+  color: $text-secondary;
+
+  .empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+  h3 { font-weight: 400; }
+
+  @media (max-width: 768px) { display: none; } // На мобільному не показуємо, там список
+}
+/* --- ШАПКА ЧАТУ --- */
+.chat-header {
+  height: 64px; // Стандартна висота (як у Android Material Design)
+  background: $bg-sidebar; // Білий фон
+  border-bottom: 1px solid $border-color;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; // Розкідає ліву частину і праві кнопки по краях
+  padding: 0 16px;
+  flex-shrink: 0;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); // Легка тінь знизу
+
+  /* ЛІВА ЧАСТИНА (Група елементів) */
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px; // Відступ між стрілкою, аватаром і текстом
+    overflow: hidden; // Щоб довге ім'я не ламало верстку
+  }
+
+  /* Кнопка назад (Мобільна) */
+  .back-btn {
+    display: none; // На ПК ховаємо
+    background: none;
+    border: none;
+    padding: 8px;
+    margin-left: -8px; // Компенсація відступу
+    cursor: pointer;
+    color: $primary;
+
+    .icon-arrow-left {
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    @media (max-width: 768px) {
+      display: flex; // Показуємо на телефонах
+      align-items: center; justify-content: center;
+    }
+  }
+
+  /* АВАТАР В ШАПЦІ */
+  .avatar-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0; // Забороняємо стискати аватар
+
+    .avatar {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(135deg, $primary, #00c6ff);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .status-indicator {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid $bg-sidebar; // Біла обводка, щоб зливалася з фоном
+
+      &.online { background-color: #31a24c; } // Зелений колір
+      &.offline { background-color: #ccc; }
+    }
+  }
+
+  /* ТЕКСТОВА ІНФОРМАЦІЯ */
+  .header-info {
+    display: flex;
+    flex-direction: column; // Ім'я зверху, статус знизу
+    justify-content: center;
+    line-height: 1.2;
+
+    .name {
+      font-weight: 600;
+      font-size: 16px;
+      color: $text-main;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: $text-secondary; // Сірий колір
+
+      &.typing {
+        color: $primary; // "Друкує..." робимо синім
+        font-weight: 500;
+        animation: pulseText 1.5s infinite ease-in-out;
+      }
+    }
+  }
+
+  /* ПРАВА ЧАСТИНА (Кнопки) */
+  .header-actions {
+    .action-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: $text-secondary;
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s;
+
+      &:hover {
+        background-color: #f0f2f5;
+        color: $text-main;
+      }
+    }
+  }
+}
+
+// Анімація для тексту "друкує..."
+@keyframes pulseText {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+:host {
+  display: block;
+  height: 100%; /* Тепер бере 100% від app-root, який має 100% від body */
+  width: 100%;
+  overflow: hidden;
+}
+
+.chat-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%; /* Заповнює весь простір host */
+  background: #f0f2f5;
+}
+
+/* Переконайтеся, що це на місці */
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Критично важливо */
+  min-height: 0; /* Хак для скролу */
+}
