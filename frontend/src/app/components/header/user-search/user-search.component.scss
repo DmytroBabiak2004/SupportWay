@@ -1,0 +1,228 @@
+/* --- Palette --- */
+$primary-color: #2563eb;
+$primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
+$bg-input: #f3f4f6;         /* Світло-сірий (неактивний) */
+$bg-input-focus: #ffffff;   /* Білий (активний) */
+$text-main: #1f2937;
+$text-muted: #9ca3af;
+$shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+$border-radius: 24px;       /* Pill shape */
+
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  max-width: 300px; /* Обмеження ширини в хедері */
+  z-index: 1001;    /* Щоб було поверх всього */
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+}
+
+/* --- Input Wrapper --- */
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: $bg-input;
+  border-radius: $border-radius;
+  padding: 8px 12px;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid transparent;
+
+  /* Іконка лупи */
+  .search-icon {
+    width: 18px;
+    height: 18px;
+    stroke: $text-muted;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    margin-right: 8px;
+    transition: stroke 0.2s;
+  }
+
+  /* Поле вводу */
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    color: $text-main;
+    min-width: 0;
+
+    &::placeholder {
+      color: $text-muted;
+    }
+  }
+
+  /* Кнопка очищення (X) */
+  .clear-btn {
+    background: none;
+    border: none;
+    color: $text-muted;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+
+    &:hover {
+      background-color: rgba(0,0,0,0.05);
+      color: $text-main;
+    }
+  }
+
+  /* --- Focus State (Органічне "світіння") --- */
+  &:focus-within {
+    background-color: $bg-input-focus;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); /* Блакитна тінь */
+    border-color: rgba(37, 99, 235, 0.3);
+    transform: translateY(-1px);
+
+    .search-icon {
+      stroke: $primary-color; /* Лупа стає синьою */
+    }
+  }
+}
+
+/* --- Dropdown Menu --- */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px); /* Відступ від інпуту */
+  right: 0; /* Вирівнювання по правому краю (або left: 0) */
+  width: 320px; /* Трохи ширше за інпут */
+
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: $shadow-dropdown;
+  border: 1px solid rgba(0,0,0,0.04);
+
+  overflow: hidden;
+  padding: 8px;
+
+  /* Анімація появи */
+  animation: slideDown 0.2s ease-out forwards;
+  transform-origin: top center;
+
+  /* На мобільному на всю ширину */
+  @media (max-width: 768px) {
+    width: 100vw;
+    left: -20px; /* Компенсація паддінгів хедера */
+    right: -20px;
+    border-radius: 0 0 16px 16px;
+  }
+}
+
+/* --- User Item --- */
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f9fafb; /* Дуже світлий сірий */
+
+    .action-icon {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .avatar-placeholder {
+      background: $primary-gradient; /* Аватар стає яскравим */
+      color: white;
+    }
+  }
+}
+
+/* Аватар */
+.avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb; /* Сірий за замовчуванням */
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 12px;
+  transition: all 0.2s;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: $text-main;
+  }
+
+  .user-action-text {
+    font-size: 11px;
+    color: $text-muted;
+  }
+}
+
+/* Кнопка дії (Стрілка) */
+.action-icon {
+  background: none;
+  border: none;
+  padding: 0;
+  color: $primary-color;
+
+  /* Прихована за замовчуванням */
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: all 0.2s ease;
+
+  svg {
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+/* --- State Messages (Loading / Empty) --- */
+.state-message {
+  padding: 24px;
+  text-align: center;
+  color: $text-muted;
+  font-size: 13px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Простий спінер */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(37, 99, 235, 0.1);
+  border-top-color: $primary-color;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

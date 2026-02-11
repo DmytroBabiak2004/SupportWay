@@ -1,0 +1,50 @@
+<div class="search-container" [class.active]="searchText.length > 0">
+
+  <div class="input-wrapper">
+    <svg class="search-icon" viewBox="0 0 24 24">
+      <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    </svg>
+
+    <input
+      type="text"
+      [(ngModel)]="searchText"
+      (input)="searchUsers()"
+      placeholder="Пошук користувачів..."
+      autocomplete="off"
+    />
+
+    <button *ngIf="searchText" class="clear-btn" (click)="clearSearch()">
+      ✕
+    </button>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="searchText">
+
+    <div *ngIf="isLoading" class="state-message">
+      <div class="spinner"></div>
+      <span>Шукаємо...</span>
+    </div>
+
+    <ul *ngIf="!isLoading && results.length > 0" class="results-list">
+      <li *ngFor="let user of results" class="user-item" (click)="createChatWith(user)">
+
+        <div class="avatar-placeholder">
+          {{ user.userName.charAt(0) | uppercase }}
+        </div>
+
+        <div class="user-info">
+          <span class="user-name">{{ user.userName }}</span>
+          <span class="user-action-text">Написати</span>
+        </div>
+
+        <button class="action-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </li>
+    </ul>
+
+    <div *ngIf="!isLoading && results.length === 0" class="state-message empty">
+      Нічого не знайдено
+    </div>
+  </div>
+</div>
