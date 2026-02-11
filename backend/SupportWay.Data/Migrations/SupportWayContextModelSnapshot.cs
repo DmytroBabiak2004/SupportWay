@@ -471,8 +471,13 @@ namespace SupportWay.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("FullName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
                     b.Property<byte[]>("Photo")
-                        .IsRequired()
                         .HasColumnType("bytea");
 
                     b.Property<string>("UserId")
@@ -493,9 +498,6 @@ namespace SupportWay.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ProfileId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("RatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -510,8 +512,6 @@ namespace SupportWay.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProfileId");
 
                     b.HasIndex("RatedProfileId");
 
@@ -867,12 +867,8 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.ProfileRating", b =>
                 {
-                    b.HasOne("SupportWay.Data.Models.Profile", null)
-                        .WithMany("ProfileRatings")
-                        .HasForeignKey("ProfileId");
-
                     b.HasOne("SupportWay.Data.Models.Profile", "RatedProfile")
-                        .WithMany()
+                        .WithMany("ProfileRatings")
                         .HasForeignKey("RatedProfileId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();

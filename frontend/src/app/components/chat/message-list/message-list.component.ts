@@ -3,8 +3,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnChanges,
+  Output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -23,6 +25,9 @@ import { MessageBubbleComponent } from '../message-bubble/message-bubble.compone
 export class MessageListComponent implements OnChanges, AfterViewChecked {
   @Input() messages: Message[] = [];
   @Input() currentUserId = '';
+
+  // ✅ 1. Одинарна подія для відправки ID наверх
+  @Output() deleteRequest = new EventEmitter<string>();
 
   @ViewChild('scrollBox') private scrollBox?: ElementRef<HTMLElement>;
 
@@ -47,5 +52,13 @@ export class MessageListComponent implements OnChanges, AfterViewChecked {
     el.scrollTop = el.scrollHeight;
   }
 
-  trackByMsgId = (_: number, msg: Message) => (msg as any).id ?? msg.sentAt ?? _;
+  // Спрощений трекер
+  trackByMsgId = (_: number, msg: Message) => msg.id;
+
+  // ✅ 2. Виправлений метод
+  // Ми приймаємо messageId як аргумент (який прийшов від бульбашки через $event)
+  // І просто передаємо його далі батькові.
+  onDelete(messageId: string): void {
+    this.deleteRequest.emit(messageId);
+  }
 }

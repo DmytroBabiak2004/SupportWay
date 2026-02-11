@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SupportWay.Data.Models;
-using SupportWay.Services;
+using SupportWay.API.DTOs;
+using SupportWay.Services; 
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SupportWay.API.Controllers
 {
@@ -16,7 +18,7 @@ namespace SupportWay.API.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<List<User>>> SearchUsers([FromQuery] string name)
+        public async Task<ActionResult<List<UserSearchDto>>> SearchUsers([FromQuery] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 return BadRequest("Name is required.");

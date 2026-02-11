@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Message } from '../../../services/chat.service';
 
@@ -7,10 +7,15 @@ import { Message } from '../../../services/chat.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './message-bubble.component.html',
-  styleUrls: ['./message-bubble.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./message-bubble.component.scss']
 })
 export class MessageBubbleComponent {
-  @Input({ required: true }) msg!: Message;
-  @Input() isMine = false;
+  @Input() msg!: Message;
+  @Input() isMine: boolean = false;
+
+  @Output() deleteRequest = new EventEmitter<string>();
+
+  onDelete() {
+    this.deleteRequest.emit(this.msg.id);
+  }
 }

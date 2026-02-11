@@ -3,12 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import * as signalR from '@microsoft/signalr';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment.development';
 
 export interface Message {
+  id: string;
   chatId: string;
   senderId: string;
   content: string;
   sentAt: string;
+  isRead?: boolean;
 }
 
 export interface Chat {
@@ -18,22 +21,36 @@ export interface Chat {
     userId: string;
     user: { userName: string };
   }[];
+  lastMessage?: string;
+  unreadCount?: number;
+}
+
+export interface ReadReceiptEvent {
+  chatId: string;
+  userId: string;
+  lastReadMessageId: string;
+}
+
+export interface MessageDeletedEvent {
+  chatId: string;
+  messageId: string;
+  deletedBy: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ChatService implements OnDestroy {
-  private baseUrl = 'http://localhost:5233/api/chat';
-  private hubConnection!: signalR.HubConnection;
+  private baseUrl = `${environment.apiUrl}/chat`;
+  private hubUrl = `${environment.apiUrl.replace('/api', '')}/chatHub`;
 
-  // Стан підключення для UI (наприклад, показувати зелений індикатор)
+  private hubConnection: signalR.HubConnection | null = null;
+
   public connectionStatus$ = new BehaviorSubject<boolean>(false);
-
   public messageReceived$ = new Subject<Message>();
   public typingEvent$ = new Subject<{ chatId: string, userId: string }>();
+  public readReceipt$ = new Subject<ReadReceiptEvent>();
+  public messageDeleted$ = new Subject<MessageDeletedEvent>();
 
   constructor(private http: HttpClient, private auth: AuthService) {}
-
-  // --- HTTP Методи ---
 
   getChats(): Observable<Chat[]> {
     return this.http.get<Chat[]>(this.baseUrl);
@@ -44,75 +61,132 @@ export class ChatService implements OnDestroy {
   }
 
   createChat(user1Id: string, user2Id: string): Observable<Chat> {
-    return this.http.post<Chat>(`${this.baseUrl}/create`, {
-      user1Id: user1Id, // Велика літера, якщо в C# так само
-      user2Id: user2Id
-    });
+    return this.http.post<Chat>(`${this.baseUrl}/create`, { user1Id, user2Id });
   }
 
+  deleteChat(chatId: string): Observable<any> {
+    return this.http.delete(`${this.baseUrl}/${chatId}`);
+  }
 
-  async startSignalR() {
-    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) return;
-    const token = localStorage.getItem('auth_token') || '';
+  async startSignalR(): Promise<void> {
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected ||
+      this.hubConnection?.state === signalR.HubConnectionState.Connecting) {
+      return;
+    }
+
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      return;
+    }
 
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5233/chatHub', {
-        accessTokenFactory: () => localStorage.getItem('auth_token') || ''
-        // Прибираємо skipNegotiation та transport на час тесту
+      .withUrl(this.hubUrl, {
+        accessTokenFactory: () => localStorage.getItem('auth_token') || '',
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets
       })
       .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Information) // Trace занадто детальний зараз
+      .configureLogging(signalR.LogLevel.Warning)
       .build();
 
     this.registerServerEvents();
 
     try {
       await this.hubConnection.start();
-      console.log('SignalR: Connected');
       this.connectionStatus$.next(true);
+
+      this.hubConnection.onreconnected(() => {
+        this.connectionStatus$.next(true);
+      });
+
+      this.hubConnection.onclose(() => {
+        this.connectionStatus$.next(false);
+      });
+
     } catch (err) {
-      console.error('SignalR Connection Error: ', err);
+      console.error('SignalR Connection Error:', err);
       this.connectionStatus$.next(false);
     }
   }
 
   private registerServerEvents() {
-    this.hubConnection.on('receiveMessage', (messageId: string, fromUserId: string, content: string, chatId: string, sentAt: string) => {
-      this.messageReceived$.next({ chatId, senderId: fromUserId, content, sentAt: sentAt });
-    });
+    if (!this.hubConnection) return;
+
+    this.hubConnection.on('receiveMessage',
+      (id: string, senderId: string, content: string, chatId: string, sentAt: string) => {
+        const newMessage: Message = {
+          id,
+          senderId,
+          content,
+          chatId,
+          sentAt,
+          isRead: false
+        };
+        this.messageReceived$.next(newMessage);
+      }
+    );
 
     this.hubConnection.on('typing', (fromUserId: string, chatId: string) => {
       this.typingEvent$.next({ chatId, userId: fromUserId });
     });
+
+    this.hubConnection.on('chatSeen', (data: ReadReceiptEvent) => {
+      this.readReceipt$.next(data);
+    });
+
+    this.hubConnection.on('messageDeleted', (data: MessageDeletedEvent) => {
+      this.messageDeleted$.next(data);
+    });
   }
 
-  async sendMessage(chatId: string, text: string) {
-    if (this.hubConnection.state !== signalR.HubConnectionState.Connected) {
-      throw new Error('Неможливо надіслати повідомлення: з’єднання відсутнє');
-    }
-    // Назва методу 'SendMessage' має бути такою ж, як у C# класі Hub
-    await this.hubConnection.invoke('SendMessage', chatId, text);
+  async sendMessage(chatId: string, content: string): Promise<void> {
+    await this.ensureConnection();
+    await this.hubConnection!.invoke('SendMessage', chatId, content);
   }
 
-  async sendTyping(chatId: string) {
-    if (this.hubConnection.state === signalR.HubConnectionState.Connected) {
+  async sendTyping(chatId: string): Promise<void> {
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
       await this.hubConnection.invoke('Typing', chatId);
     }
   }
 
+  async markAsRead(chatId: string, lastReadMessageId: string): Promise<void> {
+    await this.ensureConnection();
+    try {
+      await this.hubConnection!.invoke('Seen', chatId, lastReadMessageId);
+    } catch (err) {
+      console.error('Error sending seen status:', err);
+    }
+  }
+
+  async deleteMessage(messageId: string): Promise<void> {
+    await this.ensureConnection();
+    await this.hubConnection!.invoke('DeleteMessage', messageId);
+  }
+
   stopConnection() {
     if (this.hubConnection) {
-      this.hubConnection.stop()
-        .then(() => console.log('SignalR: Connection stopped'))
-        .catch(err => console.error('SignalR Stop Error: ', err));
+      this.hubConnection.stop().then(() => {
+        this.connectionStatus$.next(false);
+      });
+    }
+  }
+
+  private async ensureConnection(): Promise<void> {
+    if (!this.hubConnection) {
+      await this.startSignalR();
+    }
+
+    if (this.hubConnection?.state === signalR.HubConnectionState.Disconnected) {
+      await this.startSignalR();
+    }
+
+    if (this.hubConnection?.state !== signalR.HubConnectionState.Connected) {
+      throw new Error('SignalR is not connected');
     }
   }
 
   ngOnDestroy() {
     this.stopConnection();
   }
-  deleteChat(chatId: string) {
-    return this.http.delete(`${this.baseUrl}/chat/${chatId}`);
-  }
 }
-

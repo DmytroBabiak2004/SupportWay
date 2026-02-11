@@ -1,16 +1,13 @@
-// user-search.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment.development';
+import {UserSearch} from '../models/user-search.model';
 
-export interface UserSearch {
-  id: string;
-  userName: string;
-}
 
 @Injectable({ providedIn: 'root' })
 export class UserSearchService {
-  private apiUrl = 'http://localhost:5233/api/users/search';
+  private apiUrl = `${environment.apiUrl}/users/search`;
 
   constructor(private http: HttpClient) {}
 

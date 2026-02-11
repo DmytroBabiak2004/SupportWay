@@ -9,6 +9,6 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task<Post?> GetPostByIdAsync(string postId);
         Task AddPostAsync (Post post);
         Task UpdatePostAsync (Post post);
-        Task DeletePostAsync (int postId);
+        Task DeletePostAsync (Guid postId);
     }
 }

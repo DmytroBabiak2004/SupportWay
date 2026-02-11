@@ -1,0 +1,52 @@
+<div class="page-layout">
+  <header class="sticky-top-pannel">
+    <div class="header-main">
+      <nav class="tabs-nav">
+        <button class="tab-btn" [class.active]="viewMode === 'feed'" (click)="setView('feed')">
+          Стрічка
+        </button>
+        <button class="tab-btn" [class.active]="viewMode === 'user'" (click)="setView('user')">
+          Мої пости
+        </button>
+      </nav>
+    </div>
+
+    <div class="filters-bar">
+      <div class="content-limiter">
+        <app-post-filters
+          [(searchQuery)]="searchQuery"
+          [(sortBy)]="sortBy"
+          (filterChanged)="applyFilters()"
+          (create)="openModal()"
+        ></app-post-filters>
+      </div>
+    </div>
+  </header>
+
+  <main class="scroll-viewport" #scrollContainer>
+    <div class="feed-container">
+
+      <div *ngIf="isLoading && displayPosts.length === 0" class="skeleton-loader">
+        <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
+      </div>
+
+      <div class="posts-list" *ngIf="displayPosts.length > 0">
+        <app-post-card
+          *ngFor="let post of displayPosts; trackBy: trackByPostId"
+          [post]="post"
+          (profileClick)="openProfile($event)">
+        </app-post-card>
+      </div>
+
+      <footer #scrollAnchor class="feed-footer">
+        <div class="spinner" *ngIf="isLoadingMore"></div>
+        <p *ngIf="!isLoadingMore && displayPosts.length >= filteredAllPosts.length">
+          Ви переглянули всі публікації
+        </p>
+      </footer>
+    </div>
+  </main>
+</div>
+
+<app-create-post-modal *ngIf="isModalOpen" (close)="closeModal()" (created)="onPostCreated()">
+</app-create-post-modal>

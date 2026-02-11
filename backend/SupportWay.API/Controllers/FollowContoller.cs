@@ -22,9 +22,12 @@ namespace SupportWay.Api.Controllers
         {
             var followerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (followerId == null) return Unauthorized();
+            if (followerId == followedId) return BadRequest("You cannot follow yourself.");
 
             await _followService.FollowUserAsync(followerId, followedId);
-            return Ok();
+
+            var newCount = await _followService.GetFollowersCountAsync(followedId);
+            return Ok(new { followersCount = newCount });
         }
 
         [HttpDelete("{followedId}")]

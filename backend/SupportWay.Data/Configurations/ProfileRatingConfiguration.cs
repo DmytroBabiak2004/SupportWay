@@ -22,7 +22,7 @@ namespace SupportWay.Data.Configurations
                    .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(x => x.RatedProfile)
-                   .WithMany()
+                   .WithMany(p => p.ProfileRatings)
                    .HasForeignKey(x => x.RatedProfileId)
                    .OnDelete(DeleteBehavior.NoAction);
 

@@ -1,120 +1,354 @@
-body {
-  font-family: 'Montserrat', sans-serif;
-  background-color: #f3f2ef;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:host {
+  /* --- Design Tokens --- */
+  --c-primary: #0f172a;
+  --c-accent: #2563eb;
+  --c-accent-hover: #1d4ed8;
+  --c-danger: #ef4444;
+
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-input: #ffffff;
+
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+
+  --border: #e2e8f0;
+
+  --radius-card: 24px;
+  --radius-input: 12px;
+
+  --input-h: 44px;
+
+  --shadow-card:
+    0 20px 25px -5px rgba(0, 0, 0, 0.05),
+    0 8px 10px -6px rgba(0, 0, 0, 0.01);
+
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.12);
+
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* --- Layout --- */
 .login-container {
-  width: 350px;
-  text-align: center;
-  margin: auto;
+  width: 100%;
+  min-height: calc(100dvh - 64px);
+  padding-top: 32px;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  background: var(--bg-page);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.03) 0px, transparent 50%);
 }
 
 .login-box {
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;             /* зменшено з 90% */
+  max-width: 440px;       /* зменшено з 440px */
+  padding: 26px 19px;     /* зменшено пропорційно */
+
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  margin: 0 auto;
 }
 
-@media (max-width: 500px) {
-  .login-box {
-    box-shadow: none;
-  }
-}
-
+/* --- Typography --- */
 h1 {
-  font-size: 24px;
-  margin-bottom: 10px;
+  margin: 0 0 6px;
+  font-size: 21px;  /* зменшено з 26px */
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: -0.02em;
 }
 
-p {
-  color: #666;
-  margin-bottom: 20px;
+.subtitle {
+  margin: 0 0 26px; /* зменшено з 32px */
+  font-size: 12px;   /* зменшено з 14px */
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
 }
 
+/* --- Form --- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* зменшено з 16px */
+}
+
+/* Grid for Name/Surname */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;   /* зменшено з 30px */
+  width: 96%;
+}
+
+/* --- Inputs & Selects --- */
 .input-group {
-  margin-bottom: 15px;
-  text-align: left;
-  width: 100%;
-}
-
-input, select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-select {
-  appearance: none; /* Прибираємо стандартний вигляд */
-  background: white;
-  cursor: pointer;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.login-btn {
-  background: #026fbd;
-  color: white;
-  margin-top: 10px;
-}
-
-.signup-btn {
-  background: white;
-  color: #026fbd;
-  border: 1px solid #026fbd;
-  margin-top: 10px;
-}
-
-.divider {
-  margin: 15px 0;
+  width: 93%;
   position: relative;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+input,
+select {
+  width: 100%;
+  height: var(--input-h);
+  padding: 18px 12px 5px 14px; /* трохи зменшено padding */
+
+  font-size: 13px; /* зменшено з 14px */
+  font-weight: 500;
+  color: var(--text-primary);
+
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input::placeholder,
+select::placeholder {
+  opacity: 0;
+}
+
+/* --- Floating Labels --- */
+label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  font-size: 13px; /* зменшено з 14px */
+  color: var(--text-secondary);
+  pointer-events: none;
+  transform-origin: left top;
+  transition: all 0.2s ease;
+}
+
+/* Active State logic */
+input:focus,
+select:focus,
+input:not(:placeholder-shown),
+select:valid {
+  border-color: var(--c-accent);
+  box-shadow: var(--focus-ring);
+  background: #fff;
+}
+
+/* Label Animation */
+input:focus ~ label,
+input:not(:placeholder-shown) ~ label,
+select:focus ~ label,
+select:valid ~ label {
+  top: 10px;
+  transform: translateY(0) scale(0.85);
+  color: var(--c-accent);
+  font-weight: 600;
+}
+
+/* --- Custom Select --- */
+.select-wrapper {
+  position: relative;
+  width: 107%;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+select:focus {
+  border-color: var(--c-accent);
+  box-shadow: var(--focus-ring);
+  background: #fff;
+}
+
+select:focus ~ .select-arrow {
+  color: var(--c-accent);
+}
+
+select:hover {
+  border-color: var(--c-accent-hover);
+}
+
+/* --- Password Toggle --- */
+.password-toggle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover { color: var(--text-primary); }
+.password-toggle:focus { outline: none; color: var(--c-accent); }
+
+/* --- Validations --- */
+.has-error {
+  border-color: var(--c-danger) !important;
+  background: #fffbfc !important;
+}
+
+.has-error ~ label { color: var(--c-danger) !important; }
+
+.error-text {
+  display: block;
+  margin-top: 4px;
+  margin-left: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-danger);
+}
+
+.global-error {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--c-danger);
+  font-size: 13px;
   text-align: center;
 }
 
-.divider span {
-  background: white;
-  padding: 0 10px;
-  color: #666;
+/* --- Buttons & Links --- */
+.actions-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
 }
 
 .forgot-password {
-  display: block;
-  margin-bottom: 10px;
-  color: #026fbd;
+  font-size: 12px; /* зменшено з 13px */
+  font-weight: 600;
+  color: var(--text-secondary);
   text-decoration: none;
+  transition: color 0.2s;
 }
 
-footer {
-  margin-top: 20px;
-  font-size: 12px;
-  color: #666;
+.forgot-password:hover { color: var(--c-accent); }
+
+.login-btn {
+  width: 100%;
+  height: var(--input-h);
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-input);
+
+  font-size: 14px; /* зменшено з 15px */
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.error-message {
-  margin-top: 10px;
-  color: red;
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
-.error {
-  color: red;
-  font-size: 12px;
+.login-btn:active { transform: translateY(0); }
+.login-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 24px 0;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  span {
+    padding: 0 12px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+}
+
+.signup-btn {
+  width: 100%;
+  height: var(--input-h);
+
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+
+  color: var(--text-primary);
+  font-size: 13px; /* зменшено з 14px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.signup-btn:hover {
+  background: var(--bg-page);
+  border-color: #cbd5e1;
+}
+
+/* --- Mobile Adaptation --- */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 0;
+    background: #fff;
+    align-items: flex-start;
+  }
+
+  .login-box {
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    padding: 24px 18px; /* трохи менше */
+    max-width: 100%;
+  }
+
+  .form-row { gap: 10px; }
+  h1 { font-size: 20px; }
+  .subtitle { margin-bottom: 20px; font-size: 12px; }
 }

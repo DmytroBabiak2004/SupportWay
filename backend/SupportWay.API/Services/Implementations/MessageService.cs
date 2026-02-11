@@ -39,12 +39,27 @@ public class MessageService : IMessageService
         return true;
     }
 
-    public async Task<bool> MarkAsReadAsync(Guid messageId)
+    public async Task<bool> MarkChatAsReadAsync(
+        Guid chatId,
+        string userId,
+        Guid lastReadMessageId
+    )
     {
-        var message = await _repo.GetByIdAsync(messageId);
-        if (message == null) return false;
+        var lastMessage = await _repo.GetByIdAsync(lastReadMessageId);
+        if (lastMessage == null || lastMessage.ChatId != chatId)
+            return false;
 
-        await _repo.MarkAsReadAsync(messageId);
+        var isUserInChat = await _repo.IsUserInChatAsync(chatId, userId);
+        if (!isUserInChat)
+            return false;
+
+        await _repo.MarkChatAsReadUpToAsync(
+            chatId,
+            userId,
+            lastMessage.SentAt
+        );
+
         return true;
     }
+
 }

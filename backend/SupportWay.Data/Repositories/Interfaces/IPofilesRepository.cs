@@ -10,7 +10,7 @@ namespace SupportWay.Data.Repositories.Interfaces
 
         Task UpdateDescriptionAsync(string userId, string description);
         Task UpdatePhotoAsync(string userId, byte[] photo);
-
+        Task UpdateNameAsync(string userId, string? name, string? fullName);
         Task<double?> GetProfileRatingAsync(Guid ratedProfileId);
         Task RateProfileAsync(string raterUserId, Guid ratedProfileId, int value);
 

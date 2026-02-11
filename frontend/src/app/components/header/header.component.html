@@ -1,37 +1,65 @@
 <header class="main-header">
-  <nav class="nav-container">
+  <div class="nav-container">
 
-    <a routerLink="/home" class="logo"></a>
+    <a routerLink="/home" class="logo" (click)="handleNavClick()">
+      Support<span class="highlight">Way</span>
+    </a>
 
-    <div (click)="toggleMenu()" class="burger-menu">
-      ☰
+    <div class="mobile-controls">
+      <button class="burger-btn" (click)="toggleMenu()" aria-label="Menu">
+        <svg *ngIf="!isMenuOpen" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <svg *ngIf="isMenuOpen" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
     </div>
 
-    <ul [ngClass]="{'open': isMenuOpen}" class="nav-list">
-      <li class="nav-item">
-        <a  (click)="handleNavClick()" routerLink="/chat" routerLinkActive="active">Чати</a>
-      </li>
-      <li class="nav-item">
-        <a (click)="handleNavClick()" routerLink="/rooms" routerLinkActive="active">Запити</a>
-      </li>
-      <li  class="nav-item">
-        <a (click)="handleNavClick()" routerLink="/registrations" routerLinkActive="active">Публікації</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a  class="dropdown-toggle">Підписки</a>
-<!--        <ul class="dropdown-menu">-->
-<!--          <li><a (click)="handleNavClick()" routerLink="/chairs" routerLinkActive="active">Крісла</a></li>-->
-<!--          <li><a (click)="handleNavClick()" routerLink="/tables" routerLinkActive="active">Столи</a></li>-->
-<!--          <li><a (click)="handleNavClick()" routerLink="/mattresses" routerLinkActive="active">Матраци</a></li>-->
-<!--          <li><a (click)="handleNavClick()" routerLink="/furniture-in-room" routerLinkActive="active">Меблі у кімнатах</a></li>-->
-<!--        </ul>-->
-      </li>
-     </ul>
+    <div class="nav-wrapper" [class.open]="isMenuOpen">
 
-    <div class="header-search">
-      <app-user-search></app-user-search>
+      <div class="header-search">
+        <app-user-search></app-user-search>
+      </div>
+
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a (click)="handleNavClick()" routerLink="/chat" routerLinkActive="active">Чати</a>
+        </li>
+        <li class="nav-item">
+          <a (click)="handleNavClick()" routerLink="/rooms" routerLinkActive="active">Запити</a>
+        </li>
+        <li class="nav-item">
+          <a (click)="handleNavClick()" routerLink="/posts" routerLinkActive="active">Публікації</a>
+        </li>
+        <li class="nav-item dropdown" [class.open]="isDropdownOpen">
+          <a class="dropdown-toggle" (click)="toggleDropdown($event)">
+            Підписки <span class="arrow">▼</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a (click)="handleNavClick()" routerLink="/chairs">Крісла</a></li>
+            <li><a (click)="handleNavClick()" routerLink="/tables">Столи</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="mini-profile" *ngIf="currentUser && userProfile">
+
+        <a (click)="goToMyProfile()" class="name" style="cursor: pointer;">
+          {{ displayName }}
+        </a>
+
+        <a (click)="goToMyProfile()" class="avatar-wrapper" style="cursor: pointer;">
+          <div class="avatar-circle">
+            <img
+              *ngIf="userProfile.photoBase64; else initialFallback"
+              [src]="profileService.getAvatarSrc(userProfile.photoBase64)"
+              alt="avatar"
+            >
+            <ng-template #initialFallback>
+              <div class="initials-text">{{ initials }}</div>
+            </ng-template>
+          </div>
+        </a>
+
+      </div>
+
     </div>
-
-    <div (click)="toggleMenu()" class="burger-menu">☰</div>
-  </nav>
+  </div>
 </header>

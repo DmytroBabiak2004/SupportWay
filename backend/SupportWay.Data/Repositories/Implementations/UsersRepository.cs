@@ -2,10 +2,8 @@
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SupportWay.Data.Repositories.Implementations
@@ -18,12 +16,22 @@ namespace SupportWay.Data.Repositories.Implementations
         {
             _context = context;
         }
-        public async Task<List<User>> SearchUsersByNameAsync(string name)
-        {        
+
+        public async Task<List<User>> SearchUsersByNameAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return new List<User>();
+
             return await _context.Users
-                .Include(u => u.Profile)
-                .Where(u => u.UserName.Contains(name))
-                .ToListAsync(); ;
+                .Include(u => u.Profile) 
+                .Where(u =>
+                    u.UserName.Contains(query) ||
+                    (u.Profile != null && (
+                        u.Profile.Name.Contains(query) ||
+                        u.Profile.FullName.Contains(query)
+                    ))
+                )
+                .ToListAsync();
         }
     }
 }

@@ -20,6 +20,7 @@
       <app-message-list
         [messages]="messages"
         [currentUserId]="userId"
+        (deleteRequest)="onDeleteMessage($event)"
       ></app-message-list>
 
       <app-chat-composer

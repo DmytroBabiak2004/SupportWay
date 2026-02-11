@@ -1,0 +1,831 @@
+/* user-profile.component.scss */
+
+/* Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:host {
+  /* Tokens */
+  --c-primary: #0f172a;
+  --c-accent: #2563eb;
+  --c-accent-hover: #1d4ed8;
+
+  --bg-page: #ffffff;
+  --bg-subtle: #f8fafc;
+  --bg-surface: #ffffff;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+
+  --border-light: #e2e8f0;
+  --border-medium: #cbd5e1;
+
+  --radius-pill: 9999px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.15);
+
+  --header-padding: 48px;
+  --container-width: 980px;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  display: block;
+  font-family: var(--font-sans);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  min-height: 100vh;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+
+/* Page / Container */
+.profile-page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: var(--container-width);
+  padding: 0 24px;
+}
+
+/* Header */
+.profile-header {
+  display: flex;
+  gap: 40px;
+  padding: var(--header-padding) 0;
+  border-bottom: 1px solid var(--border-light);
+  align-items: flex-start;
+
+  @media (max-width: 840px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+    padding: 32px 0;
+  }
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--c-accent);
+  background: #eff6ff;
+}
+
+/* Link-pill (for label upload + button edit) */
+.link-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-accent);
+
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+
+  border: 1px solid transparent;
+  background: transparent;
+
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #eff6ff;
+    border-color: rgba(37, 99, 235, 0.18);
+    color: var(--c-accent-hover);
+    text-decoration: none;
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+
+  &:focus-visible,
+  &:focus-within {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Works for label input overlay */
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &:disabled,
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+
+    input {
+      cursor: not-allowed;
+    }
+  }
+
+  /* button reset (safe) */
+  &.link-pill,
+  button {
+    border: 1px solid transparent;
+  }
+}
+
+/* Info Group */
+.header-mid {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding-top: 8px;
+
+  @media (max-width: 840px) {
+    width: 100%;
+    align-items: center;
+    padding-top: 0;
+  }
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  @media (max-width: 840px) {
+    justify-content: center;
+  }
+}
+
+.username {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* Rating pill */
+.user-status {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+}
+
+/* Bio */
+.bio-block {
+  margin-top: 4px;
+  max-width: 600px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-wrap: balance;
+
+  @media (max-width: 840px) {
+    max-width: 720px;
+  }
+}
+
+.bio-text {
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+/* Edit mode */
+.bio-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.edit-btns {
+  display: flex;
+  gap: 10px;
+
+  @media (max-width: 840px) {
+    justify-content: center;
+  }
+}
+
+/* Meta */
+.meta-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+
+  @media (max-width: 840px) {
+    justify-content: center;
+  }
+}
+
+/* Stats */
+.header-end {
+  flex-shrink: 0;
+  padding-top: 10px;
+
+  @media (max-width: 840px) {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 0;
+  }
+}
+
+.stats-row {
+  display: flex;
+  gap: 32px;
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: default;
+
+    .num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-bottom: 6px;
+      transition: color 0.2s ease;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    &:hover .num {
+      color: var(--c-accent);
+    }
+  }
+}
+
+/* Tabs */
+.tabs-nav {
+  display: flex;
+  gap: 32px;
+  border-bottom: 1px solid var(--border-light);
+
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  padding-top: 8px;
+
+  @media (max-width: 840px) {
+    justify-content: center;
+  }
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 16px 0;
+
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  position: relative;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  &.active {
+    color: var(--c-accent);
+    font-weight: 600;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--c-accent);
+      border-radius: 2px 2px 0 0;
+    }
+  }
+}
+
+/* Content */
+.content-area {
+  padding: 40px 0 80px;
+  min-height: 50vh;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-medium);
+
+  background: #fff;
+  color: var(--text-primary);
+
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: var(--bg-subtle);
+    border-color: #94a3b8;
+  }
+
+  &:active { transform: translateY(1px); }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  &.primary {
+    background: var(--c-primary);
+    border-color: var(--c-primary);
+    color: #fff;
+
+    &:hover {
+      background: #334155;
+      border-color: #334155;
+    }
+  }
+
+  &.sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Loading */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+
+  display: grid;
+  place-items: center;
+}
+
+.loading-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  background: #fff;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid var(--border-light);
+  border-top-color: var(--c-accent);
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* Avatar Group & New Upload Button */
+.header-start {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* gap: 16px;  <-- Прибираємо великий геп, бо кнопка тепер "на" аватарці */
+}
+
+/* Обгортка для позиціювання кнопки поверх аватара */
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 8px; /* Невеликий відступ знизу */
+}
+
+.avatar {
+  width: 144px;
+  height: 144px;
+  border-radius: 50%;
+  overflow: hidden; /* Важливо: обрізає фото, але НЕ кнопку, бо кнопка ззовні .avatar */
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light); /* Тонша рамка виглядає сучасніше */
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+/* Сучасна кнопка завантаження фото */
+.btn-circle-upload {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+
+  background: #ffffff;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* М'яка тінь */
+
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 10;
+
+  input {
+    display: none; /* Ховаємо нативний інпут */
+  }
+
+  svg {
+    stroke: var(--text-secondary);
+    transition: stroke 0.2s;
+  }
+
+  &:hover {
+    transform: scale(1.05);
+    border-color: var(--border-light);
+    background: #ffffff;
+
+    svg {
+      stroke: var(--c-accent);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &.loading {
+    cursor: wait;
+    background: var(--bg-subtle);
+  }
+}
+
+.mini-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top-color: var(--c-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* --- Bio Section Styles --- */
+
+.bio-block {
+  margin-top: 8px;
+  max-width: 600px;
+
+  /* Flex layout щоб кнопка була поруч або під текстом акуратно */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.bio-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap; /* Зберігає переноси рядків */
+}
+
+/* Нова кнопка "Редагувати опис" */
+.btn-text-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  margin-top: 4px; /* Трохи відсунути від тексту */
+
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary); /* Спочатку ненав'язливий колір */
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    opacity: 0.8;
+  }
+
+  /* Hover effect: стає схожою на кнопку */
+  &:hover {
+    background: var(--bg-subtle);
+    color: var(--c-accent);
+
+    svg {
+      opacity: 1;
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    background: var(--bg-subtle);
+  }
+}
+
+/* Адаптивність */
+@media (max-width: 840px) {
+  .bio-block {
+    align-items: center;
+    text-align: center;
+  }
+
+  /* Центруємо кнопку на мобільному */
+  .btn-text-icon {
+    margin: 0 auto;
+  }
+}
+/* user-profile.component.scss */
+
+.real-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main); /* або var(--text-secondary) для меншого акценту */
+  margin-top: 4px;
+  margin-bottom: 8px; /* відступ перед описом */
+}
+
+.stranger-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+
+  @media (max-width: 840px) {
+    justify-content: center;
+  }
+
+  .btn {
+    min-width: 120px;
+    &.following {
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      border-color: var(--border-medium);
+      &:hover {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #fecaca;
+      }
+    }
+  }
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  padding: 100px;
+}
+
+.bio-edit textarea {
+  width: 100%;
+  max-width: 500px;
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: inherit;
+  &:focus {
+    outline: none;
+    border-color: var(--c-accent);
+    box-shadow: var(--focus-ring);
+  }
+}
+
+/* --- Own Actions (Logout) --- */
+.own-actions {
+  margin-top: auto;
+
+  .logout-btn {
+    /* Використовуємо базовий стиль .btn через @extend або дублюємо логіку для консистентності */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 600;
+
+    /* Радіус як у всіх основних кнопок */
+    border-radius: var(--radius-pill);
+
+    /* Кольорова схема: м'яка червона, щоб не "кричала", але була помітною */
+    background: #fff;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover {
+      background: #fef2f2; /* Дуже світлий червоний фон */
+      border-color: #ef4444;
+      color: #dc2626;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+
+      svg {
+        transform: translateX(2px);
+      }
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+  }
+}
+
+/* Адаптивність (вже інтегрована у вашу логіку) */
+@media (max-width: 840px) {
+  .header-end {
+    width: 100%;
+    align-items: center;
+  }
+
+  .own-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+
+    .logout-btn {
+      width: 100%;
+      max-width: 240px; /* Щоб на мобілці не була на весь екран, якщо не треба */
+    }
+  }
+}
+
+.rating-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 12px 0;
+
+  .stars-container {
+    display: flex;
+    gap: 4px;
+
+    .star {
+      font-size: 24px;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      user-select: none;
+      line-height: 1;
+
+      &:hover {
+        transform: scale(1.2);
+        color: #ffca28;
+      }
+
+      &.filled {
+        color: #ffb300;
+        text-shadow: 0 0 8px rgba(255, 179, 0, 0.3);
+      }
+    }
+  }
+
+  &.readonly {
+    .star {
+      cursor: default;
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+
+  .rating-numeric {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #666;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 12px;
+  }
+}
+
+.stars-container:hover .star {
+  color: #e0e0e0;
+}
+.star:hover,
+.star:hover ~ .star {
+}

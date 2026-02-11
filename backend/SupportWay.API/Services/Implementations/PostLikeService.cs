@@ -1,11 +1,14 @@
 ﻿using SupportWay.API.DTOs;
+using SupportWay.Core.Services;
 using SupportWay.Data.Repositories.Interfaces;
+using System;
+using System.Threading.Tasks;
 
-namespace SupportWay.Core.Services
+namespace SupportWay.Services 
 {
     public class PostLikeService : IPostLikeService
     {
-        private readonly IPostLikesRepoository _postLikesRepo;
+        private readonly IPostLikesRepoository _postLikesRepo; 
 
         public PostLikeService(IPostLikesRepoository postLikesRepo)
         {

@@ -1,5 +1,18 @@
-$text-secondary: #65676b;
-$bg-chat: #f0f2f5;
+/* --- Palette --- */
+$bg-chat: #f3f4f6;          /* Основний фон (збігається з чатом) */
+$bg-icon: #ffffff;          /* Білий круг під іконкою */
+$text-main: #1f2937;        /* Темний текст */
+$text-muted: #9ca3af;       /* Сірий текст */
+$primary-light: #eff6ff;    /* Легкий блакитний відтінок */
+$primary-color: #2563eb;    /* Акцентний синій */
+$shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+
+:host {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+}
 
 .empty-screen {
   flex: 1;
@@ -8,36 +21,86 @@ $bg-chat: #f0f2f5;
   align-items: center;
   justify-content: center;
 
-  text-align: center;
   padding: 24px;
-  background: $bg-chat;
-  color: $text-secondary;
+  background-color: $bg-chat;
+  color: $text-main;
+
+  /* Анімація появи */
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Круглий контейнер для іконки */
+.icon-wrapper {
+  width: 80px;
+  height: 80px;
+  background-color: $bg-icon;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+
+  /* Тінь і легка рамка */
+  box-shadow: $shadow-soft;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+
+  /* Ефект "дихання" при наведенні (опціонально) */
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 }
 
 .empty-icon {
-  font-size: 64px;
+  font-size: 36px;
   line-height: 1;
-  margin-bottom: 14px;
-  opacity: 0.55;
+  /* Якщо це емодзі, робимо його трохи прозорим або чітким */
+  /* Якщо це SVG (краще), то fill буде керуватися тут */
+  color: $primary-color;
+  user-select: none;
 }
 
 .empty-title {
-  margin: 0;
-  font-weight: 500;
-  font-size: 16px;
-  line-height: 1.35;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  font-size: 18px;
+  color: $text-main;
+  text-align: center;
 }
 
 .empty-subtitle {
-  margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 1.4;
-  opacity: 0.9;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $text-muted;
+  text-align: center;
+  max-width: 300px; /* Щоб текст не розтягувався занадто широко */
 }
 
-/* На мобільному часто не показують пустий екран, бо там список чатів */
+/* Badge (опціонально, якщо subtitle - це статус) */
+.badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 12px;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $primary-color;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* На мобільному цей екран зазвичай ховають,
+   але якщо логіка дозволяє показувати - залишаємо */
 @media (max-width: 768px) {
   .empty-screen {
     display: none;
+    /* Або display: flex, якщо ви хочете показувати це,
+       коли юзер ще не натиснув на чат */
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

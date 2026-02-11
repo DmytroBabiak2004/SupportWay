@@ -24,6 +24,11 @@ namespace SupportWay.Data.Repositories.Implementations
             _context.PostLikes.Add(like);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> HasUserLikedPostAsync(Guid postId, string userId)
+        {
+            return await _context.PostLikes.AnyAsync(l => l.PostId == postId && l.UserId == userId);
+        }
+
 
         public async Task DeletePostLikeAsync(Guid postId, string userId)
         {

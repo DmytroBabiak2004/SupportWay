@@ -1,0 +1,209 @@
+/* Шрифти та змінні */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:host {
+  --c-primary: #0f172a;
+  --c-accent: #2563eb;
+  --bg-subtle: #f8fafc;
+  --border-light: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b; /* Додав колір для тексту кнопки */
+  --radius-md: 12px;
+  --radius-pill: 9999px;
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.15);
+
+  font-family: 'Inter', sans-serif;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-box {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  border: 1px solid var(--border-light);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  h2 {
+    margin: 0 0 24px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+    text-align: center;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* Input Styles */
+input, textarea {
+  width: 95%;
+  padding: 14px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  color: var(--text-primary);
+  transition: all 0.2s;
+
+  &:focus {
+    background: #fff;
+    outline: none;
+    border-color: var(--c-accent);
+    box-shadow: var(--focus-ring);
+  }
+
+  &.error {
+    border-color: #ef4444;
+    &:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
+  }
+}
+
+textarea { min-height: 120px; }
+
+/* --- Image Preview --- */
+.image-preview-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-medium);
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    max-width: 100%;
+    max-height: 250px;
+    object-fit: contain;
+  }
+
+  .remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: background 0.2s;
+
+    &:hover { background: rgba(0, 0, 0, 0.8); }
+  }
+}
+
+/* --- Footer & Actions --- */
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+
+  /* Адаптив: на маленьких екранах кнопки в стовпчик, якщо треба */
+  @media (max-width: 450px) {
+    flex-direction: column-reverse;
+    gap: 16px;
+    align-items: stretch;
+
+    .modal-actions { justify-content: flex-end; }
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Кнопка "Додати фото" */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: #eff6ff;
+  }
+
+  svg { opacity: 0.8; }
+}
+
+/* Основні кнопки */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:active { transform: translateY(1px); }
+
+  &.primary {
+    background: var(--c-primary);
+    color: #fff;
+    &:hover:not(:disabled) { background: #334155; }
+  }
+
+  &.secondary {
+    background: #fff;
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+    &:hover { background: var(--bg-subtle); border-color: #94a3b8; }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

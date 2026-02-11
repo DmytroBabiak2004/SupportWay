@@ -36,38 +36,53 @@ namespace SupportWay.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (!ModelState.IsValid || request == null)
-            {
+            if (request == null || !ModelState.IsValid)
                 return BadRequest("Invalid registration data");
-            }
+
+            // (Опційно) простий захист від пробілів
+            request.Username = request.Username?.Trim();
+            request.Name = request.Name?.Trim();
+            request.FullName = request.FullName?.Trim();
 
             var user = new User { UserName = request.Username };
-            var result = await _userManager.CreateAsync(user, request.Password);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(new { Errors = result.Errors.Select(e => e.Description) });
-            }
-            //await _profileService.AddProfileAsync(user.Id);
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+                return BadRequest(new { Errors = createResult.Errors.Select(e => e.Description) });
 
-            if (!string.IsNullOrEmpty(request.Role))
+            try
             {
-                var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
-                if (!roleResult.Succeeded)
+
+                await _profileService.AddProfileAsync(user.Id, request.Name, request.FullName);
+
+                if (!string.IsNullOrEmpty(request.Role))
                 {
-                    return BadRequest(new { Errors = roleResult.Errors.Select(e => e.Description) });
+                    var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
+                    if (!roleResult.Succeeded)
+                    {
+                        // якщо роль не додалась — прибираємо користувача, щоб не було “напівреєстрації”
+                        await _userManager.DeleteAsync(user);
+                        return BadRequest(new { Errors = roleResult.Errors.Select(e => e.Description) });
+                    }
                 }
-            }
-            var roles = await _userManager.GetRolesAsync(user);
-            var token = await GenerateJwtToken(user);
-            return Ok(new
-            {
-                id = user.Id,
-                username = user.UserName,
-                Roles = roles,
-                Token = token
-            });
 
+                var roles = await _userManager.GetRolesAsync(user);
+                var token = await GenerateJwtToken(user);
+
+                return Ok(new
+                {
+                    id = user.Id,
+                    username = user.UserName,
+                    Roles = roles,
+                    Token = token
+                });
+            }
+            catch
+            {
+
+                await _userManager.DeleteAsync(user);
+                throw;
+            }
         }
 
         [HttpPost("login")]

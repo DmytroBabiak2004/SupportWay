@@ -278,8 +278,10 @@ namespace SupportWay.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    FullName = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Photo = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Photo = table.Column<byte[]>(type: "bytea", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false)
                 },
@@ -303,17 +305,11 @@ namespace SupportWay.Data.Migrations
                     IsRead = table.Column<bool>(type: "boolean", nullable: false),
                     SentAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     SenderId = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<string>(type: "text", nullable: true),
                     ChatId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Messages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Messages_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Messages_Chats_ChatId",
                         column: x => x.ChatId,
@@ -392,8 +388,7 @@ namespace SupportWay.Data.Migrations
                     RaterUserId = table.Column<string>(type: "text", nullable: false),
                     RatedProfileId = table.Column<Guid>(type: "uuid", nullable: false),
                     Value = table.Column<int>(type: "integer", nullable: false),
-                    RatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ProfileId = table.Column<Guid>(type: "uuid", nullable: true)
+                    RatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -402,11 +397,6 @@ namespace SupportWay.Data.Migrations
                         name: "FK_ProfileRatings_AspNetUsers_RaterUserId",
                         column: x => x.RaterUserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_ProfileRatings_Profiles_ProfileId",
-                        column: x => x.ProfileId,
-                        principalTable: "Profiles",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ProfileRatings_Profiles_RatedProfileId",
@@ -598,11 +588,6 @@ namespace SupportWay.Data.Migrations
                 column: "ChatId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_UserId",
-                table: "Messages",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Payments_HelpRequestId",
                 table: "Payments",
                 column: "HelpRequestId");
@@ -656,11 +641,6 @@ namespace SupportWay.Data.Migrations
                 name: "IX_Posts_UserId",
                 table: "Posts",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProfileRatings_ProfileId",
-                table: "ProfileRatings",
-                column: "ProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProfileRatings_RatedProfileId",

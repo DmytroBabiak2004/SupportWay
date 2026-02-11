@@ -10,6 +10,8 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task DeleteAsync(Message message);
         Task UpdateAsync(Message message);
         Task MarkAsReadAsync(Guid messageId);
+        Task MarkChatAsReadUpToAsync(Guid chatId, string userId, DateTime upToSentAt);
+        Task<bool> IsUserInChatAsync(Guid chatId, string userId);
     }
 
 }

@@ -1,15 +1,22 @@
-export interface Profile {
-  profileId: string;
-  userId: string;
-  username: string;
-  name?: string;
-  fullName?: string;
-  description: string;
-  photoBase64?: string;
+export interface Post {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
   createdAt: string;
+  userId: string;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
 
-  rating?: number;
-  followersCount: number;
-  followingCount: number;
+  authorUserName?: string;
+  authorName?: string;
+  authorFullName?: string;
+  authorPhotoBase64?: string;
+
+  commentsCount?: number;
 }
-
+export interface CreatePostDto {
+  title: string;
+  content: string;
+  image?: File;
+}

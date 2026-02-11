@@ -1,51 +1,131 @@
 <div class="login-container">
   <div class="login-box">
+
     <h1 *ngIf="!isRegisterMode">Вхід</h1>
     <h1 *ngIf="isRegisterMode">Реєстрація</h1>
-    <p *ngIf="!isRegisterMode">Ваш персональний доступ онлайн</p>
-    <p *ngIf="isRegisterMode">Створіть акаунт для доступу</p>
+
+    <p class="subtitle" *ngIf="!isRegisterMode">Ваш персональний доступ до системи</p>
+    <p class="subtitle" *ngIf="isRegisterMode">Заповніть дані для створення акаунту</p>
 
     <form [formGroup]="authForm" (ngSubmit)="onSubmit()">
-      <div class="input-group">
-        <input type="text" formControlName="username" placeholder="Логін" required>
-        <div *ngIf="authForm.get('username')?.invalid && authForm.get('username')?.touched">
-          <small class="error">Введіть правильний логін</small>
-        </div>
-      </div>
 
       <div class="input-group">
-        <input type="password" formControlName="password" placeholder="Пароль" required>
-        <div *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched">
-          <small class="error">Пароль повинен містити мінімум 6 символів</small>
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="username"
+            formControlName="username"
+            placeholder=" "
+            autocomplete="username"
+            [class.has-error]="authForm.get('username')?.invalid && authForm.get('username')?.touched"
+          >
+          <label for="username">Логін</label>
         </div>
+        <span class="error-text" *ngIf="authForm.get('username')?.invalid && authForm.get('username')?.touched">
+          Введіть коректний логін
+        </span>
       </div>
 
-      <!-- Поле ролей тільки під час реєстрації -->
-      <div class="input-group" *ngIf="isRegisterMode">
-        <select formControlName="role" required>
-          <option value="" disabled selected>Оберіть роль</option>
-          <option value="User">Користувач</option>
-          <option value="Volunteer">Волонтер</option>
-          <option value="Military">Військовий</option>
-        </select>
-        <div *ngIf="authForm.get('role')?.invalid && authForm.get('role')?.touched">
-          <small class="error">Оберіть роль</small>
+      <div class="input-group">
+        <div class="input-wrapper">
+          <input
+            [type]="hidePassword ? 'password' : 'text'"
+            id="password"
+            formControlName="password"
+            placeholder=" "
+            autocomplete="current-password"
+            [class.has-error]="authForm.get('password')?.invalid && authForm.get('password')?.touched"
+          >
+          <label for="password">Пароль</label>
+
+          <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" tabindex="-1">
+            <svg *ngIf="hidePassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            <svg *ngIf="!hidePassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
         </div>
+        <span class="error-text" *ngIf="authForm.get('password')?.invalid && authForm.get('password')?.touched">
+          Пароль повинен містити мін. 6 символів
+        </span>
       </div>
 
-      <a *ngIf="!isRegisterMode" href="#" class="forgot-password">Забули пароль?</a>
+      <ng-container *ngIf="isRegisterMode">
+
+        <div class="form-row">
+          <div class="input-group">
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="firstName"
+                formControlName="name"
+                placeholder=" "
+                autocomplete="given-name"
+                [class.has-error]="authForm.get('name')?.invalid && authForm.get('name')?.touched"
+              >
+              <label for="firstName">Ім’я</label>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="lastName"
+                formControlName="fullName"
+                placeholder=" "
+                autocomplete="family-name"
+                [class.has-error]="authForm.get('fullName')?.invalid && authForm.get('fullName')?.touched"
+              >
+              <label for="lastName">Прізвище</label>
+            </div>
+          </div>
+        </div>
+        <span class="error-text" *ngIf="(authForm.get('name')?.invalid && authForm.get('name')?.touched) || (authForm.get('fullName')?.invalid && authForm.get('fullName')?.touched)">
+           Вкажіть повне ім'я та прізвище
+        </span>
+
+        <div class="input-group">
+          <div class="input-wrapper select-wrapper">
+            <select
+              id="role"
+              formControlName="role"
+              required
+              [class.has-error]="authForm.get('role')?.invalid && authForm.get('role')?.touched"
+            >
+              <option value="" disabled selected hidden></option>
+              <option value="User">Користувач</option>
+              <option value="Volunteer">Волонтер</option>
+              <option value="Military">Військовий</option>
+            </select>
+            <label for="role">Оберіть роль</label>
+
+            <div class="select-arrow">
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L5 5L9 1"/></svg>
+            </div>
+          </div>
+          <span class="error-text" *ngIf="authForm.get('role')?.invalid && authForm.get('role')?.touched">
+            Оберіть вашу роль
+          </span>
+        </div>
+      </ng-container>
+
+      <div class="actions-row" *ngIf="!isRegisterMode">
+        <a href="#" class="forgot-password">Забули пароль?</a>
+      </div>
+
       <button type="submit" class="login-btn" [disabled]="authForm.invalid">
         {{ isRegisterMode ? 'Зареєструватися' : 'Увійти' }}
       </button>
+
+      <div *ngIf="errorMessage" class="global-error">
+        {{ errorMessage }}
+      </div>
     </form>
 
-    <div *ngIf="errorMessage" class="error-message">
-      <small>{{ errorMessage }}</small>
-    </div>
-
     <div class="divider"><span>або</span></div>
-    <button (click)="toggleMode()" class="signup-btn">
-      {{ isRegisterMode ? 'Маєте акаунт? Увійти' : 'Створити акаунт' }}
+
+    <button type="button" (click)="toggleMode()" class="signup-btn">
+      {{ isRegisterMode ? 'Вже є акаунт? Увійти' : 'Створити акаунт' }}
     </button>
+
   </div>
 </div>

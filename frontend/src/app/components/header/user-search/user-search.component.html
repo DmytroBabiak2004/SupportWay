@@ -1,50 +1,77 @@
-<div class="search-container" [class.active]="searchText.length > 0">
-
+<div class="search-container" [class.active]="showDropdown">
   <div class="input-wrapper">
-    <svg class="search-icon" viewBox="0 0 24 24">
-      <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="11" cy="11" r="8" stroke-width="2.5"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2.5"></line>
     </svg>
 
     <input
       type="text"
       [(ngModel)]="searchText"
-      (input)="searchUsers()"
+      (input)="onSearchInput()"
       placeholder="Пошук користувачів..."
       autocomplete="off"
     />
 
-    <button *ngIf="searchText" class="clear-btn" (click)="clearSearch()">
-      ✕
+    <button
+      *ngIf="searchText"
+      class="clear-btn"
+      type="button"
+      (click)="clearSearch()"
+      title="Очистити"
+    >
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
     </button>
   </div>
 
-  <div class="dropdown-menu" *ngIf="searchText">
+  <div class="dropdown-menu" *ngIf="showDropdown">
 
     <div *ngIf="isLoading" class="state-message">
       <div class="spinner"></div>
-      <span>Шукаємо...</span>
+      <span>Пошук...</span>
     </div>
 
     <ul *ngIf="!isLoading && results.length > 0" class="results-list">
-      <li *ngFor="let user of results" class="user-item" (click)="createChatWith(user)">
-
-        <div class="avatar-placeholder">
-          {{ user.userName.charAt(0) | uppercase }}
+      <li
+        *ngFor="let user of results"
+        class="user-item"
+        (click)="openProfile(user)"
+      >
+        <div class="avatar-container">
+          <img
+            *ngIf="user.photoBase64; else initialFallback"
+            [src]="profileService.getAvatarSrc(user.photoBase64)"
+            class="avatar-img"
+            alt="avatar"
+          >
+          <ng-template #initialFallback>
+            <div class="initials-box">{{ getInitials(user) }}</div>
+          </ng-template>
         </div>
 
-        <div class="user-info">
-          <span class="user-name">{{ user.userName }}</span>
-          <span class="user-action-text">Написати</span>
+        <div class="user-details">
+          <span class="full-name">{{ user.name }} {{ user.fullName }}</span>
+          <span class="username">{{ user.userName }}</span>
         </div>
 
-        <button class="action-icon">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
+        <div class="action-hint">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
       </li>
     </ul>
 
     <div *ngIf="!isLoading && results.length === 0" class="state-message empty">
-      Нічого не знайдено
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" opacity="0.5">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <span>Користувачів не знайдено</span>
     </div>
   </div>
 </div>

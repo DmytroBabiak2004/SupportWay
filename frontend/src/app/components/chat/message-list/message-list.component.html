@@ -3,5 +3,6 @@
     *ngFor="let msg of messages; trackBy: trackByMsgId"
     [msg]="msg"
     [isMine]="msg.senderId === currentUserId"
+    (deleteRequest)="onDelete($event)"
   ></app-message-bubble>
 </section>

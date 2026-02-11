@@ -1,20 +1,37 @@
 $primary: #4ba6fa;
+
 :host {
   display: flex;
   flex-direction: column;
-  flex: 1; /* Займає простір між хедером і інпутом */
+  flex: 1;
+  height: 100%;
+  width: 100%; /* Гарантуємо, що компонент не ширший за батька */
   overflow: hidden;
   min-height: 0;
+  box-sizing: border-box; /* Важливо: щоб padding не додавав ширини */
 }
 
 .messages-box {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  width: 100%; /* Розтягуємо на всю ширину хоста */
   overflow-y: auto;
-  padding: 15px;
+  overflow-x: hidden; /* Забороняємо горизонтальний скрол */
+  padding: 10px 40px;
+  box-sizing: border-box;
+
+  /* Стилізація скролбару */
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
 }
+
 .message-container {
   display: flex;
+  width: 100%;
   margin-bottom: 8px;
+  box-sizing: border-box;
 }
 
 .message-container.mine {
@@ -32,14 +49,24 @@ $primary: #4ba6fa;
 }
 
 .bubble {
-  max-width: 600px;
-  padding: 10px 16px;
+  position: relative;
+
+  /* Обмежуємо ширину повідомлення */
+  max-width: 80%;
+  /* Якщо екран дуже малий, можна спробувати: max-width: calc(100% - 40px); */
+
+  padding: 8px 14px;
   background: #ffffff;
   border-radius: 18px 18px 18px 4px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.4;
+
+  /* Ці властивості ламають довгі слова/посилання, щоб не розтягувати вікно */
   word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .time {
@@ -48,15 +75,5 @@ $primary: #4ba6fa;
   text-align: right;
   margin-top: 4px;
   display: block;
-}
-.messages-box {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 5%;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-
-  &::-webkit-scrollbar { width: 6px; }
-  &::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+  line-height: 1;
 }

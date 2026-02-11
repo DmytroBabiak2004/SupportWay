@@ -1,19 +1,18 @@
 ﻿using SupportWay.API.DTOs;
-using SupportWay.Data.Context;
 using SupportWay.Data.Repositories.Interfaces;
-using SupportWay.Repositories;
+using SupportWay.Services;
 
 namespace SupportWay.Services
 {
     public class UserService : IUserService
     {
         private readonly IUsersRepository _usersRepository;
-       
 
         public UserService(IUsersRepository usersRepository)
         {
             _usersRepository = usersRepository;
         }
+
         public async Task<List<UserSearchDto>> SearchUsersByNameAsync(string name)
         {
             var users = await _usersRepository.SearchUsersByNameAsync(name);
@@ -22,7 +21,9 @@ namespace SupportWay.Services
             {
                 Id = u.Id,
                 UserName = u.UserName,
-                //Photo = u.Profile.Photo
+                Name = u.Profile?.Name,
+                FullName = u.Profile?.FullName,
+                PhotoBase64 = u.Profile?.Photo
             }).ToList();
         }
     }

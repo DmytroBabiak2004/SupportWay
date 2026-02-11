@@ -1,9 +1,31 @@
 <div class="message-container" [class.mine]="isMine">
   <div class="message-group">
     <div class="bubble">
-      {{ msg.content }}
-      <div class="time" *ngIf="msg.sentAt">
-        {{ msg.sentAt | date:'HH:mm' }}
+      <span class="content">{{ msg.content }}</span>
+
+      <div class="meta">
+        <span class="time" *ngIf="msg.sentAt">
+          {{ msg.sentAt | date:'HH:mm' }}
+        </span>
+
+        <ng-container *ngIf="isMine">
+
+          <span class="status-icon" [class.read]="msg.isRead">
+            <svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10.9998 1L5.49988 6.5L3.99988 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path class="second-check" d="M14.9998 1L9.49988 6.5M1.00012 5L2.50012 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+
+          <button class="delete-btn" (click)="onDelete()" title="Видалити">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+
+        </ng-container>
+
       </div>
     </div>
   </div>

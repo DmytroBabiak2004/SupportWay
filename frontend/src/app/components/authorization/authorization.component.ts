@@ -19,8 +19,13 @@ export class AuthorizationComponent {
   public authForm = new FormGroup({
     username: new FormControl('', [Validators.required]),
     password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+
+    name: new FormControl('', []),
+    fullName: new FormControl('', []),
+
     role: new FormControl('', { nonNullable: true })
   });
+
 
   constructor(private authService: AuthService, private router: Router) {
     this.toggleFormControls();
@@ -32,20 +37,36 @@ export class AuthorizationComponent {
     this.toggleFormControls();
   }
 
-  // Увімкнути або вимкнути поле "role"
   toggleFormControls() {
     const roleControl = this.authForm.get('role');
+    const nameControl = this.authForm.get('name');
+    const fullNameControl = this.authForm.get('fullName');
 
     if (this.isRegisterMode) {
       roleControl?.setValidators([Validators.required]);
+
+      nameControl?.setValidators([Validators.required, Validators.minLength(2)]);
+      fullNameControl?.setValidators([Validators.required, Validators.minLength(2)]);
+
       roleControl?.setValue('');
+      nameControl?.setValue('');
+      fullNameControl?.setValue('');
     } else {
       roleControl?.clearValidators();
+
+      nameControl?.clearValidators();
+      fullNameControl?.clearValidators();
+
       roleControl?.setValue('');
+      nameControl?.setValue('');
+      fullNameControl?.setValue('');
     }
 
     roleControl?.updateValueAndValidity();
+    nameControl?.updateValueAndValidity();
+    fullNameControl?.updateValueAndValidity();
   }
+
 
   onSubmit() {
     if (this.authForm.invalid) {
@@ -53,14 +74,14 @@ export class AuthorizationComponent {
       return;
     }
 
-    const { username, password, role } = this.authForm.value;
+    const { username, password, role, name, fullName } = this.authForm.value;
 
     if (this.isRegisterMode) {
-      this.authService.register(username!, password!, role!).subscribe({
+      this.authService.register(username!, password!, role!, name!, fullName!).subscribe({
         next: () => {
-          console.log('Реєстрація успішна');
           this.errorMessage = null;
           this.isRegisterMode = false;
+          this.toggleFormControls(); // ✅ повернути форму в режим логіну
           this.checkSessionAndRedirect();
         },
         error: (err: HttpErrorResponse) => {
@@ -70,7 +91,6 @@ export class AuthorizationComponent {
     } else {
       this.authService.login(username!, password!).subscribe({
         next: () => {
-          console.log('Вхід успішний');
           this.errorMessage = null;
           this.checkSessionAndRedirect();
         },
@@ -80,6 +100,7 @@ export class AuthorizationComponent {
       });
     }
   }
+
 
   private checkSessionAndRedirect() {
     this.authService.checkSession().subscribe({
@@ -94,5 +115,10 @@ export class AuthorizationComponent {
         this.errorMessage = err.error?.message || 'Не вдалося перевірити сесію';
       }
     });
+  }
+  hidePassword = true; // Додай цю змінну
+
+  togglePasswordVisibility() {
+    this.hidePassword = !this.hidePassword;
   }
 }

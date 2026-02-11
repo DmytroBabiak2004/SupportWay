@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SupportWay.API.DTOs;
 using SupportWay.API.Services.Interface;
 using System.Security.Claims;
 
@@ -16,59 +17,75 @@ namespace SupportWay.Api.Controllers
         {
             _profileService = profileService;
         }
+
+        private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         [HttpPost]
         public async Task<IActionResult> CreateProfile()
         {
             var userId = User?.Identity?.Name;
-
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             var existingProfile = await _profileService.GetProfileAsync(userId);
-            if (existingProfile != null)
-                return BadRequest("Profile already exists.");
+            if (existingProfile != null) return BadRequest("Profile already exists.");
 
             await _profileService.AddProfileAsync(userId);
-
             return StatusCode(201);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetProfile()
+        [HttpGet("profiles/me")]
+        public async Task<IActionResult> GetMyProfile()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var profile = await _profileService.GetProfileAsync(userId);
+            var profileDto = await _profileService.GetProfileAsync(CurrentUserId);
 
-            if (profile == null)
-                return NotFound("Profile not found.");
+            if (profileDto == null)
+            {
+                await _profileService.AddProfileAsync(CurrentUserId);
+                profileDto = await _profileService.GetProfileAsync(CurrentUserId);
+            }
 
-            return Ok(profile);
+            if (profileDto != null) profileDto.IsOwnProfile = true;
+
+            return Ok(profileDto);
         }
 
-        //[HttpPut("description")]
-        //public async Task<IActionResult> UpdateDescription([FromBody] string description)
-        //{
-        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //    await _profileService.UpdateDescriptionAsync(userId, description);
-        //    return NoContent();
-        //}
+        [HttpGet("profiles/{username}")]
+        public async Task<IActionResult> GetProfileByUsername(string username)
+        {
+            var profileDto = await _profileService.GetProfileByUsernameAsync(username);
 
-        //[HttpPut("photo")]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> UpdatePhoto([FromForm] IFormFile photo)
-        //{
-        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (profileDto == null) return NotFound();
+            profileDto.IsOwnProfile = (profileDto.UserId == CurrentUserId);
 
-        //    if (photo == null || photo.Length == 0)
-        //        return BadRequest("Photo file is missing.");
+            return Ok(profileDto);
+        }
 
-        //    using var memoryStream = new MemoryStream();
-        //    await photo.CopyToAsync(memoryStream);
-        //    var photoBytes = memoryStream.ToArray();
+        [HttpPut("name")]
+        public async Task<IActionResult> UpdateName([FromBody] UpdateProfileNameDto dto)
+        {
+            await _profileService.UpdateNameAsync(CurrentUserId, dto.Name, dto.FullName);
+            return NoContent();
+        }
 
-        //    await _profileService.UpdatePhotoAsync(userId, photoBytes);
-        //    return NoContent();
-        //}
+        [HttpPut("description")]
+        public async Task<IActionResult> UpdateDescription([FromBody] DescriptionUpdateDto dto)
+        {
+            await _profileService.UpdateDescriptionAsync(CurrentUserId, dto.Description);
+            return NoContent();
+        }
 
+        [HttpPut("photo")]
+        public async Task<IActionResult> UpdatePhoto([FromForm] IFormFile photo)
+        {
+            if (photo == null || photo.Length == 0) return BadRequest("Photo is missing.");
+
+            using var memoryStream = new MemoryStream();
+            await photo.CopyToAsync(memoryStream);
+
+            await _profileService.UpdatePhotoAsync(CurrentUserId, memoryStream.ToArray());
+            return NoContent();
+        }
     }
+
+    public record DescriptionUpdateDto(string Description);
 }

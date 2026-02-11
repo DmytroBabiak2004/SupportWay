@@ -1,11 +1,7 @@
-export interface Chat {
+export interface UserSearch {
   id: string;
+  userName: string;
   name?: string;
-  userChats?: {
-    userId: string;
-    user: {
-      userName: string;
-    };
-  }[];
-  participants?: { id: string; userName: string }[];
+  fullName?: string;
+  photoBase64?: string;
 }

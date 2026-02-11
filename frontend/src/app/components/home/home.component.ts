@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {UserSearchComponent} from '../user-search/user-search.component';
+import {UserSearchComponent} from '../header/user-search/user-search.component';
 
 @Component({
   selector: 'app-home',

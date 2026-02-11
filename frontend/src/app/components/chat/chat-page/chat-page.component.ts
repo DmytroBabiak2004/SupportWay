@@ -1,10 +1,17 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
-import { ChatService, Chat, Message } from '../../../services/chat.service';
+// ✅ Додав MessageDeletedEvent в імпорти
+import {
+  ChatService,
+  Chat,
+  Message,
+  ReadReceiptEvent,
+  MessageDeletedEvent
+} from '../../../services/chat.service';
 import { AuthService } from '../../../services/auth.service';
 
 import { ChatSidebarComponent } from '../chat-sidebar/chat-sidebar.component';
@@ -38,7 +45,7 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   userId!: string;
   typingText: string | null = null;
 
-  // ✅ mobile drawer state
+  // mobile drawer state
   isSidebarOpen = true;
 
   private subs = new Subscription();
@@ -47,7 +54,8 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   constructor(
     private chatService: ChatService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -60,15 +68,33 @@ export class ChatPageComponent implements OnInit, OnDestroy {
       console.error('SignalR Error:', err);
     }
 
+    // 1. ОТРИМАННЯ ПОВІДОМЛЕНЬ
     this.subs.add(
       this.chatService.messageReceived$.subscribe((msg: Message) => {
         if (this.selectedChat && msg.chatId === this.selectedChat.id) {
-          // message-list сам скролить вниз
           this.messages = [...this.messages, msg];
+
+          if (msg.senderId !== this.userId) {
+            this.chatService.markAsRead(this.selectedChat.id, msg.id);
+          }
         }
       })
     );
 
+    // 2. ОТРИМАННЯ ЗВІТУ ПРО ПРОЧИТАННЯ
+    this.subs.add(
+      this.chatService.readReceipt$.subscribe((event: ReadReceiptEvent) => {
+        if (
+          this.selectedChat &&
+          event.chatId === this.selectedChat.id &&
+          event.userId !== this.userId
+        ) {
+          this.updateLocalReadStatus(event.lastReadMessageId);
+        }
+      })
+    );
+
+    // 3. ІНДИКАТОР НАБОРУ
     this.subs.add(
       this.chatService.typingEvent$.subscribe(event => {
         if (
@@ -77,6 +103,18 @@ export class ChatPageComponent implements OnInit, OnDestroy {
           event.userId !== this.userId
         ) {
           this.showTypingIndicator();
+        }
+      })
+    );
+
+    // ✅ 4. ОБРОБКА ВИДАЛЕННЯ (REAL-TIME)
+    // Слухаємо, коли сервер каже, що повідомлення видалено
+    this.subs.add(
+      this.chatService.messageDeleted$.subscribe((event: MessageDeletedEvent) => {
+        // Перевіряємо, чи ми зараз у тому чаті, де сталося видалення
+        if (this.selectedChat && event.chatId === this.selectedChat.id) {
+          // Фільтруємо список: залишаємо всі повідомлення, крім видаленого
+          this.messages = this.messages.filter(m => m.id !== event.messageId);
         }
       })
     );
@@ -115,14 +153,13 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   openChat(chat: Chat): void {
     this.selectedChat = chat;
     this.messages = [];
-
-    // ✅ на телефоні ховаємо список після вибору
     this.isSidebarOpen = false;
 
     this.subs.add(
       this.chatService.getMessages(chat.id).subscribe({
         next: (msgs) => {
-          this.messages = msgs; // message-list сам автоскролить
+          this.messages = msgs;
+          this.sendReadReceiptForLastMessage();
         },
         error: (err) => console.error(err),
       })
@@ -132,9 +169,12 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   closeChat(): void {
     this.selectedChat = null;
     this.messages = [];
-
-    // ✅ на телефоні повертаємо список
     this.isSidebarOpen = true;
+
+    this.router.navigate([], {
+      queryParams: { chatId: null },
+      queryParamsHandling: 'merge'
+    });
   }
 
   async sendMessage(): Promise<void> {
@@ -167,24 +207,63 @@ export class ChatPageComponent implements OnInit, OnDestroy {
     return other?.user.userName ?? 'Користувач';
   }
 
-  onDeleteChatFromHeader() {
-    // 1. Створюємо локальну константу. Це фіксує значення.
-    const chat = this.selectedChat;
+  private sendReadReceiptForLastMessage(): void {
+    if (!this.selectedChat || this.messages.length === 0) return;
 
-    // 2. Перевіряємо локальну змінну
+    const lastMsg = this.messages[this.messages.length - 1];
+
+    if (lastMsg.senderId !== this.userId) {
+      this.chatService.markAsRead(this.selectedChat.id, lastMsg.id);
+    }
+  }
+
+  private updateLocalReadStatus(lastReadId: string): void {
+    const readIndex = this.messages.findIndex(m => m.id === lastReadId);
+
+    if (readIndex !== -1) {
+      this.messages = this.messages.map((msg, index) => {
+        if (index <= readIndex && msg.senderId === this.userId) {
+          return { ...msg, isRead: true };
+        }
+        return msg;
+      });
+    }
+  }
+
+  onDeleteChatFromHeader() {
+    const chat = this.selectedChat;
     if (!chat) return;
 
-    // Тепер TypeScript точно знає, що 'chat' не є null у всьому цьому блоці
-    const confirmDelete = confirm(`Ви точно хочете видалити чат "${chat.name}"?`);
+    const chatName = this.getChatName(chat);
 
-    if (confirmDelete) {
-      // 3. Використовуємо 'chat.id' замість 'this.selectedChat.id'
-      this.chatService.deleteChat(chat.id).subscribe(() => {
-        this.chats = this.chats.filter(c => c.id !== chat.id);
-        this.selectedChat = null;
-        // Якщо є масив повідомлень, очищаємо його
-        // this.messages = [];
+    if (confirm(`Ви точно хочете видалити чат "${chatName}"?`)) {
+      this.chatService.deleteChat(chat.id).subscribe({
+        next: () => {
+          this.chats = this.chats.filter(c => c.id !== chat.id);
+          this.closeChat();
+        },
+        error: (err) => {
+          console.error('Помилка видалення:', err);
+          alert('Не вдалося видалити чат');
+        }
       });
+    }
+  }
+
+  // ✅ НОВИЙ МЕТОД: Обробка видалення окремого повідомлення
+  async onDeleteMessage(messageId: string): Promise<void> {
+    if (!confirm('Видалити це повідомлення?')) return;
+
+    try {
+      // 1. Відправляємо запит на сервер
+      await this.chatService.deleteMessage(messageId);
+
+      // 2. Локально нічого не видаляємо вручну.
+      // Ми чекаємо на подію messageDeleted$ (у ngOnInit),
+      // яка прийде через SignalR і оновить масив this.messages.
+    } catch (err) {
+      console.error('Error deleting message:', err);
+      alert('Не вдалося видалити повідомлення');
     }
   }
 }

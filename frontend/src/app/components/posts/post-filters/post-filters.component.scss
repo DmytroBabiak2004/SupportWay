@@ -1,0 +1,338 @@
+:host {
+  /* --- Design Tokens --- */
+  --c-primary: #2563eb;
+  --c-primary-hover: #1d4ed8;
+  --c-primary-soft: rgba(37, 99, 235, 0.15);
+  --c-white: #ffffff;
+
+  --bg-surface: #ffffff;
+  --bg-subtle: #f8fafc;
+
+  --text-main: #0f172a;
+  --text-placeholder: #94a3b8;
+  --border-light: #e2e8f0;
+
+  --radius-pill: 9999px;
+  --h-control: 44px; /* Єдина висота для всього */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  display: block;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 24px;
+}
+
+.controls-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap; /* Адаптивність */
+}
+
+.filters-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 280px; /* Щоб не стискалося надто сильно */
+
+  @media (max-width: 600px) {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* --- 1. SEARCH INPUT --- */
+.search-wrapper {
+  position: relative;
+  flex: 1; /* Займає весь доступний простір */
+
+  .search-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    input {
+      width: 100%;
+      height: var(--h-control);
+      padding: 0 36px 0 44px; /* Місце під іконки */
+
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-pill);
+      background: var(--bg-surface);
+
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &::placeholder { color: var(--text-placeholder); }
+
+      &:focus {
+        outline: none;
+        border-color: var(--c-primary);
+        box-shadow: 0 0 0 3px var(--c-primary-soft);
+        background: var(--c-white);
+      }
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      color: var(--text-placeholder);
+      pointer-events: none;
+      display: flex;
+      transition: color 0.2s;
+      svg { width: 18px; height: 18px; }
+    }
+
+    &:focus-within .search-icon { color: var(--c-primary); }
+  }
+}
+
+/* Clear Button */
+.clear-btn {
+  position: absolute;
+  right: 12px;
+  width: 20px; height: 20px;
+  border: none; background: transparent;
+  color: var(--text-placeholder);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+
+  svg { width: 14px; height: 14px; }
+  &:hover { background: var(--bg-subtle); color: var(--text-main); }
+}
+
+/* --- 2. SELECT DROPDOWN --- */
+.select-wrapper {
+  position: relative;
+  min-width: 160px;
+
+  select {
+    width: 100%;
+    height: var(--h-control);
+    padding: 0 36px 0 16px; /* padding-right для стрілочки */
+
+    appearance: none; /* Приховуємо стандартну стрілку браузера */
+    -webkit-appearance: none;
+
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 3px var(--c-primary-soft);
+    }
+
+    &:hover { border-color: #cbd5e1; }
+  }
+
+  /* Custom Arrow Icon */
+  .select-arrow {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-placeholder);
+    display: flex;
+    svg { width: 16px; height: 16px; }
+  }
+}
+
+/* --- 3. CREATE BUTTON --- */
+.create-btn {
+  height: var(--h-control);
+  padding: 0 24px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--c-primary);
+  color: var(--c-white);
+
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: var(--c-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+  }
+
+  &:active { transform: translateY(0); }
+
+  .btn-icon svg { width: 18px; height: 18px; }
+
+  @media (max-width: 600px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.controls-container {
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+
+  /* Перетворюємо на компактну панель інструментів */
+  display: flex;
+  gap: 8px;
+}
+
+.search-inner input {
+  background: var(--bg-subtle) !important;
+  border: 1px solid transparent !important;
+
+  &:focus {
+    background: #fff !important;
+    border-color: var(--c-primary) !important;
+  }
+}
+:host {
+  --c-primary: #3b82f6;
+  --bg-input: #f1f5f9; /* Світло-сірий фон замість білого з рамкою */
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+
+  --h-sm: 38px;       /* Компактна висота */
+  --radius: 10px;     /* М'які кути замість pill-shape */
+
+  display: block;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  /* На мобільних переходить у стовпчик */
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* --- SEARCH --- */
+.search-box {
+  position: relative;
+  flex: 1;
+
+  input {
+    width: 100%;
+    height: var(--h-sm);
+    padding: 0 12px 0 36px;
+
+    background: var(--bg-input);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+
+    font-size: 14px;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+
+    &::placeholder { color: var(--text-muted); font-weight: 400; }
+
+    &:focus {
+      outline: none;
+      background: #fff;
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+  }
+
+  .icon-search {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    display: flex;
+
+    svg { width: 16px; height: 16px; }
+  }
+}
+
+/* --- SELECT --- */
+.sort-select {
+  position: relative;
+
+  select {
+    height: var(--h-sm);
+    padding: 0 32px 0 12px;
+
+    background: var(--bg-input);
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-main);
+    cursor: pointer;
+    appearance: none;
+    transition: background 0.2s;
+
+    &:hover { background: #e2e8f0; }
+    &:focus { outline: none; border-color: var(--c-primary); }
+  }
+
+  .icon-arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    svg { width: 14px; height: 14px; }
+  }
+}
+
+/* --- CREATE BUTTON --- */
+.btn-add {
+  height: var(--h-sm);
+  padding: 0 16px;
+
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.9; }
+  &:active { transform: scale(0.98); }
+
+  svg { width: 16px; height: 16px; }
+}

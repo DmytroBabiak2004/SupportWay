@@ -8,9 +8,9 @@ namespace SupportWay.Data.Repositories.Implementations
     public class ProfilesRepository : IProfilesRepository
     {
         private readonly SupportWayContext _context;
-        private readonly ProfileRatingRepository _ratingRepository;
+        private readonly IProfileRatingRepository _ratingRepository;
 
-        public ProfilesRepository(SupportWayContext context, ProfileRatingRepository ratingRepository)
+        public ProfilesRepository(SupportWayContext context, IProfileRatingRepository ratingRepository)
         {
             _context = context;
             _ratingRepository = ratingRepository;
@@ -53,11 +53,24 @@ namespace SupportWay.Data.Repositories.Implementations
             _context.Profiles.Update(profile);
             await _context.SaveChangesAsync();
         }
+        public async Task UpdateNameAsync(string userId, string? name, string? fullName)
+        {
+            var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.UserId == userId);
+            if (profile is null) return;
+
+            profile.Name = name;
+            profile.FullName = fullName;
+
+            _context.Profiles.Update(profile);
+            await _context.SaveChangesAsync();
+        }
+
 
         public async Task<double?> GetProfileRatingAsync(Guid ratedProfileId)
         {
             return await _ratingRepository.GetAverageRatingAsync(ratedProfileId);
         }
+
 
         public async Task RateProfileAsync(string raterUserId, Guid ratedProfileId, int value)
         {

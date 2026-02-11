@@ -1,182 +1,633 @@
-/* Головний стиль хедера */
-.main-header {
-  background-color: black;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-}
+/* header.component.scss */
 
-/* Контейнер навігації */
-.nav-container {
-  width: 100%;
-  max-width: 1400px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-}
+/* --- Design Tokens (Змінні) --- */
+$header-height: 64px;
+$primary-color: #2563eb;
+$primary-hover: rgba(37, 99, 235, 0.08);
+$bg-header: #ffffff; /* Можна поставити rgba(255, 255, 255, 0.9) для ефекту скла */
+$text-main: #1f2937;
+$text-secondary: #6b7280;
+$border-color: #e5e7eb;
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$transition-base: all 0.2s ease-in-out;
 
-.nav-list {
-  list-style: none;
-  display: flex;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-}
-
-/* Стилі для пунктів меню */
-.nav-item {
-  position: relative;
-  flex: 1 1 auto;
-}
-
-.nav-item a {
-  text-decoration: none;
-  color: white;
-  font-size: 16px;
-  text-transform: uppercase;
-  padding: 15px 10px;
+:host {
   display: block;
-  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
 }
 
-.active {
-  background-color: #026fbd;
+.main-header {
+  height: $header-height;
+  background-color: $bg-header;
+  border-bottom: 1px solid $border-color;
+  box-shadow: $shadow-sm;
+
+  /* Modern Touch: розмиття фону за хедером */
+  backdrop-filter: blur(8px);
 }
 
+.nav-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
 
-@media (max-width: 768px) {
-  .nav-list {
+/* --- 1. Логотип (Бренд) --- */
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text-main;
+  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 40px;
+  display: flex;
+  align-items: center;
+
+  .highlight {
+    color: $primary-color;
+  }
+
+  @media (max-width: 1024px) {
+    margin-right: 24px;
+  }
+}
+
+/* --- Nav Wrapper (Контейнер для всього окрім лого) --- */
+.nav-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+
+  /* Mobile Sidebar Logic */
+  @media (max-width: 950px) {
+    position: fixed; /* Fixed надійніше ніж absolute для мобільних шторок */
+    top: $header-height;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: $bg-header;
+    flex-direction: column;
+    padding: 24px;
+    border-top: 1px solid $border-color;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto; /* Дозволяє скрол меню на маленьких телефонах */
+
+    &.open {
+      transform: translateX(0);
+    }
+  }
+}
+
+/* --- 2. Пошук (Функціональний блок) --- */
+.header-search {
+  width: 280px;
+  flex-shrink: 0;
+  margin-right: 24px;
+
+  @media (max-width: 950px) {
+    width: 100%;
+    margin: 0 0 24px 0;
+    order: 1;
+  }
+}
+
+/* --- 3. Навігація (Центральний блок) --- */
+.nav-list {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Відступ між кнопками */
+  list-style: none;
+  padding: 0;
+
+  /* ✅ Golden Standard для центрування у Flexbox */
+  margin: 0 auto;
+
+  @media (max-width: 950px) {
     flex-direction: column;
     width: 100%;
-  }
-
-  .nav-item {
-    flex: none;
-    text-align: center;
-    padding: 10px 0;
-  }
-
-  .nav-item a {
-    padding: 10px 0;
+    margin: 0;
+    gap: 0;
+    order: 2;
   }
 }
 
-/* Бургер-іконка за замовчуванням прихована */
-.burger-menu {
-  padding: 15px;
-  font-size: 30px;
-  color: white;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-}
+.nav-item {
+  position: relative; /* Важливо для позиціонування дропдауна */
 
-/* При малих екранах */
-@media (max-width: 770px) {
-  .nav-container {
-    justify-content: space-between;
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: $text-main;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: $transition-base;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: #f3f4f6;
+      color: $primary-color;
+    }
+
+    &.active {
+      background-color: $primary-hover;
+      color: $primary-color;
+      font-weight: 600;
+    }
   }
 
-  .nav-list {
-    display: none;
-    flex-direction: column;
+  /* --- Arrow Animation Fix --- */
+  .arrow {
+    display: inline-block; /* ❗ Обов'язково для роботи transform */
+    font-size: 10px;
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+    color: $text-secondary;
+  }
+
+  /* Mobile styles for items */
+  @media (max-width: 950px) {
+    width: 100%;
+    a {
+      padding: 16px;
+      border-radius: 0;
+      border-bottom: 1px solid #f9fafb;
+      width: 100%;
+    }
+  }
+}
+
+/* --- Dropdown System --- */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px); /* Невеликий відступ */
+  left: 50%;
+  transform: translateX(-50%) translateY(10px); /* Початковий стан для анімації */
+  background: #fff;
+  min-width: 200px;
+  border-radius: 12px;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-color;
+  padding: 6px;
+  list-style: none;
+
+  /* Стан "сховано" */
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+  z-index: 100;
+
+  /* 💡 PRO TIP: Невидимий місток, щоб меню не зникало при русі мишки */
+  &::before {
+    content: '';
     position: absolute;
-    top: 50px;
+    top: -10px;
     left: 0;
     width: 100%;
-    background: black;
-    padding: 10px 0;
+    height: 10px;
+    background: transparent;
   }
 
-  .nav-list.open {
+  li a {
+    justify-content: flex-start; /* Вирівнювання тексту в дропдауні зліва */
+    padding: 10px 12px;
+    &:hover { background: #f9fafb; }
+  }
+}
+
+/* Hover Interaction (Desktop only) */
+@media (min-width: 951px) {
+  .nav-item.dropdown:hover {
+    .dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0); /* Плавний виїзд */
+    }
+
+    .arrow {
+      transform: rotate(180deg); /* Поворот стрілки */
+      color: $primary-color;
+    }
+
+    /* Підсвічуємо батьківське посилання, коли меню відкрите */
+    > a {
+      color: $primary-color;
+      background-color: #f3f4f6;
+    }
+  }
+}
+
+/* Mobile Dropdown */
+@media (max-width: 950px) {
+  .nav-item.dropdown.open {
+    .dropdown-menu {
+      position: static;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      box-shadow: none;
+      border: none;
+      background: #f9fafb;
+      padding-left: 16px;
+    }
+    .arrow { transform: rotate(180deg); }
+  }
+}
+
+/* --- 4. Профіль (Крайній правий) --- */
+.mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+
+  /* Тут не потрібен margin-left, бо nav-list auto margin робить роботу,
+     але для безпеки на випадок видалення меню: */
+  margin-left: auto;
+
+  .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-main;
+  }
+
+  .avatar {
+    width: 40px; /* Трохи більший аватар для кращого вигляду */
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary-color, #60a5fa);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
   }
 
-  .burger-menu {
+  @media (max-width: 950px) {
+    width: 100%;
+    order: 3;
+    justify-content: flex-start; /* На мобільному зручніше зліва */
+    padding-top: 24px;
+    margin-top: auto;
+    border-top: 1px solid $border-color;
+
+    .name { font-size: 16px; }
+  }
+}
+
+/* --- Mobile Controls --- */
+.mobile-controls {
+  display: none;
+  margin-left: auto;
+
+  @media (max-width: 950px) {
     display: block;
   }
 }
 
-
-
-/* Стиль для випадаючого списку */
-.nav-item.dropdown {
-  position: relative;
-}
-
-.dropdown-toggle {
+.burger-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  color: $text-main;
   cursor: pointer;
-  color: white;
-  font-size: 16px;
-  text-transform: uppercase;
-  padding: 15px 10px;
-  display: block;
-  text-align: center;
+  transition: color 0.2s;
+
+  &:hover {
+    color: $primary-color;
+  }
 }
 
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  background-color: #000;
-  display: none;
-  min-width: 180px;
-  z-index: 1000;
-  flex-direction: column;
-  border: 1px solid #444;
-  padding-left: 0;
-  list-style: none;
-}
+/* --- User Dropdown System --- */
 
-.dropdown-menu li {
-  width: 100%;
-}
-
-.dropdown-menu a {
-/*  padding: 10px 15px;*/
-  display: block;
-  text-align: left;
-  color: white;
-  text-transform: none;
-  font-size: 15px;
-  border-bottom: 1px solid #222;
-}
-
-.dropdown-menu a:hover {
-  background-color: #026fbd;
-}
-
-/* Показати меню при наведенні */
-.nav-item.dropdown:hover .dropdown-menu {
+.user-dropdown-container {
+  position: relative;
+  margin-left: auto; /* Притискаємо вправо */
+  flex-shrink: 0;
+  height: 100%; /* На всю висоту хедера, щоб ховер працював стабільно */
   display: flex;
-  .header-search {
-    position: relative;
-    width: 320px;
-  }
+  align-items: center;
 
+  /* Стрілочка на мобільному */
+  .arrow-mobile { display: none; font-size: 10px; margin-left: 8px; transition: transform 0.2s; }
 }
-@media (max-width: 770px) {
-  .dropdown-menu {
-    position: static;
-    border: none;
-    width: 100%;
-    display: none;
+
+/* Стилі для випадаючого меню користувача */
+.user-menu {
+  position: absolute;
+  top: calc(100% - 10px); /* Трохи перекриваємо хедер для "містка" */
+  right: 0; /* Вирівнювання по правому краю контейнера */
+  width: 220px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: $shadow-lg;
+  border: 1px solid $border-color;
+  padding: 8px;
+  list-style: none;
+
+  opacity: 0; visibility: hidden;
+  transform: translateY(10px);
+  transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+  z-index: 100;
+
+  /* Невидимий місток */
+  &::before {
+    content: ''; position: absolute; top: -15px; right: 0; width: 100%; height: 20px; background: transparent;
   }
 
-  .nav-item.dropdown.open .dropdown-menu {
+  li {
+    margin-bottom: 2px;
+  }
+
+  li a {
     display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: $text-main;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+
+    .icon { font-size: 16px; }
+
+    &:hover { background: #f3f4f6; color: $primary-color; }
   }
 
-  .dropdown-toggle::after {
-    content: ' ▼';
-    font-size: 10px;
+  .divider {
+    height: 1px;
+    background: $border-color;
+    margin: 6px 0;
   }
 
-  .dropdown-menu a {
-    text-align: center;
-    border: none;
-    padding: 10px;
+  .logout-link:hover {
+    background: #fef2f2;
+    color: #ef4444; /* Червоний колір для виходу */
   }
 }
 
+/* Hover Effect Desktop */
+@media (min-width: 951px) {
+  .user-dropdown-container:hover {
+    .user-menu {
+      opacity: 1; visibility: visible; transform: translateY(0);
+      top: 100%; /* Відсуваємо на місце при ховері */
+    }
+
+    .mini-profile {
+      /* Ефект активного профілю */
+      opacity: 0.8;
+    }
+  }
+}
+
+/* Mobile Styles for User Dropdown */
+@media (max-width: 950px) {
+  .user-dropdown-container {
+    width: 100%;
+    margin-left: 0;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid $border-color;
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+
+    .arrow-mobile { display: inline-block; }
+
+    &.open .arrow-mobile { transform: rotate(180deg); }
+  }
+
+  .mini-profile {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 10px 0;
+    cursor: pointer;
+  }
+
+  .user-menu {
+    position: static; /* Стає частиною потоку */
+    opacity: 1; visibility: visible; transform: none;
+    box-shadow: none; border: none;
+    background: #f9fafb;
+    width: 100%;
+    padding-left: 16px;
+    display: none; /* Сховано за замовчуванням */
+  }
+
+  /* Клас open додається через JS при кліку */
+  .user-dropdown-container.open .user-menu {
+    display: block;
+  }
+}
+
+/* Auth Buttons (якщо юзер не залогінений) */
+.auth-buttons {
+  margin-left: auto;
+  @media (max-width: 950px) { margin-left: 0; width: 100%; margin-top: 20px; }
+
+  .login-btn {
+    display: inline-block;
+    padding: 8px 24px;
+    background: $primary-color;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.2s;
+    text-align: center;
+    @media (max-width: 950px) { width: 100%; }
+
+    &:hover { background: darken($primary-color, 10%); }
+  }
+}
+/* ... твої існуючі стилі ... */
+
+.mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 20px;
+
+  .name {
+    font-weight: 500;
+    color: var(--text-main);
+    text-decoration: none;
+    cursor: pointer;
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+
+  .avatar-wrapper {
+    position: relative;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    transition: transform 0.2s, opacity 0.2s;
+
+    &:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    /* Якщо йде завантаження */
+    &.loading {
+      cursor: wait;
+    }
+  }
+
+  .avatar-circle {
+    width: 100%;
+    height: 100%;
+    background-color: var(--primary-color);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  /* Спінер поверх аватара */
+  .spinner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--primary-color);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Адаптив для мобільного */
+@media (max-width: 950px) {
+  .mini-profile {
+    margin-left: 0;
+    margin-top: 20px;
+    justify-content: center;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+  }
+}
+/* ... інші стилі ... */
+
+.mini-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 20px;
+
+  .name {
+    font-weight: 500;
+    color: var(--text-main);
+    text-decoration: none;
+    cursor: pointer;
+    &:hover {
+      color: var(--primary-color);
+    }
+  }
+
+  .avatar-wrapper {
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  .avatar-circle {
+    width: 100%;
+    height: 100%;
+    /* 🎨 Колір фону обов'язковий, щоб білі букви було видно */
+    background-color: var(--primary-color, #3b82f6);
+    color: #fff;
+
+    /* 📐 Центрування ініціалів */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: 600;
+    font-size: 16px;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .initials-text {
+      line-height: 1;
+      text-transform: uppercase;
+      user-select: none;
+    }
+  }
+}
+
+@media (max-width: 950px) {
+  .mini-profile {
+    margin-left: 0;
+    margin-top: 20px;
+    justify-content: center;
+    width: 100%;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+  }
+}

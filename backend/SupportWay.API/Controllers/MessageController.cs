@@ -59,12 +59,22 @@ namespace SupportWay.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("messages/{messageId:guid}/read")]
-        public async Task<IActionResult> MarkAsRead(Guid messageId)
+        public record MarkReadRequest(Guid ChatId, Guid LastReadMessageId);
+
+        [HttpPost("read")]
+        public async Task<IActionResult> MarkChatAsRead([FromBody] MarkReadRequest request)
         {
-            var success = await _messageService.MarkAsReadAsync(messageId);
-            return success ? Ok() : NotFound();
+            var userId = GetCurrentUserId();
+
+            var success = await _messageService.MarkChatAsReadAsync(
+                request.ChatId,
+                userId,
+                request.LastReadMessageId
+            );
+
+            return success ? Ok() : Forbid();
         }
+
 
         private string GetCurrentUserId() =>
             User.FindFirstValue(ClaimTypes.NameIdentifier)

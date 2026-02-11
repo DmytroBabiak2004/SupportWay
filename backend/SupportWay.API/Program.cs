@@ -64,12 +64,11 @@ builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
 builder.Services.AddScoped<IPostCommentsRepository, PostCommentsRepository>();
 builder.Services.AddScoped<IPostLikesRepoository, PostLikesRepository>();
 builder.Services.AddScoped<IPostRepository, PostsRepository>();
-builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
 builder.Services.AddScoped<IRequestItemsRepository, RequestItemsRepository>();
-builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IMessagesRepository, ChatMessageRepository>();
-builder.Services.AddScoped<ProfileRatingRepository>();
+builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
+builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
@@ -81,6 +80,7 @@ builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IRequestItemService, RequestItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IProfileRatingService, ProfileRatingService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
 
@@ -118,10 +118,11 @@ builder.Services.AddDbContext<SupportWayContext>(options =>
 
 builder.Services.AddIdentity<User, IdentityRole>(options =>
 {
-    options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 1;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
 })
     .AddEntityFrameworkStores<SupportWayContext>()
     .AddDefaultTokenProviders();

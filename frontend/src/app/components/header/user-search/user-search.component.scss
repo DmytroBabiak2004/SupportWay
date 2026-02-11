@@ -1,92 +1,84 @@
-/* --- Palette --- */
-$primary-color: #2563eb;
-$primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
-$bg-input: #f3f4f6;         /* Світло-сірий (неактивний) */
-$bg-input-focus: #ffffff;   /* Білий (активний) */
-$text-main: #1f2937;
-$text-muted: #9ca3af;
-$shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
-$border-radius: 24px;       /* Pill shape */
+/* --- Variables --- */
+$primary: #2563eb;
+$primary-light: rgba(37, 99, 235, 0.1);
+$text-dark: #111827;
+$text-gray: #6b7280;
+$bg-light: #f3f4f6;
+$radius-pill: 50px;
+$radius-box: 16px;
+$transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
 :host {
   display: block;
-  position: relative;
   width: 100%;
-  max-width: 300px; /* Обмеження ширини в хедері */
-  z-index: 1001;    /* Щоб було поверх всього */
+  max-width: 320px;
+  position: relative;
+  font-family: 'Inter', sans-serif;
 }
 
 .search-container {
   position: relative;
-  width: 100%;
+  z-index: 1001;
 }
 
-/* --- Input Wrapper --- */
+/* --- Input --- */
 .input-wrapper {
   display: flex;
   align-items: center;
-  width: 100%;
-  background-color: $bg-input;
-  border-radius: $border-radius;
-  padding: 8px 12px;
-  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid transparent;
+  background: $bg-light;
+  border-radius: $radius-pill;
+  padding: 6px 14px;
+  border: 1.5px solid transparent;
+  transition: $transition;
 
-  /* Іконка лупи */
+  &:focus-within {
+    background: #fff;
+    border-color: $primary;
+    box-shadow: 0 0 0 4px $primary-light;
+    transform: translateY(-1px);
+
+    .search-icon { color: $primary; }
+  }
+
   .search-icon {
     width: 18px;
     height: 18px;
-    stroke: $text-muted;
-    stroke-width: 2.5;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    margin-right: 8px;
-    transition: stroke 0.2s;
+    color: $text-gray;
+    margin-right: 10px;
+    flex-shrink: 0;
+    transition: $transition;
   }
 
-  /* Поле вводу */
   input {
     flex: 1;
     border: none;
     background: transparent;
     outline: none;
     font-size: 14px;
-    color: $text-main;
-    min-width: 0;
+    font-weight: 400;
+    color: $text-dark;
+    height: 32px;
 
-    &::placeholder {
-      color: $text-muted;
-    }
+    &::placeholder { color: $text-gray; opacity: 0.8; }
   }
 
-  /* Кнопка очищення (X) */
   .clear-btn {
-    background: none;
+    background: #e5e7eb;
     border: none;
-    color: $text-muted;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
-    border-radius: 50%;
+    justify-content: center;
+    color: $text-gray;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: $transition;
 
     &:hover {
-      background-color: rgba(0,0,0,0.05);
-      color: $text-main;
-    }
-  }
-
-  /* --- Focus State (Органічне "світіння") --- */
-  &:focus-within {
-    background-color: $bg-input-focus;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15); /* Блакитна тінь */
-    border-color: rgba(37, 99, 235, 0.3);
-    transform: translateY(-1px);
-
-    .search-icon {
-      stroke: $primary-color; /* Лупа стає синьою */
+      background: #d1d5db;
+      color: $text-dark;
     }
   }
 }
@@ -94,135 +86,130 @@ $border-radius: 24px;       /* Pill shape */
 /* --- Dropdown Menu --- */
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 12px); /* Відступ від інпуту */
-  right: 0; /* Вирівнювання по правому краю (або left: 0) */
-  width: 320px; /* Трохи ширше за інпут */
-
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: $shadow-dropdown;
-  border: 1px solid rgba(0,0,0,0.04);
-
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px); // Ефект матового скла
+  border-radius: $radius-box;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  padding: 8px;
+  padding: 6px;
+  animation: slideIn 0.25s ease-out;
 
-  /* Анімація появи */
-  animation: slideDown 0.2s ease-out forwards;
-  transform-origin: top center;
-
-  /* На мобільному на всю ширину */
-  @media (max-width: 768px) {
-    width: 100vw;
-    left: -20px; /* Компенсація паддінгів хедера */
-    right: -20px;
-    border-radius: 0 0 16px 16px;
+  @media (max-width: 950px) {
+    position: fixed;
+    top: 70px;
+    left: 15px;
+    right: 15px;
+    width: auto;
   }
 }
 
-/* --- User Item --- */
+/* --- User List Item --- */
 .user-item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: $transition;
+  margin-bottom: 2px;
 
   &:hover {
-    background-color: #f9fafb; /* Дуже світлий сірий */
+    background: #f8fafc;
 
-    .action-icon {
+    .action-hint {
       opacity: 1;
       transform: translateX(0);
     }
 
-    .avatar-placeholder {
-      background: $primary-gradient; /* Аватар стає яскравим */
-      color: white;
+    .avatar-container { transform: scale(1.05); }
+  }
+
+  .avatar-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 12px;
+    background: $bg-light;
+    flex-shrink: 0;
+    transition: $transition;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .initials-box {
+      font-size: 14px;
+      font-weight: 600;
+      color: $primary;
+      text-transform: uppercase;
     }
   }
-}
 
-/* Аватар */
-.avatar-placeholder {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #e5e7eb; /* Сірий за замовчуванням */
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
-  margin-right: 12px;
-  transition: all 0.2s;
-}
+  .user-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0; // Для обрізки тексту
 
-.user-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+    .full-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: $text-dark;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  .user-name {
-    font-size: 14px;
-    font-weight: 500;
-    color: $text-main;
+    .username {
+      font-size: 12px;
+      color: $text-gray;
+    }
   }
 
-  .user-action-text {
-    font-size: 11px;
-    color: $text-muted;
+  .action-hint {
+    color: $primary;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: $transition;
+    padding-left: 8px;
   }
 }
 
-/* Кнопка дії (Стрілка) */
-.action-icon {
-  background: none;
-  border: none;
-  padding: 0;
-  color: $primary-color;
-
-  /* Прихована за замовчуванням */
-  opacity: 0;
-  transform: translateX(-5px);
-  transition: all 0.2s ease;
-
-  svg {
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-}
-
-/* --- State Messages (Loading / Empty) --- */
+/* --- Statuses --- */
 .state-message {
-  padding: 24px;
+  padding: 30px 20px;
   text-align: center;
-  color: $text-muted;
-  font-size: 13px;
-
+  color: $text-gray;
+  font-size: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+
+  &.empty svg { margin-bottom: 4px; }
 }
 
-/* Простий спінер */
 .spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(37, 99, 235, 0.1);
-  border-top-color: $primary-color;
+  width: 24px;
+  height: 24px;
+  border: 3px solid $primary-light;
+  border-top-color: $primary;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
