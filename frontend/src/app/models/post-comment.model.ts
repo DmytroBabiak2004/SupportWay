@@ -2,6 +2,7 @@ export interface PostComment {
   id: string;
   userId: string;
   userName: string;
+  userPhotoBase64?: string; // робимо optional, бо може бути пусто
   text: string;
   createdAt: string;
 }

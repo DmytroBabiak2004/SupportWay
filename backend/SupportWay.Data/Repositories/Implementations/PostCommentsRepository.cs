@@ -46,9 +46,11 @@ namespace SupportWay.Data.Repositories.Implementations
             return await _context.PostComments
                 .Where(c => c.PostId == postId)
                 .Include(c => c.User)
+                    .ThenInclude(u => u.Profile) // підтягуємо Photo
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<PostComment>> GetCommentsByUserAsync(string userId)
         {

@@ -13,14 +13,17 @@ namespace SupportWay.API.Services.Implementations
             _commentRepo = commentRepo;
         }
 
+        // 🔥 Формуємо DTO як у PostService
         public async Task<IEnumerable<PostCommentDto>> GetCommentsByPostAsync(Guid postId)
         {
             var comments = await _commentRepo.GetCommentsByPostAsync(postId);
+
             return comments.Select(c => new PostCommentDto
             {
                 Id = c.Id,
                 UserId = c.UserId,
                 UserName = c.User.UserName,
+                UserPhotoBase64 = c.User.Profile?.Photo, // аватарка
                 Text = c.Text,
                 CreatedAt = c.CreatedAt
             });
@@ -48,5 +51,4 @@ namespace SupportWay.API.Services.Implementations
             await _commentRepo.DeleteCommentAsync(commentId);
         }
     }
-
 }

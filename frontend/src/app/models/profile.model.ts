@@ -11,5 +11,6 @@ export interface Profile {
   rating?: number;
   followersCount: number;
   followingCount: number;
+  isOwnProfile: boolean;
 }
 

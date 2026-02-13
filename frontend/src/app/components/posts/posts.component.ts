@@ -1,18 +1,10 @@
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
-  inject
-} from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 // Components
 import { PostCardComponent } from './post-card/post-card.component';
-import { PostFiltersComponent } from './post-filters/post-filters.component';
 import { CreatePostModalComponent } from '../../dialog/create-post-modal/create-post-modal.component';
 
 // Models & Services
@@ -24,31 +16,30 @@ import { Post } from '../../models/post.model';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule, // Потрібен для ngModel на інпутах
     PostCardComponent,
-    PostFiltersComponent,
-    CreatePostModalComponent // ✅ Додано модалку
+    CreatePostModalComponent
   ],
   templateUrl: './posts.component.html',
   styleUrls: ['./posts.component.scss']
 })
 export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
-
   private postService = inject(PostService);
-  private router = inject(Router); // ✅ Додано роутер
+  private router = inject(Router);
 
   @ViewChild('scrollAnchor') scrollAnchor!: ElementRef;
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
 
   // --- Data ---
-  rawPosts: Post[] = [];        // Оригінальні дані з серверу
-  filteredAllPosts: Post[] = []; // Відфільтровані дані
-  displayPosts: Post[] = [];     // Дані для відображення (після пагінації)
+  rawPosts: Post[] = [];        // Усі завантажені пости
+  filteredPosts: Post[] = [];   // Пости після пошуку/сортування
+  displayPosts: Post[] = [];    // Пости для відображення (пагінація)
 
-  // --- State ---
+  // --- UI State ---
   viewMode: 'feed' | 'user' = 'feed';
-  isLoading = false;      // ✅ Додано лоадер
+  isLoading = false;
   isLoadingMore = false;
-  isModalOpen = false;    // ✅ Додано стан модалки
+  isModalOpen = false;
 
   // --- Filters ---
   searchQuery = '';
@@ -71,26 +62,27 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.observer?.disconnect();
   }
 
-  /* ================= DATA & FILTERS ================= */
-
-// В методі loadData
+  // --- Data Loading ---
   loadData() {
-    if (this.rawPosts.length === 0) this.isLoading = true; // Тільки для першого завантаження
-
+    this.isLoading = true;
     const request$ = this.viewMode === 'feed'
       ? this.postService.getFeed()
       : this.postService.getMyPosts();
 
-    request$.pipe(
-          ).subscribe({
+    request$.subscribe({
       next: (posts) => {
         this.rawPosts = posts;
-        this.applyFilters();
+        this.applyFilters(); // Одразу застосовуємо фільтри
         this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        // Тут можна додати обробку помилок
       }
     });
   }
-  // ✅ Головна логіка фільтрації
+
+  // --- Filter & Sort Logic ---
   applyFilters() {
     let result = [...this.rawPosts];
 
@@ -111,63 +103,68 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
       return this.sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-    this.filteredAllPosts = result;
+    this.filteredPosts = result;
 
-    // 3. Скидання пагінації
+    // 3. Скидання пагінації при зміні фільтрів
     this.currentLimit = this.PAGE_SIZE;
     this.updateDisplay();
-    this.scrollToTop();
+
+    // Скрол вгору, якщо це не перше завантаження
+    if (!this.isLoading) this.scrollToTop();
+  }
+
+  onSearchChange(val: string) {
+    this.searchQuery = val;
+    this.applyFilters();
+  }
+
+  onSortChange(val: any) {
+    this.sortBy = val;
+    this.applyFilters();
   }
 
   private updateDisplay() {
-    this.displayPosts = this.filteredAllPosts.slice(0, this.currentLimit);
+    this.displayPosts = this.filteredPosts.slice(0, this.currentLimit);
   }
 
-  /* ================= SCROLL & OBSERVER ================= */
-
+  // --- Infinite Scroll ---
   private initObserver() {
-    // Чекаємо поки елементи з'являться
-    if (!this.scrollContainer || !this.scrollAnchor) return;
+    if (!this.scrollAnchor) return;
 
     this.observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
         this.loadMore();
       }
     }, {
-      root: this.scrollContainer.nativeElement, // Скролимо всередині контейнера
-      rootMargin: '150px'
+      root: null, // null означає viewport браузера
+      rootMargin: '200px' // Починати вантажити за 200px до кінця
     });
 
     this.observer.observe(this.scrollAnchor.nativeElement);
   }
 
   loadMore() {
-    // Не вантажимо, якщо вже йде процес або всі пости показані
-    if (this.isLoadingMore || this.displayPosts.length >= this.filteredAllPosts.length) return;
+    if (this.isLoadingMore || this.displayPosts.length >= this.filteredPosts.length) return;
 
     this.isLoadingMore = true;
 
+    // Імітація мережевої затримки для плавності UI
     setTimeout(() => {
       this.currentLimit += this.PAGE_SIZE;
       this.updateDisplay();
       this.isLoadingMore = false;
-    }, 200);
+    }, 300);
   }
 
   private scrollToTop() {
-    if (this.scrollContainer) {
-      this.scrollContainer.nativeElement.scrollTo({
-        top: 0,
-        behavior: 'auto'
-      });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /* ================= UI ACTIONS ================= */
-
+  // --- Actions ---
   setView(mode: 'feed' | 'user') {
     if (this.viewMode === mode) return;
     this.viewMode = mode;
+    this.searchQuery = ''; // Очищаємо пошук при зміні таба
     this.loadData();
   }
 
@@ -180,11 +177,11 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     return post.id;
   }
 
-  // ✅ Modal Logic
+  // Modal
   openModal() { this.isModalOpen = true; }
   closeModal() { this.isModalOpen = false; }
   onPostCreated() {
     this.closeModal();
-    this.loadData(); // Перезавантажити стрічку після створення
+    this.loadData();
   }
 }

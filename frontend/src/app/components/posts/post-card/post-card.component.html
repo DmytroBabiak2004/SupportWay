@@ -1,86 +1,89 @@
-<div class="post-card">
-  <div class="post-header">
-    <div class="user-group" (click)="profileClick.emit(post)">
+<article class="post-card">
+
+  <header class="post-header">
+    <div class="user-group" (click)="openProfile(post.authorUserName || post.userId)">
       <div class="avatar-container">
         <img *ngIf="post.authorPhotoBase64; else initialFallback"
              [src]="profileService.getAvatarSrc(post.authorPhotoBase64)"
-             class="avatar-img"
              alt="avatar">
         <ng-template #initialFallback>
-          <div class="initials">{{ getInitials(post.authorUserName || '') }}</div>
+          <div class="initials">{{ getInitials(post.authorUserName || '?') }}</div>
         </ng-template>
       </div>
+
       <div class="meta-info">
-        <span class="username">{{ post.authorUserName || 'unknown' }}</span>
-        <span class="date">{{ post.createdAt | relativeTime }}</span>
+        <span class="username">{{ post.authorUserName || 'Unknown' }}</span>
+        <span class="date" [title]="post.createdAt | date:'medium'">
+          {{ post.createdAt | relativeTime }}
+        </span>
       </div>
     </div>
-  </div>
+  </header>
 
-  <div class="post-media" *ngIf="post.image" (click)="toggleLike()">
+  <div class="post-media" *ngIf="post.image" (dblclick)="toggleLike()">
     <div class="image-container">
-      <img [src]="'data:image/jpeg;base64,' + post.image" [alt]="post.title">
+      <img [src]="'data:image/jpeg;base64,' + post.image" [alt]="post.title || 'Post'">
     </div>
   </div>
 
   <div class="post-actions-bar">
     <div class="actions-left">
-
-      <button class="action-btn like-btn"
-              [class.active]="isLiked"
-              (click)="toggleLike()"
-              title="Like">
-        <span class="icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-          </svg>
-        </span>
-        <span class="count-label" [class.hidden]="likesCount === 0">{{ likesCount }}</span>
+      <button class="action-btn like-btn" [class.active]="isLiked" (click)="toggleLike()">
+        <svg viewBox="0 0 24 24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.956-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938Z"></path></svg>
+        <span class="count-label" *ngIf="likesCount > 0">{{ likesCount }}</span>
       </button>
 
-      <button class="action-btn comment-btn" (click)="toggleComments()" title="Comment">
-        <span class="icon-box">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
-          </svg>
-        </span>
-        <span class="count-label">{{ commentsCount || comments?.length || 0 }}</span>
+      <button class="action-btn comment-btn" (click)="toggleComments()">
+        <svg viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg>
+        <span class="count-label" *ngIf="commentsCount > 0">{{ commentsCount }}</span>
       </button>
-
     </div>
   </div>
 
   <div class="post-content">
     <div class="caption-block">
-      <h3 class="post-title" *ngIf="post.title">{{ post.title }}</h3>
-      <p class="post-text">
-        <span class="author-name-inline">{{ post.authorUserName }}</span>
-        {{ post.content }}
-      </p>
+      <ng-container *ngIf="post.content">
+        <span class="author-name-inline" (click)="openProfile(post.authorUserName)">
+          {{ post.authorUserName }}
+        </span>
+        <span class="post-text">{{ post.content }}</span>
+      </ng-container>
     </div>
 
-    <div class="view-comments-link" *ngIf="!showComments && (commentsCount > 0 || (comments && comments.length > 0))" (click)="toggleComments()">
-      View all comments
+    <div class="view-comments-link" *ngIf="!showComments && commentsCount > 0" (click)="toggleComments()">
+      View all {{ commentsCount }} comments
     </div>
   </div>
 
   <div class="comments-section" *ngIf="showComments">
-    <div class="comments-list">
-      <div *ngIf="isLoadingComments" class="loading-sm">Updating...</div>
-      <div class="comment-item" *ngFor="let comment of comments">
-        <span class="c-user">{{ comment.userName }}</span>
-        <span class="c-text">{{ comment.text }}</span>
+    <div *ngIf="isLoadingComments" class="loading-state">Updating...</div>
+
+    <div *ngFor="let comment of comments" class="comment-item">
+
+      <div class="c-avatar" (click)="openProfile(comment.userName || comment.userId)">
+        <img *ngIf="comment.userPhotoBase64; else comInitials"
+             [src]="profileService.getAvatarSrc(comment.userPhotoBase64)"
+             alt="u">
+        <ng-template #comInitials>
+          <div class="initials">{{ getInitials(comment.userName || '?') }}</div>
+        </ng-template>
+      </div>
+
+      <div class="c-body">
+        <div class="c-header">
+          <span class="c-user clickable-username" (click)="openProfile(comment.userName || comment.userId)">
+            {{ comment.userName }}
+          </span>
+          <span class="c-date">{{ comment.createdAt | relativeTime }}</span>
+        </div>
+        <div class="c-text">{{ comment.text }}</div>
       </div>
     </div>
 
     <div class="comment-input-wrapper">
-      <input type="text"
-             placeholder="Add a comment..."
-             [(ngModel)]="newCommentText"
-             (keydown.enter)="sendComment()">
-      <button class="post-link-btn" [disabled]="!newCommentText.trim()" (click)="sendComment()">
-        Post
-      </button>
+      <input type="text" placeholder="Add a comment..." [(ngModel)]="newCommentText" (keydown.enter)="newCommentText.trim() && sendComment()">
+      <button class="post-link-btn" [disabled]="!newCommentText.trim()" (click)="sendComment()">Post</button>
     </div>
   </div>
-</div>
+
+</article>

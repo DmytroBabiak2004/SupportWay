@@ -1,6 +1,9 @@
 import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router'; // 1. Імпорт Router
+import { v4 as uuidv4 } from 'uuid';
+
 import { Post } from '../../../models/post.model';
 import { ProfileService } from '../../../services/profile.service';
 import { PostLikeService } from '../../../services/post-like.service';
@@ -22,8 +25,11 @@ export class PostCardComponent implements OnInit {
   private likeService = inject(PostLikeService);
   private commentService = inject(PostCommentService);
   private authService = inject(AuthService);
+  private router = inject(Router); // 2. Інжект Router
 
   @Input({ required: true }) post!: Post;
+
+  // Ми можемо залишити цей Output для сумісності, але навігацію робитимемо всередині
   @Output() profileClick = new EventEmitter<Post>();
 
   isLiked = false;
@@ -37,29 +43,32 @@ export class PostCardComponent implements OnInit {
   currentUserId = '';
 
   ngOnInit() {
-    // Ініціалізація лайків і коментарів з бекенду
     this.likesCount = this.post.likesCount || 0;
     this.commentsCount = this.post.commentsCount || 0;
     this.isLiked = this.post.isLikedByCurrentUser || false;
 
-
-    // Чекаємо, поки AuthService завантажить користувача
     this.authService.getUserInfo$()
       .pipe(filter(user => !!user))
       .subscribe(user => {
         this.currentUserId = user!.id;
-
-        // Якщо бекенд не передав isLiked, можна перевірити тут
         if (this.post.isLikedByCurrentUser === undefined) {
           this.checkIfUserLiked();
         }
       });
   }
 
+  // --- 3. Новий метод для навігації ---
+  openProfile(usernameOrId: string | undefined): void {
+    if (!usernameOrId) return;
+    // Логіка переходу: /profile/username
+    this.router.navigate(['/profile', usernameOrId]);
+  }
+
+  // ... решта методів без змін ...
+
   private checkIfUserLiked() {
     if (!this.currentUserId) return;
-    this.likeService.getLikesCount(this.post.id).subscribe(count => {
-    });
+    this.likeService.getLikesCount(this.post.id).subscribe(() => {});
   }
 
   getInitials(name: string): string {
@@ -67,11 +76,9 @@ export class PostCardComponent implements OnInit {
   }
 
   toggleLike() {
-    if (!this.currentUserId) return; // захист від незалогіненого
+    if (!this.currentUserId) return;
 
     const dto = { postId: this.post.id, userId: this.currentUserId };
-
-    // Оптимістичне оновлення UI
     const previousState = this.isLiked;
     const previousCount = this.likesCount;
 
@@ -83,11 +90,8 @@ export class PostCardComponent implements OnInit {
       : this.likeService.unlikePost(dto);
 
     request$.subscribe({
-      next: () => {
-        // Успішно, залишаємо як є
-      },
+      next: () => {},
       error: () => {
-        // Повертаємо попередній стан при помилці
         this.isLiked = previousState;
         this.likesCount = previousCount;
       }
@@ -103,7 +107,10 @@ export class PostCardComponent implements OnInit {
     this.isLoadingComments = true;
     this.commentService.getCommentsByPost(this.post.id).subscribe({
       next: data => {
-        this.comments = data;
+        this.comments = data.map(c => ({
+          ...c,
+          userPhotoBase64: c.userPhotoBase64 || ''
+        }));
         this.commentsCount = data.length;
         this.isLoadingComments = false;
       },
@@ -121,7 +128,7 @@ export class PostCardComponent implements OnInit {
     const dto: CreatePostCommentDto = {
       postId: this.post.id,
       text: this.newCommentText,
-      requestId: crypto.randomUUID()
+      requestId: uuidv4()
     };
 
     this.commentService.addComment(dto).subscribe({
@@ -129,9 +136,7 @@ export class PostCardComponent implements OnInit {
         this.newCommentText = '';
         this.loadComments();
       },
-      error: err => {
-        console.error('Помилка при додаванні коментаря', err);
-      }
+      error: err => console.error('Помилка', err)
     });
   }
 }

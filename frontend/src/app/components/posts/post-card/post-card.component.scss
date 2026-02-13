@@ -1,249 +1,283 @@
-/* --- Variables --- */
-:host {
-  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --c-text-main: #262626;
-  --c-text-sec: #737373;
-  --c-accent: #0095f6;
-  --c-like: #ff3040;
-  --c-bg: #ffffff;
-  --c-border: #dbdbdb;
-  --c-hover-bg: rgba(0, 0, 0, 0.04); /* Дуже легкий сірий */
+/* post-card.component.scss */
 
+/* --- Design Tokens --- */
+:host {
+  /* Palette */
+  --c-bg-page: #fafafa;
+  --c-bg-card: #ffffff;
+  --c-bg-subtle: #f8fafc;
+
+  --c-text-primary: #1a1a1a;
+  --c-text-secondary: #737373;
+  --c-text-tertiary: #a3a3a3;
+
+  --c-accent: #0095f6;
+  --c-accent-hover: #1877f2;
+  --c-danger: #ff3040;
+
+  --c-border: #dbdbdb;
+  --c-divider: #efefef;
+
+  /* Spacing */
+  --radius-card: 12px;
+
+  /* 👇 ЗБІЛЬШЕНО: Аватарка була 32px, стала 38px */
+  --avatar-size: 38px;
+
+  /* Fonts */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: block;
-  font-family: var(--font-main);
-  color: var(--c-text-main);
 }
 
+/* --- MAIN CARD --- */
 .post-card {
-  background: var(--c-bg);
+  background: var(--c-bg-card);
   border: 1px solid var(--c-border);
-  border-radius: 8px;
-  margin-bottom: 24px;
-  max-width: 470px;
-  margin-left: auto;
-  margin-right: auto;
+  border-radius: var(--radius-card);
+
+  /* 👇 ЗБІЛЬШЕНО: Ширина була 470px, стала 540px */
+  max-width: 540px;
+
+  width: 100%;
+  margin: 0 auto 24px; /* Центрування */
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      border-color: rgba(0,0,0,0.15);
+    }
+  }
 }
 
 /* --- HEADER --- */
 .post-header {
-  padding: 14px 16px; /* Трохи більше повітря */
+  padding: 12px 16px; /* Трохи більше повітря */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
 
   .user-group {
-    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    text-decoration: none;
 
-    .avatar-container {
-      width: 40px; height: 40px; /* Трохи більша аватарка - тренд */
-      flex-shrink: 0;
-      border-radius: 50%;
-      position: relative;
+    &:hover .username { text-decoration: underline; }
+  }
 
-      /* Тонка внутрішня рамка для контрасту на білому фоні */
-      &::after {
-        content: ''; position: absolute; inset: 0;
-        border-radius: 50%; border: 1px solid rgba(0,0,0,0.08); pointer-events: none;
-      }
+  .avatar-container {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    position: relative;
 
-      .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
-
-      .initials {
-        width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-        background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
-        border-radius: 50%; font-size: 14px; font-weight: 600; color: var(--c-text-sec);
-      }
+    &::after {
+      content: ''; position: absolute; inset: 0;
+      border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
     }
 
-    .meta-info {
-      display: flex; flex-direction: column; justify-content: center;
-      .username { font-weight: 600; font-size: 14px; color: var(--c-text-main); }
-      .date { font-size: 12px; color: var(--c-text-sec); margin-top: 2px; }
+    img, .initials {
+      width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
     }
+
+    .initials {
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+      color: var(--c-text-secondary);
+      font-weight: 700; font-size: 13px; /* Трохи більший шрифт ініціалів */
+    }
+  }
+
+  .meta-info {
+    display: flex; flex-direction: column; justify-content: center; line-height: 1.25;
+    /* 👇 ЗБІЛЬШЕНО: Шрифт імені 14px -> 15px */
+    .username { font-weight: 600; font-size: 15px; color: var(--c-text-primary); }
+    .date { font-size: 12px; color: var(--c-text-secondary); margin-top: 2px; }
   }
 }
 
 /* --- MEDIA --- */
 .post-media {
-  width: 100%; background-color: #f8f8f8;
-  border-top: 1px solid #efefef; border-bottom: 1px solid #efefef;
+  width: 100%;
+  background-color: #f5f5f5;
+  border-top: 1px solid var(--c-divider);
+  border-bottom: 1px solid var(--c-divider);
+  position: relative;
+  cursor: pointer;
 
   .image-container {
-    width: 100%; min-height: 250px;
+    width: 100%;
+    /* Дозволяємо фото бути трохи вищим, бо картка ширша */
+    max-height: 650px;
+    min-height: 300px;
     display: flex; align-items: center; justify-content: center;
-    /* Smooth image rendering */
-    img { width: 100%; height: auto; max-height: 650px; object-fit: contain; display: block; }
+    overflow: hidden;
+
+    img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
   }
 }
 
-/* --- ACTIONS BAR (MODERN) --- */
+/* --- ACTIONS BAR --- */
 .post-actions-bar {
-  padding: 8px 12px;
+  padding: 12px 16px 8px;
 
-  .actions-left {
-    display: flex; align-items: center; gap: 6px;
-  }
+  .actions-left { display: flex; align-items: center; gap: 18px; }
 
   .action-btn {
-    appearance: none; background: transparent; border: none;
-    display: flex; align-items: center; gap: 6px;
-    padding: 8px 10px;
-    border-radius: 8px; /* Менш скруглені кути виглядають більш "tech" */
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    color: var(--c-text-main);
+    background: transparent; border: none; padding: 0;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    color: var(--c-text-primary);
+    transition: transform 0.1s;
 
-    /* Відключаємо виділення тексту */
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
+    &:active { transform: scale(0.9); }
+    &:hover { color: var(--c-text-secondary); }
 
-    &:hover { background-color: var(--c-hover-bg); }
-    &:active { transform: scale(0.95); } /* Тактильний відгук */
-
-    .icon-box {
-      display: flex; align-items: center; justify-content: center;
-
-      svg {
-        width: 26px; height: 26px; /* Трохи більші іконки */
-        stroke-width: 1.5px; /* КЛЮЧ ДО "СЕНЬЙОРСЬКОГО" ВИГЛЯДУ - тонкі лінії */
-        transition: all 0.2s ease;
-      }
+    /* Іконки також трохи більші 24px -> 26px */
+    svg {
+      width: 26px; height: 26px;
+      stroke-width: 1.7px;
+      fill: transparent; stroke: currentColor;
     }
 
-    .count-label, .label-text {
-      font-size: 15px; /* Трохи більший шрифт */
-      font-weight: 500; /* Не bold, а medium - це чистіше */
-      line-height: 1;
+    &.like-btn.active {
+      color: var(--c-danger);
+      svg { fill: var(--c-danger); stroke: var(--c-danger); animation: heartBurst 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     }
 
-    .label-text { font-weight: 400; }
-
-    /* LIKE LOGIC */
-    &.like-btn {
-      &:hover .icon-box svg { stroke: #555; } /* Легке потемніння при наведенні */
-
-      &.active {
-        color: var(--c-like);
-
-        .icon-box svg {
-          fill: var(--c-like);
-          stroke: var(--c-like); /* Можна stroke: none, якщо хочеш стиль Instagram */
-          animation: heartBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        /* При лайку фон при наведенні стає ледь червонуватим */
-        &:hover { background-color: rgba(255, 48, 64, 0.05); }
-      }
-    }
-
-    /* COMMENT LOGIC */
-    &.comment-btn {
-      /* Поворот іконки коментаря трохи при наведенні - цікавий ефект */
-      &:hover .icon-box svg { transform: translateY(-1px); stroke: var(--c-text-main); }
-    }
+    .count-label { font-weight: 600; font-size: 15px; line-height: 1; }
   }
 }
 
-/* --- CONTENT --- */
+/* --- CONTENT (Caption) --- */
 .post-content {
   padding: 0 16px 16px;
-  font-size: 15px; /* Більш читабельний шрифт */
-  line-height: 1.5;
+  font-size: 15px; /* Основний шрифт тексту 14px -> 15px */
 
   .caption-block {
     margin-bottom: 8px;
-    .post-title { font-size: 16px; font-weight: 700; margin: 0 0 6px; display: block; letter-spacing: -0.3px;}
+    line-height: 1.5;
+
+    .author-name-inline {
+      font-weight: 600; margin-right: 6px; color: var(--c-text-primary);
+      cursor: pointer; &:hover { text-decoration: underline; }
+    }
 
     .post-text {
-      margin: 0; white-space: pre-wrap; color: var(--c-text-main);
-      .author-name-inline { font-weight: 600; margin-right: 6px; color: #000; }
+      color: var(--c-text-primary);
+      display: inline;
+      word-break: break-word;
     }
   }
 
   .view-comments-link {
     display: inline-block;
-    color: var(--c-text-sec);
-    cursor: pointer; margin-top: 8px;
+    color: var(--c-text-secondary);
     font-size: 14px;
-    transition: color 0.2s;
-    &:hover { color: var(--c-text-main); }
+    cursor: pointer;
+    margin-top: 6px;
+    &:hover { color: var(--c-text-primary); }
   }
 }
 
-/* --- COMMENTS --- */
+/* --- COMMENTS SECTION --- */
 .comments-section {
-  padding: 0 16px 16px; border-top: 1px solid #efefef;
+  padding: 14px 16px;
+  border-top: 1px solid var(--c-divider);
+  background: #fff;
 
-  .comments-list {
-    padding: 12px 0; display: flex; flex-direction: column; gap: 10px;
-    max-height: 300px; overflow-y: auto;
+  .loading-state {
+    font-size: 13px; color: var(--c-text-tertiary); padding-bottom: 10px;
+  }
 
-    .comment-item {
-      font-size: 14px; line-height: 1.4;
-      .c-user { font-weight: 600; margin-right: 6px; font-size: 13px; }
+  .comment-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 14px;
+
+    &:last-child { margin-bottom: 0; }
+
+    .c-avatar {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 50%; overflow: hidden;
+      background: var(--c-divider);
+      cursor: pointer;
+      transition: opacity 0.2s;
+
+      &:hover { opacity: 0.8; }
+
+      img, .initials { width: 100%; height: 100%; object-fit: cover; }
+      .initials { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #777; }
+    }
+
+    .c-body {
+      flex: 1;
+      background: var(--c-bg-subtle);
+      padding: 10px 14px;
+      border-radius: 0 18px 18px 18px;
+      font-size: 14px;
+
+      .c-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 4px;
+      }
+
+      .c-user {
+        font-weight: 600; color: var(--c-text-primary); cursor: pointer;
+        &:hover { text-decoration: underline; }
+      }
+      .c-date { font-weight: 400; font-size: 12px; color: var(--c-text-tertiary); }
+
+      .c-text {
+        color: var(--c-text-primary);
+        line-height: 1.45;
+        word-break: break-word;
+      }
     }
   }
 
+  /* INPUT AREA */
   .comment-input-wrapper {
-    display: flex; align-items: center; margin-top: 4px; padding-top: 14px; border-top: 1px solid #efefef;
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--c-divider);
 
     input {
-      flex: 1; border: none; outline: none; font-size: 14px; padding: 4px 0;
-      background: transparent;
-      &::placeholder { color: var(--c-text-sec); opacity: 0.8; }
+      flex: 1; border: none; background: transparent;
+      padding: 6px 0; font-size: 15px; color: var(--c-text-primary);
+      &::placeholder { color: var(--c-text-tertiary); }
+      &:focus { outline: none; }
     }
+
     .post-link-btn {
-      background: none; border: none; color: var(--c-accent);
-      font-weight: 600; font-size: 14px; cursor: pointer; padding: 4px 0 4px 12px;
-      transition: opacity 0.2s;
+      background: none; border: none; padding: 4px 0;
+      color: var(--c-accent); font-weight: 600; font-size: 15px;
+      cursor: pointer; opacity: 1; transition: opacity 0.2s;
+
       &:disabled { opacity: 0.3; cursor: default; }
-      &:hover:not(:disabled) { color: #00376b; }
+      &:not(:disabled):hover { color: var(--c-accent-hover); }
     }
   }
 }
 
-/* Heart Animation */
-@keyframes heartBounce {
+@keyframes heartBurst {
   0% { transform: scale(1); }
-  40% { transform: scale(1.25); }
+  50% { transform: scale(1.25); }
   100% { transform: scale(1); }
 }
 
-/* Mobile responsive */
-@media (max-width: 600px) {
-  .post-card { border: none; border-bottom: 1px solid var(--c-border); border-radius: 0; max-width: 100%; margin-bottom: 0; }
-  /* На мобільних шрифт трохи менший */
-  .post-content { font-size: 14px; }
-}
-
-/* Оновлені змінні в пост-картці */
-.post-card {
-  background: var(--c-bg);
-  border: 1px solid rgba(0, 0, 0, 0.05); /* Ледь помітна рамка */
-  border-radius: 16px; /* Більший радіус робить інтерфейс "дружнім" */
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.08); /* М'яка тінь */
-  overflow: hidden;
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px); /* Легкий підйом при наведенні */
-  }
-}
-
-.post-header {
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(8px); /* Ефект матового скла в межах посту */
-}
-
-/* Кнопки дій як у сучасних SaaS */
-.action-btn {
-  background: var(--bg-subtle); /* Легкий сірий фон за замовчуванням */
-  border-radius: 12px;
-  padding: 10px 14px;
-
-  &:hover {
-    background: var(--c-primary-soft);
-    color: var(--c-primary);
-  }
-
-  svg {
-    stroke-width: 2px; /* Чіткіші іконки */
+@media (max-width: 580px) {
+  .post-card {
+    border: none; border-top: 1px solid var(--c-divider); border-bottom: 1px solid var(--c-divider);
+    border-radius: 0; box-shadow: none; margin-bottom: 0;
+    max-width: 100%;
   }
 }

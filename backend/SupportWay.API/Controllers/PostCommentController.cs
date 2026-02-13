@@ -28,7 +28,11 @@ namespace SupportWay.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] CreatePostCommentDto dto)
         {
-            var userId = User.FindFirst("sub")?.Value ?? User.Identity.Name;
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(); // або кинь помилку
+            }
             await _commentService.AddCommentAsync(dto, userId);
             return Ok();
         }

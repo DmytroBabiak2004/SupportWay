@@ -2,10 +2,13 @@
 {
     public Guid Id { get; set; }
     public string UserId { get; set; }
-    public string UserName { get; set; } 
+    public string UserName { get; set; }
+    public byte[]? UserPhotoBase64 { get; set; }
     public string Text { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+
 
 public class CreatePostCommentDto
 {
