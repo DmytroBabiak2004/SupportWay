@@ -3,12 +3,16 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SupportWay.API.Infrastructure;
+using SupportWay.API.Repositories;
+using SupportWay.API.Repositories.Interfaces;
 using SupportWay.API.Services;
 using SupportWay.API.Services.Implementations;
 using SupportWay.API.Services.Interface;
+using SupportWay.API.Services.Interfaces;
 using SupportWay.Core.Services;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
+using SupportWay.Data.Repositories;
 using SupportWay.Data.Repositories.Implementations;
 using SupportWay.Data.Repositories.Interfaces;
 using SupportWay.Services;
@@ -22,14 +26,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "SupportWay API", Version = "v1" });
-
+    c.CustomSchemaIds(type => type.FullName);
     c.SupportNonNullableReferenceTypes();
-
-    c.MapType<IFormFile>(() => new OpenApiSchema
-    {
-        Type = "string",
-        Format = "binary"
-    });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -58,7 +56,6 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
 builder.Services.AddScoped<IFollowRepository, FollowsRepository>();
-builder.Services.AddScoped<IRequestStatusesRepository, RequestStatusesRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
 builder.Services.AddScoped<IPostCommentsRepository, PostCommentsRepository>();
@@ -69,6 +66,8 @@ builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<IMessagesRepository, ChatMessageRepository>();
 builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
+builder.Services.AddScoped<IBadgeTypeRepository, BadgeTypeRepository>();
+builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
@@ -81,6 +80,10 @@ builder.Services.AddScoped<IRequestItemService, RequestItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IProfileRatingService, ProfileRatingService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IBadgeTypeService, BadgeTypeService>();
+builder.Services.AddScoped<IBadgeService, BadgeService>();
+
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
 
@@ -94,7 +97,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://192.168.1.111:4200") 
+                .WithOrigins("http://localhost:4200") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();

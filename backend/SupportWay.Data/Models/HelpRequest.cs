@@ -10,10 +10,8 @@ namespace SupportWay.Data.Models
 {
     public class HelpRequest : Post
     {
-        public Guid LocationId { get; set; }
-        public Location Location { get; set; }
-        public Guid RequestStatusId { get; set; }
-        public RequestStatus RequestStatus { get; set; }
+        public Guid? LocationId { get; set; }
+        public Location? Location { get; set; }
         public ICollection<RequestItem> RequestItems { get; set; }
         public ICollection<Payment> Payments { get; set; }
 

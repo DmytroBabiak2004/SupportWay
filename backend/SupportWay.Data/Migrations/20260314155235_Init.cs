@@ -55,6 +55,18 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "BadgeTypes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BadgeTypes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Chats",
                 columns: table => new
                 {
@@ -68,22 +80,10 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DefaultAvatars",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Image = table.Column<byte[]>(type: "bytea", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DefaultAvatars", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Locations",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: false),
                     Address = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     DistrictName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Latitude = table.Column<double>(type: "double precision", nullable: true),
@@ -91,7 +91,7 @@ namespace SupportWay.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Locations", x => x.Id);
+                    table.PrimaryKey("PK_Locations", x => x.LocationId);
                 });
 
             migrationBuilder.CreateTable(
@@ -116,18 +116,6 @@ namespace SupportWay.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PaymentStatuses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RequestStatuses",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    NameOfStatus = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RequestStatuses", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -297,6 +285,28 @@ namespace SupportWay.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Badges",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Image = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Threshold = table.Column<decimal>(type: "numeric", nullable: false),
+                    BadgeTypeId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Badges", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Badges_BadgeTypes_BadgeTypeId",
+                        column: x => x.BadgeTypeId,
+                        principalTable: "BadgeTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Messages",
                 columns: table => new
                 {
@@ -348,14 +358,12 @@ namespace SupportWay.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     Image = table.Column<byte[]>(type: "bytea", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<string>(type: "text", nullable: false),
                     PostType = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
-                    LocationId = table.Column<Guid>(type: "uuid", nullable: true),
-                    RequestStatusId = table.Column<Guid>(type: "uuid", nullable: true)
+                    LocationId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -370,14 +378,8 @@ namespace SupportWay.Data.Migrations
                         name: "FK_Posts_Locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Locations",
-                        principalColumn: "Id",
+                        principalColumn: "LocationId",
                         onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_Posts_RequestStatuses_RequestStatusId",
-                        column: x => x.RequestStatusId,
-                        principalTable: "RequestStatuses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -403,6 +405,32 @@ namespace SupportWay.Data.Migrations
                         column: x => x.RatedProfileId,
                         principalTable: "Profiles",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProfileBadges",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BadgeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    AwardedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProfileBadges", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProfileBadges_Badges_BadgeId",
+                        column: x => x.BadgeId,
+                        principalTable: "Badges",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProfileBadges_Profiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "Profiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -578,6 +606,11 @@ namespace SupportWay.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Badges_BadgeTypeId",
+                table: "Badges",
+                column: "BadgeTypeId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Follows_FollowedId",
                 table: "Follows",
                 column: "FollowedId");
@@ -633,14 +666,19 @@ namespace SupportWay.Data.Migrations
                 column: "LocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Posts_RequestStatusId",
-                table: "Posts",
-                column: "RequestStatusId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Posts_UserId",
                 table: "Posts",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProfileBadges_BadgeId",
+                table: "ProfileBadges",
+                column: "BadgeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProfileBadges_ProfileId",
+                table: "ProfileBadges",
+                column: "ProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProfileRatings_RatedProfileId",
@@ -699,9 +737,6 @@ namespace SupportWay.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "DefaultAvatars");
-
-            migrationBuilder.DropTable(
                 name: "Follows");
 
             migrationBuilder.DropTable(
@@ -715,6 +750,9 @@ namespace SupportWay.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "PostLikes");
+
+            migrationBuilder.DropTable(
+                name: "ProfileBadges");
 
             migrationBuilder.DropTable(
                 name: "ProfileRatings");
@@ -735,6 +773,9 @@ namespace SupportWay.Data.Migrations
                 name: "PaymentStatuses");
 
             migrationBuilder.DropTable(
+                name: "Badges");
+
+            migrationBuilder.DropTable(
                 name: "Profiles");
 
             migrationBuilder.DropTable(
@@ -747,13 +788,13 @@ namespace SupportWay.Data.Migrations
                 name: "Chats");
 
             migrationBuilder.DropTable(
+                name: "BadgeTypes");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Locations");
-
-            migrationBuilder.DropTable(
-                name: "RequestStatuses");
         }
     }
 }

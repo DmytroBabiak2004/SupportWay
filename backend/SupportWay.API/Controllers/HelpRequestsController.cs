@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SupportWay.Data.DTOs;
 using System.Security.Claims;
 
 [ApiController]
@@ -30,7 +31,7 @@ public class HelpRequestsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] HelpRequestCreateDto dto)
+    public async Task<IActionResult> Create([FromForm] HelpRequestCreateDto dto)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         await _service.CreateHelpRequestAsync(dto, userId);

@@ -32,7 +32,6 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         return await _context.HelpRequests
             .Include(h => h.User)
             .Include(h => h.Location)
-            .Include(h => h.RequestStatus)
             .Include(h => h.Payments)
             .FirstOrDefaultAsync(h => h.Id == helpRequestId);
     }
@@ -42,7 +41,6 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         return await _context.HelpRequests
             .Include(h => h.User)
             .Include(h => h.Location)
-            .Include(h => h.RequestStatus)
             .Include(h => h.Payments)
             .Where(h => h.UserId == userId)
             .OrderByDescending(h => h.CreatedAt)
@@ -61,7 +59,6 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         return await _context.HelpRequests
             .Include(h => h.User)
             .Include(h => h.Location)
-            .Include(h => h.RequestStatus)
             .Include(h => h.Payments)
             .Where(h => followedUserIds.Contains(h.UserId))
             .OrderByDescending(h => h.CreatedAt)

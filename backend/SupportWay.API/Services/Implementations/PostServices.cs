@@ -27,7 +27,6 @@ public class PostService : IPostService
         var post = new Post
         {
             Id = Guid.NewGuid(),
-            Title = dto.Title,
             Content = dto.Content,
             Image = dto.Image,
             CreatedAt = DateTime.UtcNow,
@@ -72,7 +71,6 @@ public class PostService : IPostService
             result.Add(new PostDto
             {
                 Id = post.Id,
-                Title = post.Title,
                 Content = post.Content,
                 Image = post.Image,
                 CreatedAt = post.CreatedAt,

@@ -1,13 +1,13 @@
-﻿using SupportWay.Data.Models;
+﻿using SupportWay.Data.DTOs;
+using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
 using SupportWay.Services.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System;
 
 namespace SupportWay.Services.Implementations
 {
-    
     public class SupportTypeService : ISupportTypeService
     {
         private readonly ISupportTypesRepository _repository;
@@ -17,19 +17,58 @@ namespace SupportWay.Services.Implementations
             _repository = repository;
         }
 
-        public Task<IEnumerable<SupportType>> GetAllAsync() =>
-            _repository.GetAllAsync();
+        public async Task<IEnumerable<SupportTypeDto>> GetAllAsync()
+        {
+            var items = await _repository.GetAllAsync();
+            return items.Select(x => new SupportTypeDto
+            {
+                Id = x.Id,
+                NameOfType = x.NameOfType
+            });
+        }
 
-        public Task<SupportType> GetByIdAsync(Guid id) =>
-            _repository.GetByIdAsync(id);
+        public async Task<SupportTypeDto?> GetByIdAsync(Guid id)
+        {
+            var item = await _repository.GetByIdAsync(id);
+            if (item == null) return null;
 
-        public Task AddAsync(SupportType type) =>
-            _repository.AddAsync(type);
+            return new SupportTypeDto
+            {
+                Id = item.Id,
+                NameOfType = item.NameOfType
+            };
+        }
 
-        public Task UpdateAsync(SupportType type) =>
-            _repository.UpdateAsync(type);
+        public async Task<SupportTypeDto> CreateAsync(CreateSupportTypeDto dto)
+        {
+            var entity = new SupportType
+            {
+                Id = Guid.NewGuid(),
+                NameOfType = dto.NameOfType
+            };
 
-        public Task DeleteAsync(Guid id) =>
-            _repository.DeleteAsync(id);
+            await _repository.AddAsync(entity);
+
+            return new SupportTypeDto
+            {
+                Id = entity.Id,
+                NameOfType = entity.NameOfType
+            };
+        }
+
+        public async Task UpdateAsync(Guid id, CreateSupportTypeDto dto)
+        {
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity != null)
+            {
+                entity.NameOfType = dto.NameOfType;
+                await _repository.UpdateAsync(entity);
+            }
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            await _repository.DeleteAsync(id);
+        }
     }
 }

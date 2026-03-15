@@ -6,6 +6,12 @@ using System.Security.Claims;
 
 namespace SupportWay.Api.Controllers
 {
+    // 1. Створюємо DTO для фото прямо тут або в папці DTOs
+    public class ProfilePhotoUpdateDto
+    {
+        public IFormFile Photo { get; set; }
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
@@ -23,7 +29,7 @@ namespace SupportWay.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProfile()
         {
-            var userId = User?.Identity?.Name;
+            var userId = CurrentUserId; // Використовуємо уніфікований ID
             if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             var existingProfile = await _profileService.GetProfileAsync(userId);
@@ -74,13 +80,16 @@ namespace SupportWay.Api.Controllers
             return NoContent();
         }
 
+        // --- ВИПРАВЛЕНИЙ МЕТОД ---
         [HttpPut("photo")]
-        public async Task<IActionResult> UpdatePhoto([FromForm] IFormFile photo)
+        [Consumes("multipart/form-data")] // Вказуємо Swagger тип контенту
+        public async Task<IActionResult> UpdatePhoto([FromForm] ProfilePhotoUpdateDto dto)
         {
-            if (photo == null || photo.Length == 0) return BadRequest("Photo is missing.");
+            if (dto.Photo == null || dto.Photo.Length == 0)
+                return BadRequest("Photo is missing.");
 
             using var memoryStream = new MemoryStream();
-            await photo.CopyToAsync(memoryStream);
+            await dto.Photo.CopyToAsync(memoryStream);
 
             await _profileService.UpdatePhotoAsync(CurrentUserId, memoryStream.ToArray());
             return NoContent();

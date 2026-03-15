@@ -14,7 +14,7 @@ namespace SupportWay.Data.Repositories.Implementations
             _context = context;
         }
 
-        public async Task<Location> GetByIdAsync(Guid id)
+        public async Task<Location> GetByIdAsync(Guid? id)
         {
             return await _context.Locations.FindAsync(id);
         }

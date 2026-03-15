@@ -1,4 +1,6 @@
-﻿public interface IHelpRequestService
+﻿using SupportWay.Data.DTOs;
+
+public interface IHelpRequestService
 {
     Task<IEnumerable<HelpRequestDto>> GetUserHelpRequestsAsync(string userId, int page, int size);
     Task<HelpRequestDto?> GetHelpRequestByIdAsync(Guid id);

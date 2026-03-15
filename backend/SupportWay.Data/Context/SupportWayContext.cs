@@ -9,13 +9,11 @@ namespace SupportWay.Data.Context
     public class SupportWayContext : IdentityDbContext<User>
     {
         public SupportWayContext(DbContextOptions<SupportWayContext> options) : base(options) { }
-        public DbSet<DefaultAvatar> DefaultAvatars { get; set; }
         public DbSet<ProfileRating> ProfileRatings { get; set; }
         public DbSet<Profile> Profiles { get; set; }
         public DbSet<HelpRequest> HelpRequests { get; set; }
         public DbSet<RequestItem> RequestItems { get; set; }
         public DbSet<Location> Locations { get; set; }
-        public DbSet<RequestStatus> RequestStatuses { get; set; }
         public DbSet<SupportType> SupportTypes { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
@@ -28,6 +26,9 @@ namespace SupportWay.Data.Context
         public DbSet<Message> Messages { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserChat> UserChats { get; set; }
+        public DbSet<BadgeType> BadgeTypes { get; set; }
+        public DbSet<Badge> Badges { get; set; }
+        public DbSet<ProfileBadge> ProfileBadges { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -45,6 +46,9 @@ namespace SupportWay.Data.Context
             modelBuilder.ApplyConfiguration(new ProfileConfiguration());
             modelBuilder.ApplyConfiguration(new RequestItemConfiguration());
             modelBuilder.ApplyConfiguration(new ProfileRatingConfiguration());
+            modelBuilder.ApplyConfiguration(new BadgeTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new BadgeConfiguration());
+            modelBuilder.ApplyConfiguration(new ProfileBadgeConfiguration());
 
             modelBuilder.Entity<IdentityRole>().HasData(
               new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },

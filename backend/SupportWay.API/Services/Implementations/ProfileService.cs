@@ -65,14 +65,12 @@ namespace SupportWay.Services
             if (await _profilesRepository.ExistsAsync(userId))
                 return;
 
-            var defaultAvatar = await _context.DefaultAvatars.FirstOrDefaultAsync();
-
+          
             var profile = new Profile
             {
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 Description = string.Empty,
-                Photo = defaultAvatar?.Image,
 
                 Name = string.IsNullOrWhiteSpace(name) ? null : name.Trim(),
                 FullName = string.IsNullOrWhiteSpace(fullName) ? null : fullName.Trim()

@@ -1,22 +1,22 @@
-export interface Post {
-  id: string;
-  title: string;
-  content: string;
-  image?: string;
-  createdAt: string;
-  userId: string;
-  likesCount: number;
-  isLikedByCurrentUser: boolean;
+import { Post } from './post.model';
 
-  authorUserName?: string;
-  authorName?: string;
-  authorFullName?: string;
-  authorPhotoBase64?: string;
-
-  commentsCount?: number;
+// Основна модель (Read DTO)
+export interface HelpRequest extends Post {
+  // Поля, специфічні для запиту
+  locationId: string;
+  locationName: string;      // Назва району (наприклад, "Київський")
+  statusName: string;        // Назва статусу (наприклад, "Активний")
+  totalPayments: number;     // Сума зібраних коштів
 }
-export interface CreatePostDto {
-  title: string;
-  content: string;
-  image?: File;
+
+// Модель для dropdown (Локація)
+export interface LocationOption {
+  id: string;
+  districtName: string;
+}
+
+// Модель для dropdown (Статус)
+export interface RequestStatusOption {
+  id: string;
+  nameOfStatus: string;
 }

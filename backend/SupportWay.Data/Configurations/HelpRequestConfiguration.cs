@@ -12,10 +12,6 @@ namespace SupportWay.Data.Configurations
                 .WithMany()
                 .HasForeignKey(r => r.LocationId)
                 .OnDelete(DeleteBehavior.SetNull);
-
-            builder.HasOne(r => r.RequestStatus)
-                .WithMany()
-                .HasForeignKey(r => r.RequestStatusId);
         }
     }
 }

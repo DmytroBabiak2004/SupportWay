@@ -12,5 +12,6 @@ namespace SupportWay.Data.Models
         public string UserId { get; set; }
         public User User { get; set; }
         public ICollection<ProfileRating> ProfileRatings { get; set; }
+        public ICollection<ProfileBadge> ProfileBadges { get; set; }
     }
 }

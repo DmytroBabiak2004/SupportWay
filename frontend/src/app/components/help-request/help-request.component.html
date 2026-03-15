@@ -1,0 +1,40 @@
+<article class="post-card request-card">
+
+  <header class="card-header">
+    <div class="user-info" (click)="openProfile()">
+           <div class="meta">
+        <span class="date">{{ request.createdAt | date:'mediumDate' }}</span>
+      </div>
+    </div>
+
+    <div class="status-badge" [ngClass]="getStatusClass(request.statusName)">
+      {{ request.statusName }}
+    </div>
+  </header>
+
+  <div class="location-row" *ngIf="request.locationName">
+    <span class="icon">📍</span>
+    <span>{{ request.locationName }}</span>
+  </div>
+
+  <div class="image-wrapper" *ngIf="request.image">
+    <img [src]="'data:image/jpeg;base64,' + request.image" [alt]="request.title">
+  </div>
+
+  <div class="content-body">
+    <h3 class="request-title">{{ request.title }}</h3>
+    <p class="request-desc">{{ request.content }}</p>
+  </div>
+
+  <div class="finance-block">
+    <span class="label">Зібрано:</span>
+    <span class="amount">{{ request.totalPayments | currency:'UAH':'symbol-narrow':'1.0-0' }}</span>
+    <button class="donate-btn">Підтримати</button>
+  </div>
+
+  <div class="actions-footer">
+    <button>❤️ {{ request.likesCount }}</button>
+    <button>💬 {{ request.commentsCount }}</button>
+  </div>
+
+</article>

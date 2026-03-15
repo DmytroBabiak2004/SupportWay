@@ -144,6 +144,7 @@ namespace SupportWay.API.Controllers
             });
         }
 
+        [NonAction]
         private async Task<string> GenerateJwtToken(User user)
         {
             var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);

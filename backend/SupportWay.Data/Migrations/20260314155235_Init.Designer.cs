@@ -12,7 +12,7 @@ using SupportWay.Data.Context;
 namespace SupportWay.Data.Migrations
 {
     [DbContext(typeof(SupportWayContext))]
-    [Migration("20260206203944_Init")]
+    [Migration("20260314155235_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -183,6 +183,52 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.Badge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BadgeTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<byte[]>("Image")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Threshold")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadgeTypeId");
+
+                    b.ToTable("Badges");
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.BadgeType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BadgeTypes");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.Chat", b =>
                 {
                     b.Property<Guid>("Id")
@@ -199,21 +245,6 @@ namespace SupportWay.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Chats");
-                });
-
-            modelBuilder.Entity("SupportWay.Data.Models.DefaultAvatar", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<byte[]>("Image")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DefaultAvatars");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Follow", b =>
@@ -236,7 +267,7 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Location", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("LocationId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -256,7 +287,7 @@ namespace SupportWay.Data.Migrations
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision");
 
-                    b.HasKey("Id");
+                    b.HasKey("LocationId");
 
                     b.ToTable("Locations");
                 });
@@ -388,10 +419,6 @@ namespace SupportWay.Data.Migrations
                         .HasMaxLength(13)
                         .HasColumnType("character varying(13)");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -495,6 +522,30 @@ namespace SupportWay.Data.Migrations
                     b.ToTable("Profiles");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.ProfileBadge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AwardedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("BadgeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("ProfileBadges");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.ProfileRating", b =>
                 {
                     b.Property<Guid>("Id")
@@ -553,22 +604,6 @@ namespace SupportWay.Data.Migrations
                     b.HasIndex("SupportTypeId");
 
                     b.ToTable("RequestItems");
-                });
-
-            modelBuilder.Entity("SupportWay.Data.Models.RequestStatus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("NameOfStatus")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RequestStatuses");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.SupportType", b =>
@@ -680,15 +715,10 @@ namespace SupportWay.Data.Migrations
                 {
                     b.HasBaseType("SupportWay.Data.Models.Post");
 
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("RequestStatusId")
+                    b.Property<Guid?>("LocationId")
                         .HasColumnType("uuid");
 
                     b.HasIndex("LocationId");
-
-                    b.HasIndex("RequestStatusId");
 
                     b.HasDiscriminator().HasValue("HelpRequest");
                 });
@@ -742,6 +772,17 @@ namespace SupportWay.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SupportWay.Data.Models.Badge", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.BadgeType", "BadgeType")
+                        .WithMany()
+                        .HasForeignKey("BadgeTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BadgeType");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Follow", b =>
@@ -868,6 +909,25 @@ namespace SupportWay.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SupportWay.Data.Models.ProfileBadge", b =>
+                {
+                    b.HasOne("SupportWay.Data.Models.Badge", "Badge")
+                        .WithMany("ProfileBadges")
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupportWay.Data.Models.Profile", "Profile")
+                        .WithMany("ProfileBadges")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+
+                    b.Navigation("Profile");
+                });
+
             modelBuilder.Entity("SupportWay.Data.Models.ProfileRating", b =>
                 {
                     b.HasOne("SupportWay.Data.Models.Profile", "RatedProfile")
@@ -930,18 +990,14 @@ namespace SupportWay.Data.Migrations
                     b.HasOne("SupportWay.Data.Models.Location", "Location")
                         .WithMany()
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
-
-                    b.HasOne("SupportWay.Data.Models.RequestStatus", "RequestStatus")
-                        .WithMany()
-                        .HasForeignKey("RequestStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Location");
+                });
 
-                    b.Navigation("RequestStatus");
+            modelBuilder.Entity("SupportWay.Data.Models.Badge", b =>
+                {
+                    b.Navigation("ProfileBadges");
                 });
 
             modelBuilder.Entity("SupportWay.Data.Models.Chat", b =>
@@ -970,6 +1026,8 @@ namespace SupportWay.Data.Migrations
 
             modelBuilder.Entity("SupportWay.Data.Models.Profile", b =>
                 {
+                    b.Navigation("ProfileBadges");
+
                     b.Navigation("ProfileRatings");
                 });
 
