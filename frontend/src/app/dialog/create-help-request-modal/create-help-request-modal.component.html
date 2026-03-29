@@ -1,0 +1,72 @@
+<div class="modal-backdrop" (click)="onCancel()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <h2>Новий реквест</h2>
+
+    <form [formGroup]="createForm" (ngSubmit)="submit()">
+
+      <!-- TITLE -->
+      <input
+        type="text"
+        formControlName="title"
+        placeholder="Заголовок (що потрібно?)"
+        [class.error]="createForm.get('title')?.invalid && createForm.get('title')?.touched"
+      >
+
+      <!-- CONTENT -->
+      <textarea
+        formControlName="content"
+        placeholder="Опишіть детально потребу..."
+        rows="5"
+        [class.error]="createForm.get('content')?.invalid && createForm.get('content')?.touched"
+      ></textarea>
+
+      <!-- LOCATION -->
+      <input
+        type="text"
+        formControlName="locationId"
+        placeholder="Локація (опціонально)"
+      >
+
+      <!-- IMAGE -->
+      <div class="image-preview-container" *ngIf="imagePreview">
+        <img [src]="imagePreview">
+        <button type="button" class="remove-btn" (click)="removeImage()">✕</button>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+
+        <div class="attachment-actions">
+          <input
+            type="file"
+            #fileInput
+            hidden
+            accept="image/*"
+            (change)="onFileSelected($event)"
+          >
+
+          <button type="button" class="btn-icon" (click)="fileInput.click()">
+            📷 Фото
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" (click)="onCancel()">
+            Скасувати
+          </button>
+
+          <button
+            type="submit"
+            class="btn primary"
+            [disabled]="createForm.invalid || isSubmitting">
+
+            {{ isSubmitting ? 'Створення...' : 'Створити реквест' }}
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+  </div>
+</div>
