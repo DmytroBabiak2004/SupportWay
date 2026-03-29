@@ -1,134 +1,137 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-// Components
-import { PostCardComponent } from './post-card/post-card.component';
-import { CreatePostModalComponent } from '../../dialog/create-post-modal/create-post-modal.component';
+import { HelpRequestCardComponent } from './help-request-card/help-request-card.component';
+import { CreateHelpRequestModalComponent } from '../../dialog/create-help-request-modal/create-help-request-modal.component';
 
-// Models & Services
-import { PostService } from '../../services/post.service';
-import { Post } from '../../models/post.model';
+import { HelpRequestService } from '../../services/help-request.service';
+import { HelpRequest } from '../../models/help-request.model';
 
 @Component({
-  selector: 'app-posts',
+  selector: 'app-help-requests',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule, // Потрібен для ngModel на інпутах
-    PostCardComponent,
-    CreatePostModalComponent
+    FormsModule,
+    HelpRequestCardComponent,
+    CreateHelpRequestModalComponent
   ],
-  templateUrl: './posts.component.html',
-  styleUrls: ['./posts.component.scss']
+  templateUrl: './help-requests.component.html',
+  styleUrls: ['./help-requests.component.scss']
 })
-export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
-  private postService = inject(PostService);
+export class HelpRequestsComponent implements OnInit, AfterViewInit, OnDestroy {
+  private helpRequestService = inject(HelpRequestService);
   private router = inject(Router);
 
   @ViewChild('scrollAnchor') scrollAnchor!: ElementRef;
-  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
 
-  // --- Data ---
-  rawPosts: Post[] = [];        // Усі завантажені пости
-  filteredPosts: Post[] = [];   // Пости після пошуку/сортування
-  displayPosts: Post[] = [];    // Пости для відображення (пагінація)
+  rawRequests: HelpRequest[] = [];
+  filteredRequests: HelpRequest[] = [];
+  displayRequests: HelpRequest[] = [];
 
-  // --- UI State ---
   viewMode: 'feed' | 'user' = 'feed';
   isLoading = false;
   isLoadingMore = false;
   isModalOpen = false;
 
-  // --- Filters ---
   searchQuery = '';
   sortBy: 'newest' | 'oldest' = 'newest';
 
-  // --- Pagination ---
   private observer: IntersectionObserver | undefined;
   private readonly PAGE_SIZE = 10;
   private currentLimit = 10;
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadData();
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.initObserver();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.observer?.disconnect();
   }
 
-  // --- Data Loading ---
-  loadData() {
+  loadData(): void {
     this.isLoading = true;
+
     const request$ = this.viewMode === 'feed'
-      ? this.postService.getFeed()
-      : this.postService.getMyPosts();
+      ? this.helpRequestService.getFeed?.(1, 100) ?? this.helpRequestService.getMyHelpRequests(1, 100)
+      : this.helpRequestService.getMyHelpRequests(1, 100);
 
     request$.subscribe({
-      next: (posts) => {
-        this.rawPosts = posts;
-        this.applyFilters(); // Одразу застосовуємо фільтри
+      next: (requests: HelpRequest[]) => {
+        this.rawRequests = requests ?? [];
+        this.applyFilters();
         this.isLoading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Помилка завантаження help requests', err);
         this.isLoading = false;
-        // Тут можна додати обробку помилок
       }
     });
   }
 
-  // --- Filter & Sort Logic ---
-  applyFilters() {
-    let result = [...this.rawPosts];
+  applyFilters(): void {
+    let result = [...this.rawRequests];
 
-    // 1. Пошук
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
-      result = result.filter(p =>
-        p.content?.toLowerCase().includes(q) ||
-        p.title?.toLowerCase().includes(q) ||
-        p.authorUserName?.toLowerCase().includes(q)
+
+      result = result.filter(r =>
+        r.content?.toLowerCase().includes(q) ||
+        r.title?.toLowerCase().includes(q) ||
+        r.userName?.toLowerCase().includes(q) ||
+        r.authorUserName?.toLowerCase().includes(q) ||
+        r.locationName?.toLowerCase().includes(q) ||
+        r.requestItems?.some(item =>
+          item.name?.toLowerCase().includes(q) ||
+          item.supportTypeName?.toLowerCase().includes(q)
+        )
       );
     }
 
-    // 2. Сортування
     result.sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
       return this.sortBy === 'newest' ? dateB - dateA : dateA - dateB;
     });
 
-    this.filteredPosts = result;
-
-    // 3. Скидання пагінації при зміні фільтрів
+    this.filteredRequests = result;
     this.currentLimit = this.PAGE_SIZE;
     this.updateDisplay();
 
-    // Скрол вгору, якщо це не перше завантаження
-    if (!this.isLoading) this.scrollToTop();
+    if (!this.isLoading) {
+      this.scrollToTop();
+    }
   }
 
-  onSearchChange(val: string) {
+  onSearchChange(val: string): void {
     this.searchQuery = val;
     this.applyFilters();
   }
 
-  onSortChange(val: any) {
+  onSortChange(val: 'newest' | 'oldest'): void {
     this.sortBy = val;
     this.applyFilters();
   }
 
-  private updateDisplay() {
-    this.displayPosts = this.filteredPosts.slice(0, this.currentLimit);
+  private updateDisplay(): void {
+    this.displayRequests = this.filteredRequests.slice(0, this.currentLimit);
   }
 
-  // --- Infinite Scroll ---
-  private initObserver() {
+  private initObserver(): void {
     if (!this.scrollAnchor) return;
 
     this.observer = new IntersectionObserver(entries => {
@@ -136,19 +139,20 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadMore();
       }
     }, {
-      root: null, // null означає viewport браузера
-      rootMargin: '200px' // Починати вантажити за 200px до кінця
+      root: null,
+      rootMargin: '200px'
     });
 
     this.observer.observe(this.scrollAnchor.nativeElement);
   }
 
-  loadMore() {
-    if (this.isLoadingMore || this.displayPosts.length >= this.filteredPosts.length) return;
+  loadMore(): void {
+    if (this.isLoadingMore || this.displayRequests.length >= this.filteredRequests.length) {
+      return;
+    }
 
     this.isLoadingMore = true;
 
-    // Імітація мережевої затримки для плавності UI
     setTimeout(() => {
       this.currentLimit += this.PAGE_SIZE;
       this.updateDisplay();
@@ -156,31 +160,38 @@ export class PostsComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 300);
   }
 
-  private scrollToTop() {
+  private scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // --- Actions ---
-  setView(mode: 'feed' | 'user') {
+  setView(mode: 'feed' | 'user'): void {
     if (this.viewMode === mode) return;
+
     this.viewMode = mode;
-    this.searchQuery = ''; // Очищаємо пошук при зміні таба
+    this.searchQuery = '';
     this.loadData();
   }
 
-  openProfile(post: Post) {
-    const id = post.authorUserName || post.userId;
-    if (id) this.router.navigate(['/profile', id]);
+  openProfile(request: HelpRequest): void {
+    const id = request.authorUserName || request.userName || request.userId;
+    if (id) {
+      this.router.navigate(['/profile', id]);
+    }
   }
 
-  trackByPostId(_: number, post: Post) {
-    return post.id;
+  trackByRequestId(_: number, request: HelpRequest): string {
+    return request.id;
   }
 
-  // Modal
-  openModal() { this.isModalOpen = true; }
-  closeModal() { this.isModalOpen = false; }
-  onPostCreated() {
+  openModal(): void {
+    this.isModalOpen = true;
+  }
+
+  closeModal(): void {
+    this.isModalOpen = false;
+  }
+
+  onRequestCreated(): void {
     this.closeModal();
     this.loadData();
   }

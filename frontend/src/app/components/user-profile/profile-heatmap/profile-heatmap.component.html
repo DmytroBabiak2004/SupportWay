@@ -1,0 +1,43 @@
+<div class="heatmap-widget">
+  <div class="widget-header">
+    <div class="header-titles">
+      <h3>Активність</h3>
+      <p>Останні дії в системі</p>
+    </div>
+    <div class="total-badge" *ngIf="!loading && !error">
+      <span class="badge-label">Загалом</span>
+      <strong>{{ totalActivity }}</strong>
+    </div>
+  </div>
+
+  <div class="heatmap-body" *ngIf="!loading && !error">
+    <div class="heatmap-container">
+      <div class="grid-wrapper">
+        <div class="weekdays-aside">
+          <span>Пн</span><span>Ср</span><span>Пт</span>
+        </div>
+        <div class="days-grid">
+          <div *ngFor="let day of days"
+               class="day-cell"
+               [attr.data-level]="day.level"
+               [title]="day.tooltip">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="heatmap-footer">
+      <div class="legend">
+        <span>Менше</span>
+        <div class="legend-cells">
+          <div class="day-cell" data-level="0"></div>
+          <div class="day-cell" data-level="1"></div>
+          <div class="day-cell" data-level="2"></div>
+          <div class="day-cell" data-level="3"></div>
+          <div class="day-cell" data-level="4"></div>
+        </div>
+        <span>Більше</span>
+      </div>
+    </div>
+  </div>
+</div>

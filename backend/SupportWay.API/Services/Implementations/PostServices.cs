@@ -1,10 +1,6 @@
 ﻿using SupportWay.API.DTOs;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 public class PostService : IPostService
 {
@@ -52,7 +48,6 @@ public class PostService : IPostService
         return await BuildPostDtosAsync(posts, currentUserId);
     }
 
-    // 🔥 Основний метод для формування PostDto з лайками та коментарями
     private async Task<IEnumerable<PostDto>> BuildPostDtosAsync(IEnumerable<Post> posts, string currentUserId)
     {
         var result = new List<PostDto>();

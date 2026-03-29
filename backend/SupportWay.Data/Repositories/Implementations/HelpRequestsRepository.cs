@@ -15,6 +15,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
     public async Task AddHelpRequestAsync(HelpRequest helpRequest)
     {
         await _context.HelpRequests.AddAsync(helpRequest);
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteHelpRequestAsync(Guid id)
@@ -33,6 +34,10 @@ public class HelpRequestsRepository : IHelpRequestsRepository
             .Include(h => h.User)
             .Include(h => h.Location)
             .Include(h => h.Payments)
+            .Include(h => h.Likes)
+            .Include(h => h.Comments)
+            .Include(h => h.RequestItems)
+                .ThenInclude(ri => ri.SupportType)
             .FirstOrDefaultAsync(h => h.Id == helpRequestId);
     }
 
@@ -42,6 +47,10 @@ public class HelpRequestsRepository : IHelpRequestsRepository
             .Include(h => h.User)
             .Include(h => h.Location)
             .Include(h => h.Payments)
+            .Include(h => h.Likes)
+            .Include(h => h.Comments)
+            .Include(h => h.RequestItems)
+                .ThenInclude(ri => ri.SupportType)
             .Where(h => h.UserId == userId)
             .OrderByDescending(h => h.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
@@ -60,6 +69,10 @@ public class HelpRequestsRepository : IHelpRequestsRepository
             .Include(h => h.User)
             .Include(h => h.Location)
             .Include(h => h.Payments)
+            .Include(h => h.Likes)
+            .Include(h => h.Comments)
+            .Include(h => h.RequestItems)
+                .ThenInclude(ri => ri.SupportType)
             .Where(h => followedUserIds.Contains(h.UserId))
             .OrderByDescending(h => h.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)

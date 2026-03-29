@@ -1,36 +1,48 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
 import { finalize, takeUntil, switchMap, tap, catchError } from 'rxjs/operators';
 
+// Твої сервіси
 import { ProfileService } from '../../services/profile.service';
 import { AuthService } from '../../services/auth.service';
 import { FollowService } from '../../services/follow.service';
-import { Profile } from '../../models/profile.model';
 import { ChatService } from '../../services/chat.service';
-import {RatingService} from '../../services/rating.service';
+import { RatingService } from '../../services/rating.service';
+
+// Твої моделі
+import { Profile } from '../../models/profile.model';
+
+// Дочірні компоненти
+import { ProfileCardComponent } from './profile-card/profile-card.component';
+import { ProfileHeatmapComponent } from './profile-heatmap/profile-heatmap.component';
+import { ProfileRadarChartComponent } from './profile-radar-chart/profile-radar-chart.component';
+import { ProfileBadgesComponent } from './profile-badges/profile-badges.component';
 
 @Component({
   selector: 'app-user-profile',
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePipe]
+  imports: [
+    CommonModule,
+    ProfileCardComponent,
+    ProfileHeatmapComponent,
+    ProfileRadarChartComponent,
+    ProfileBadgesComponent
+  ]
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
-
   profile?: Profile;
   currentUserId?: string;
+
   loading = false;
   savingDescription = false;
   uploadingPhoto = false;
   isLoadingFollow = false;
   isFollowing = false;
   error?: string;
-  isEditingDescription = false;
-  descriptionDraft = '';
 
   private destroy$ = new Subject<void>();
 
@@ -71,8 +83,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       this.loading = false;
 
       if (p) {
-        this.descriptionDraft = p.description ?? '';
-
         // 3. Якщо профіль не мій, перевіряємо чи я підписаний
         if (!this.isOwnProfile) {
           this.checkFollowStatus(p.userId);
@@ -81,27 +91,52 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Перевірка статусу підписки
-  private checkFollowStatus(targetUserId: string): void {
-    this.followService.isFollowing(targetUserId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(status => this.isFollowing = status);
-  }
+  // --- Гетери ---
 
   get isOwnProfile(): boolean {
     if (!this.profile || !this.currentUserId) return false;
     return String(this.profile.userId) === String(this.currentUserId);
   }
 
-  get initials(): string {
-    if (!this.profile) return '?';
-    const first = this.profile.name?.trim()[0] || '';
-    const last = this.profile.fullName?.trim()[0] || '';
-    if (first || last) return (first + last).toUpperCase();
-    return (this.profile.username?.[0] || '?').toUpperCase();
+  // --- Приватні методи ---
+
+  private checkFollowStatus(targetUserId: string): void {
+    this.followService.isFollowing(targetUserId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(status => this.isFollowing = status);
   }
 
-  // --- Actions ---
+  // --- Обробники подій від <app-profile-card> ---
+
+  onPhotoSelected(e: Event): void {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    this.uploadingPhoto = true;
+    this.profileService.updatePhoto(file)
+      .pipe(finalize(() => this.uploadingPhoto = false))
+      .subscribe({
+        next: () => {
+          const currentId = this.route.snapshot.paramMap.get('userId');
+          // Оновлюємо профіль після завантаження
+          this.profileService.getProfile(currentId ?? undefined).subscribe(p => this.profile = p);
+        },
+        error: () => this.error = 'Помилка завантаження фото'
+      });
+  }
+
+  saveDescription(text: string): void {
+    this.savingDescription = true;
+
+    this.profileService.updateDescription(text)
+      .pipe(finalize(() => this.savingDescription = false))
+      .subscribe({
+        next: () => {
+          if (this.profile) this.profile.description = text;
+        },
+        error: () => this.error = 'Не вдалося зберегти опис'
+      });
+  }
 
   toggleFollow(): void {
     if (!this.profile || this.isLoadingFollow || this.isOwnProfile) return;
@@ -110,7 +145,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
     const targetId = this.profile.userId;
 
     if (this.isFollowing) {
-      // Відписка
       this.followService.unfollow(targetId)
         .pipe(finalize(() => this.isLoadingFollow = false))
         .subscribe({
@@ -121,7 +155,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
           error: () => this.error = 'Не вдалося скасувати підписку'
         });
     } else {
-      // Підписка
       this.followService.follow(targetId)
         .pipe(finalize(() => this.isLoadingFollow = false))
         .subscribe({
@@ -140,60 +173,19 @@ export class UserProfileComponent implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    // Створюємо або отримуємо існуючий чат
     this.chatService.createChat(this.currentUserId, targetUserId)
       .pipe(
         finalize(() => this.loading = false),
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (chat) => {
+        next: () => {
           this.router.navigate(['/chat']);
         },
         error: (err) => {
           this.error = 'Не вдалося відкрити діалог';
           console.error(err);
         }
-      });
-  }
-
-  startEditDescription(): void {
-    this.descriptionDraft = this.profile?.description ?? '';
-    this.isEditingDescription = true;
-  }
-
-  cancelEditDescription(): void {
-    this.isEditingDescription = false;
-  }
-
-  saveDescription(): void {
-    const text = this.descriptionDraft.trim();
-    this.savingDescription = true;
-
-    this.profileService.updateDescription(text)
-      .pipe(finalize(() => this.savingDescription = false))
-      .subscribe({
-        next: () => {
-          if (this.profile) this.profile.description = text;
-          this.isEditingDescription = false;
-        },
-        error: () => this.error = 'Не вдалося зберегти опис'
-      });
-  }
-
-  onPhotoSelected(e: Event): void {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-
-    this.uploadingPhoto = true;
-    this.profileService.updatePhoto(file)
-      .pipe(finalize(() => this.uploadingPhoto = false))
-      .subscribe({
-        next: () => {
-          const currentId = this.route.snapshot.paramMap.get('userId');
-          this.profileService.getProfile(currentId ?? undefined).subscribe(p => this.profile = p);
-        },
-        error: () => this.error = 'Помилка завантаження фото'
       });
   }
 
@@ -221,7 +213,6 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
     }
   }
-
 
   ngOnDestroy(): void {
     this.destroy$.next();

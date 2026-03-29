@@ -19,6 +19,8 @@ public class HelpRequestsController : ControllerBase
     public async Task<IActionResult> GetMyHelpRequests([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
         var list = await _service.GetUserHelpRequestsAsync(userId, page, size);
         return Ok(list);
     }
@@ -31,9 +33,25 @@ public class HelpRequestsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromForm] HelpRequestCreateDto dto)
+    public async Task<IActionResult> Create([FromForm] CreateHelpRequestRequest request)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var dto = new HelpRequestCreateDto
+        {
+            Title = request.Title,
+            Content = request.Content,
+            LocationId = request.LocationId
+        };
+
+        if (request.Image != null)
+        {
+            using var memoryStream = new MemoryStream();
+            await request.Image.CopyToAsync(memoryStream);
+            dto.Image = memoryStream.ToArray();
+        }
+
         await _service.CreateHelpRequestAsync(dto, userId);
         return StatusCode(201);
     }

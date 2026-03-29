@@ -1,8 +1,4 @@
-/* post-card.component.scss */
-
-/* --- Design Tokens --- */
 :host {
-  /* Palette */
   --c-bg-page: #fafafa;
   --c-bg-card: #ffffff;
   --c-bg-subtle: #f8fafc;
@@ -18,29 +14,27 @@
   --c-border: #dbdbdb;
   --c-divider: #efefef;
 
-  /* Spacing */
-  --radius-card: 12px;
+  --c-success-bg: #f0fdf4;
+  --c-success-border: #bbf7d0;
+  --c-success-text: #166534;
 
-  /* 👇 ЗБІЛЬШЕНО: Аватарка була 32px, стала 38px */
+  --c-pill-bg: #f3f4f6;
+  --c-pill-text: #374151;
+
+  --radius-card: 12px;
   --avatar-size: 38px;
 
-  /* Fonts */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   display: block;
 }
 
-/* --- MAIN CARD --- */
 .post-card {
   background: var(--c-bg-card);
   border: 1px solid var(--c-border);
   border-radius: var(--radius-card);
-
-  /* 👇 ЗБІЛЬШЕНО: Ширина була 470px, стала 540px */
   max-width: 540px;
-
   width: 100%;
-  margin: 0 auto 24px; /* Центрування */
-
+  margin: 0 auto 24px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -53,20 +47,23 @@
   }
 }
 
-/* --- HEADER --- */
 .post-header {
-  padding: 12px 16px; /* Трохи більше повітря */
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #fff;
 
   .user-group {
-    display: flex; align-items: center; gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     cursor: pointer;
     text-decoration: none;
 
-    &:hover .username { text-decoration: underline; }
+    &:hover .username {
+      text-decoration: underline;
+    }
   }
 
   .avatar-container {
@@ -76,31 +73,52 @@
     position: relative;
 
     &::after {
-      content: ''; position: absolute; inset: 0;
-      border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.1);
     }
 
     img, .initials {
-      width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
     }
 
     .initials {
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
       color: var(--c-text-secondary);
-      font-weight: 700; font-size: 13px; /* Трохи більший шрифт ініціалів */
+      font-weight: 700;
+      font-size: 13px;
     }
   }
 
   .meta-info {
-    display: flex; flex-direction: column; justify-content: center; line-height: 1.25;
-    /* 👇 ЗБІЛЬШЕНО: Шрифт імені 14px -> 15px */
-    .username { font-weight: 600; font-size: 15px; color: var(--c-text-primary); }
-    .date { font-size: 12px; color: var(--c-text-secondary); margin-top: 2px; }
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.25;
+
+    .username {
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--c-text-primary);
+    }
+
+    .date {
+      font-size: 12px;
+      color: var(--c-text-secondary);
+      margin-top: 2px;
+    }
   }
 }
 
-/* --- MEDIA --- */
 .post-media {
   width: 100%;
   background-color: #f5f5f5;
@@ -111,63 +129,102 @@
 
   .image-container {
     width: 100%;
-    /* Дозволяємо фото бути трохи вищим, бо картка ширша */
     max-height: 650px;
     min-height: 300px;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
 
     img {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       display: block;
     }
   }
 }
 
-/* --- ACTIONS BAR --- */
 .post-actions-bar {
   padding: 12px 16px 8px;
 
-  .actions-left { display: flex; align-items: center; gap: 18px; }
+  .actions-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
 
   .action-btn {
-    background: transparent; border: none; padding: 0;
-    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: var(--c-text-primary);
     transition: transform 0.1s;
 
-    &:active { transform: scale(0.9); }
-    &:hover { color: var(--c-text-secondary); }
+    &:active {
+      transform: scale(0.9);
+    }
 
-    /* Іконки також трохи більші 24px -> 26px */
+    &:hover {
+      color: var(--c-text-secondary);
+    }
+
     svg {
-      width: 26px; height: 26px;
+      width: 26px;
+      height: 26px;
       stroke-width: 1.7px;
-      fill: transparent; stroke: currentColor;
+      fill: transparent;
+      stroke: currentColor;
     }
 
     &.like-btn.active {
       color: var(--c-danger);
-      svg { fill: var(--c-danger); stroke: var(--c-danger); animation: heartBurst 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+      svg {
+        fill: var(--c-danger);
+        stroke: var(--c-danger);
+        animation: heartBurst 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
     }
 
-    .count-label { font-weight: 600; font-size: 15px; line-height: 1; }
+    .count-label {
+      font-weight: 600;
+      font-size: 15px;
+      line-height: 1;
+    }
   }
 }
 
-/* --- CONTENT (Caption) --- */
 .post-content {
   padding: 0 16px 16px;
-  font-size: 15px; /* Основний шрифт тексту 14px -> 15px */
+  font-size: 15px;
+
+  .request-title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--c-text-primary);
+    margin-bottom: 10px;
+    word-break: break-word;
+  }
 
   .caption-block {
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     line-height: 1.5;
 
     .author-name-inline {
-      font-weight: 600; margin-right: 6px; color: var(--c-text-primary);
-      cursor: pointer; &:hover { text-decoration: underline; }
+      font-weight: 600;
+      margin-right: 6px;
+      color: var(--c-text-primary);
+      cursor: pointer;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     .post-text {
@@ -177,44 +234,198 @@
     }
   }
 
+  .request-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--c-pill-bg);
+    color: var(--c-pill-text);
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
   .view-comments-link {
     display: inline-block;
     color: var(--c-text-secondary);
     font-size: 14px;
     cursor: pointer;
     margin-top: 6px;
-    &:hover { color: var(--c-text-primary); }
+
+    &:hover {
+      color: var(--c-text-primary);
+    }
   }
 }
 
-/* --- COMMENTS SECTION --- */
+.request-items-section {
+  margin: 0 16px 16px;
+  padding: 14px;
+  border: 1px solid var(--c-success-border);
+  background: var(--c-success-bg);
+  border-radius: 14px;
+
+  .request-items-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    h4 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--c-success-text);
+    }
+
+    .items-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--c-success-text);
+      background: rgba(255,255,255,0.7);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+  }
+
+  .request-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .request-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    background: #fff;
+    border: 1px solid rgba(22, 101, 52, 0.08);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .item-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-name-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--c-text-primary);
+    word-break: break-word;
+  }
+
+  .item-type {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--c-success-text);
+    background: #ecfdf3;
+    border: 1px solid #d1fae5;
+    border-radius: 999px;
+    padding: 4px 8px;
+  }
+
+  .item-details-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--c-text-secondary);
+  }
+
+  .item-total {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--c-success-text);
+    white-space: nowrap;
+  }
+
+  .request-items-summary {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(22, 101, 52, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--c-success-text);
+    font-size: 14px;
+
+    strong {
+      font-size: 16px;
+    }
+  }
+}
+
 .comments-section {
   padding: 14px 16px;
   border-top: 1px solid var(--c-divider);
   background: #fff;
 
   .loading-state {
-    font-size: 13px; color: var(--c-text-tertiary); padding-bottom: 10px;
+    font-size: 13px;
+    color: var(--c-text-tertiary);
+    padding-bottom: 10px;
   }
 
   .comment-item {
-    display: flex; align-items: flex-start; gap: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
     margin-bottom: 14px;
 
-    &:last-child { margin-bottom: 0; }
+    &:last-child {
+      margin-bottom: 0;
+    }
 
     .c-avatar {
       flex-shrink: 0;
-      width: 34px; height: 34px;
-      border-radius: 50%; overflow: hidden;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      overflow: hidden;
       background: var(--c-divider);
       cursor: pointer;
       transition: opacity 0.2s;
 
-      &:hover { opacity: 0.8; }
+      &:hover {
+        opacity: 0.8;
+      }
 
-      img, .initials { width: 100%; height: 100%; object-fit: cover; }
-      .initials { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #777; }
+      img, .initials {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .initials {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: #777;
+      }
     }
 
     .c-body {
@@ -225,15 +436,27 @@
       font-size: 14px;
 
       .c-header {
-        display: flex; justify-content: space-between; align-items: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 4px;
       }
 
       .c-user {
-        font-weight: 600; color: var(--c-text-primary); cursor: pointer;
-        &:hover { text-decoration: underline; }
+        font-weight: 600;
+        color: var(--c-text-primary);
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
       }
-      .c-date { font-weight: 400; font-size: 12px; color: var(--c-text-tertiary); }
+
+      .c-date {
+        font-weight: 400;
+        font-size: 12px;
+        color: var(--c-text-tertiary);
+      }
 
       .c-text {
         color: var(--c-text-primary);
@@ -243,27 +466,50 @@
     }
   }
 
-  /* INPUT AREA */
   .comment-input-wrapper {
-    display: flex; align-items: center; gap: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-top: 18px;
     padding-top: 14px;
     border-top: 1px solid var(--c-divider);
 
     input {
-      flex: 1; border: none; background: transparent;
-      padding: 6px 0; font-size: 15px; color: var(--c-text-primary);
-      &::placeholder { color: var(--c-text-tertiary); }
-      &:focus { outline: none; }
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 6px 0;
+      font-size: 15px;
+      color: var(--c-text-primary);
+
+      &::placeholder {
+        color: var(--c-text-tertiary);
+      }
+
+      &:focus {
+        outline: none;
+      }
     }
 
     .post-link-btn {
-      background: none; border: none; padding: 4px 0;
-      color: var(--c-accent); font-weight: 600; font-size: 15px;
-      cursor: pointer; opacity: 1; transition: opacity 0.2s;
+      background: none;
+      border: none;
+      padding: 4px 0;
+      color: var(--c-accent);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      opacity: 1;
+      transition: opacity 0.2s;
 
-      &:disabled { opacity: 0.3; cursor: default; }
-      &:not(:disabled):hover { color: var(--c-accent-hover); }
+      &:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+
+      &:not(:disabled):hover {
+        color: var(--c-accent-hover);
+      }
     }
   }
 }
@@ -276,8 +522,27 @@
 
 @media (max-width: 580px) {
   .post-card {
-    border: none; border-top: 1px solid var(--c-divider); border-bottom: 1px solid var(--c-divider);
-    border-radius: 0; box-shadow: none; margin-bottom: 0;
+    border: none;
+    border-top: 1px solid var(--c-divider);
+    border-bottom: 1px solid var(--c-divider);
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
     max-width: 100%;
+  }
+
+  .request-items-section {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding: 12px;
+  }
+
+  .request-items-section .request-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .request-items-section .item-total {
+    white-space: normal;
   }
 }

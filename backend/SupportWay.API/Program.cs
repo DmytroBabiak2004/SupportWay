@@ -71,6 +71,7 @@ builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
 builder.Services.AddScoped<IPostAnalyticsRepository, PostAnalyticsRepository>();
 builder.Services.AddScoped<IHelpRequestAnalyticsRepository, HelpRequestAnalyticsRepository>();
 builder.Services.AddScoped<IRequestItemAnalyticsRepository, RequestItemAnalyticsRepository>();
+builder.Services.AddScoped<ISupportTypesRepository, SupportTypesRepository>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
@@ -87,7 +88,7 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IBadgeTypeService, BadgeTypeService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IProfileAnalyticsService, ProfileAnalyticsService>();
-
+builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
 

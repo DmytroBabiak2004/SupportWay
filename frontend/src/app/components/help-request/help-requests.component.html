@@ -6,13 +6,20 @@
       <nav class="nav-switch">
         <button class="nav-btn" [class.active]="viewMode === 'feed'" (click)="setView('feed')">
           <span class="icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
           </span>
-          <span class="text">Всі</span> </button>
+          <span class="text">Всі</span>
+        </button>
 
         <button class="nav-btn" [class.active]="viewMode === 'user'" (click)="setView('user')">
           <span class="icon">
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
           </span>
           <span class="text">Мої</span>
         </button>
@@ -24,13 +31,16 @@
 
         <div class="search-wrap">
           <span class="search-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
           </span>
           <input
             type="text"
             [ngModel]="searchQuery"
             (ngModelChange)="onSearchChange($event)"
-            placeholder="Пошук..."
+            placeholder="Пошук реквестів..."
             autocomplete="off">
         </div>
 
@@ -40,13 +50,21 @@
             <option value="oldest">Старі</option>
           </select>
           <div class="sort-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="21" y1="10" x2="3" y2="10"></line>
+              <line x1="21" y1="6" x2="3" y2="6"></line>
+              <line x1="21" y1="14" x2="3" y2="14"></line>
+              <line x1="21" y1="18" x2="3" y2="18"></line>
+            </svg>
           </div>
         </div>
 
         <button class="create-btn" (click)="openModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          <span class="label mobile-hide">Допис</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span class="label mobile-hide">Реквест</span>
         </button>
 
       </div>
@@ -55,30 +73,39 @@
 
   <main class="feed-wrapper">
 
-    <div *ngIf="isLoading && displayPosts.length === 0" class="state-box">
+    <div *ngIf="isLoading && displayRequests.length === 0" class="state-box">
       <div class="skeleton-card" *ngFor="let i of [1,2,3]"></div>
     </div>
 
-    <div *ngIf="!isLoading && displayPosts.length === 0" class="state-box empty">
+    <div *ngIf="!isLoading && displayRequests.length === 0" class="state-box empty">
       <div class="empty-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
       </div>
-      <p>Нічого не знайдено</p>
+      <p>Реквестів не знайдено</p>
     </div>
 
-    <div class="feed-list" *ngIf="displayPosts.length > 0">
-      <app-post-card
-        *ngFor="let post of displayPosts; trackBy: trackByPostId"
-        [post]="post"
+    <div class="feed-list" *ngIf="displayRequests.length > 0">
+      <app-help-request-card
+        *ngFor="let request of displayRequests; trackBy: trackByRequestId"
+        [request]="request"
         (profileClick)="openProfile($event)">
-      </app-post-card>
+      </app-help-request-card>
     </div>
 
     <div class="load-more-area" #scrollAnchor>
-      <div class="dots-spinner" *ngIf="isLoadingMore"><div></div><div></div><div></div></div>
+      <div class="dots-spinner" *ngIf="isLoadingMore">
+        <div></div><div></div><div></div>
+      </div>
     </div>
   </main>
 
 </div>
 
-<app-create-post-modal *ngIf="isModalOpen" (close)="closeModal()"></app-create-post-modal>
+<app-create-help-request-modal
+  *ngIf="isModalOpen"
+  (close)="closeModal()"
+  (created)="onRequestCreated()">
+</app-create-help-request-modal>

@@ -1,0 +1,704 @@
+/* profile-card.component.scss */
+
+// ─────────────────────────────────────────
+// TOKENS
+// ─────────────────────────────────────────
+:host {
+  --c-text-main:  #0f172a;
+  --c-text-muted: #64748b;
+  --c-bg-card:    #ffffff;
+  --c-border:     #e2e8f0;
+
+  --ink:          var(--c-text-main);
+  --ink-mid:      var(--c-text-muted);
+  --ink-soft:     #94a3b8;
+  --ink-faint:    #cbd5e1;
+  --surface:      var(--c-bg-card);
+  --surface-dim:  #f8fafc;
+  --border:       var(--c-border);
+  --border-deep:  #cbd5e1;
+
+  --accent:       #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-glow:  rgba(79, 70, 229, 0.15);
+  --accent-soft:  rgba(79, 70, 229, 0.07);
+
+  --danger:       #ef4444;
+  --danger-soft:  rgba(239, 68, 68, 0.07);
+
+  --star-on:      #f59e0b;
+  --star-off:     #e2e8f0;
+
+  --r-card:   24px;
+  --r-pill:   9999px;
+  --r-md:     12px;
+
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+
+  --font-body: "Inter", sans-serif;
+
+  display: block;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+
+// ─────────────────────────────────────────
+// CARD SHELL
+// ─────────────────────────────────────────
+.card {
+  background: var(--c-bg-card);
+  border-radius: var(--r-card);
+  border: 1px solid var(--c-border);
+  box-shadow: 0 4px 20px -10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+
+// ─────────────────────────────────────────
+// SKELETON LOADER
+// ─────────────────────────────────────────
+.skeleton-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 48px;
+}
+
+.sk {
+  border-radius: var(--r-md);
+  background: linear-gradient(90deg, var(--surface-dim) 25%, #eceef7 50%, var(--surface-dim) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+
+  &-avatar { width: 100px; height: 100px; border-radius: 50%; flex-shrink: 0; }
+  &-lines { flex: 1; display: flex; flex-direction: column; gap: 14px; padding-top: 12px; }
+  &-line { height: 14px; }
+
+  &.w-60 { width: 60%; }
+  &.w-40 { width: 40%; }
+  &.w-80 { width: 80%; }
+  &.w-50 { width: 50%; }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+
+// ─────────────────────────────────────────
+// LAYOUT
+// ─────────────────────────────────────────
+.profile-layout {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 36px;
+  padding: 28px;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 28px 24px;
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+
+// ─────────────────────────────────────────
+// AVATAR COLUMN
+// ─────────────────────────────────────────
+.col-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// No border ring — removed .own accent border
+.avatar-ring {
+  position: relative;
+  border-radius: 50%;
+}
+
+.avatar-wrap {
+  width: 250px;   // ×2 від попереднього 150px
+  height: 250px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-dim);
+  border: 2px solid var(--c-border);
+  transition: border-color .2s;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-body);
+  font-size: 80px;     // збільшено пропорційно
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-soft);
+  letter-spacing: -0.02em;
+}
+
+// Upload button
+.upload-trigger {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  z-index: 5;
+  width: 44px;        // трохи більша під великий аватар
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border-deep);
+  box-shadow: 0 4px 12px rgba(12,15,26,.12);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition:
+    background .25s var(--ease-spring),
+    border-color .2s,
+    transform .3s var(--ease-spring),
+    box-shadow .2s;
+
+  input { display: none; }
+
+  .upload-icon { display: grid; place-items: center; }
+
+  &:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    transform: scale(1.12) rotate(8deg);
+    box-shadow: 0 6px 20px var(--accent-glow);
+  }
+
+  &:active { transform: scale(0.95); }
+
+  &.is-uploading {
+    cursor: wait;
+    background: var(--surface-dim);
+    pointer-events: none;
+  }
+}
+
+
+// ─────────────────────────────────────────
+// INFO COLUMN
+// ─────────────────────────────────────────
+.col-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding-top: 4px;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    align-items: center;
+  }
+}
+
+// Identity — name + handle stacked naturally
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.display-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--c-text-main);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  word-break: break-word;
+}
+
+// Username — природній вигляд: просто текст із @ і приглушений колір
+.handle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+
+// ─────────────────────────────────────────
+// RATING
+// ─────────────────────────────────────────
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &.readonly .star-btn { cursor: default; pointer-events: none; }
+}
+
+.stars { display: flex; gap: 2px; }
+
+.star-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--star-off);
+  line-height: 0;
+  transition: color .15s, transform .25s var(--ease-spring);
+
+  &.lit { color: var(--star-on); filter: drop-shadow(0 2px 5px rgba(245,166,35,.35)); }
+
+  &.preview:hover {
+    transform: scale(1.25);
+    color: var(--star-on);
+  }
+}
+
+.stars:hover .star-btn { color: var(--star-off); }
+.stars:hover .star-btn.preview:hover,
+.stars:hover .star-btn.preview:hover ~ .star-btn { color: var(--star-off); }
+
+.rating-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-mid);
+  background: var(--surface-dim);
+  border: 1px solid var(--border);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+}
+
+
+// ─────────────────────────────────────────
+// BIO — з валідацією довжини
+// ─────────────────────────────────────────
+.bio-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: 580px;
+  min-width: 0;      // важливо для overflow в flex
+
+  @media (max-width: 900px) { align-items: center; }
+}
+
+.bio-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-mid);
+  white-space: pre-wrap;
+  word-break: break-word;     // розбиваємо довгі слова
+  overflow-wrap: break-word;
+  max-width: 100%;
+
+  // За замовчуванням — обрізаємо після ~4 рядків
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  // Коли розгорнуто — показуємо все
+  &.bio-expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  &.placeholder-bio { color: var(--ink-faint); font-style: italic; }
+}
+
+// Кнопка "Читати далі" / "Згорнути"
+.bio-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+  transition: opacity .15s;
+  margin-top: -4px;
+
+  &:hover { opacity: .75; }
+}
+
+.ghost-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  margin-left: -11px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: all .2s var(--ease-out);
+
+  svg { flex-shrink: 0; }
+
+  &:hover {
+    color: var(--ink);
+    background: var(--surface-dim);
+    border-color: var(--border);
+  }
+
+  @media (max-width: 900px) { margin-left: 0; }
+}
+
+.bio-edit-wrap {
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bio-textarea {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1.5px solid var(--border-deep);
+  border-radius: var(--r-md);
+  resize: vertical;
+  min-height: 90px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  word-break: break-word;
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3.5px var(--accent-glow);
+  }
+
+  &::placeholder { color: var(--ink-faint); }
+}
+
+.bio-char-count {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  text-align: right;
+  margin-top: -4px;
+  transition: color .2s;
+
+  // Попередження коли залишилось мало символів
+  &.bio-char-warn {
+    color: var(--danger);
+    font-weight: 700;
+  }
+}
+
+.bio-actions {
+  display: flex;
+  gap: 8px;
+
+  @media (max-width: 900px) { justify-content: center; }
+}
+
+
+// ─────────────────────────────────────────
+// JOINED DATE
+// ─────────────────────────────────────────
+.joined-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  letter-spacing: 0.01em;
+
+  svg { opacity: .7; flex-shrink: 0; }
+
+  @media (max-width: 900px) { justify-content: center; }
+}
+
+
+// ─────────────────────────────────────────
+// BUTTONS
+// ─────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all .2s var(--ease-out);
+  line-height: 1;
+
+  &:disabled { opacity: .55; cursor: not-allowed; pointer-events: none; }
+  &:active:not(:disabled) { transform: translateY(1px); }
+
+  &.solid {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+
+    &:hover { background: #1e2440; border-color: #1e2440; box-shadow: 0 4px 16px rgba(12,15,26,.18); }
+
+    &.unfollow {
+      background: var(--surface-dim);
+      border-color: var(--border-deep);
+      color: var(--ink-mid);
+
+      &:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+    }
+
+    &.is-loading { background: var(--ink-mid); border-color: var(--ink-mid); pointer-events: none; }
+  }
+
+  &.ghost {
+    background: transparent;
+    border-color: var(--border-deep);
+    color: var(--ink-mid);
+
+    &:hover { background: var(--surface-dim); border-color: var(--border-deep); color: var(--ink); }
+  }
+}
+
+.stranger-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+
+  @media (max-width: 900px) { justify-content: center; }
+}
+
+
+// ─────────────────────────────────────────
+// STATS COLUMN
+// ─────────────────────────────────────────
+.col-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  padding-top: 6px;
+
+  @media (max-width: 900px) {
+    align-items: center;
+    width: 100%;
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    gap: 16px;
+  }
+}
+
+.stats-block {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: var(--surface-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 24px;
+  cursor: default;
+  transition: background .2s;
+
+  &:hover { background: var(--border); }
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--c-text-main);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stat-divider {
+  width: 1px;
+  background: var(--border);
+  align-self: stretch;
+}
+
+
+// ─────────────────────────────────────────
+// SETTINGS GEAR + DROPDOWN
+// ─────────────────────────────────────────
+.settings-wrap {
+  position: relative;
+}
+
+.settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1.5px solid var(--border-deep);
+  border-radius: var(--r-pill);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all .2s var(--ease-out);
+
+  .gear-icon {
+    transition: transform .45s var(--ease-out);
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: var(--surface-dim);
+    color: var(--ink);
+
+    .gear-icon { transform: rotate(60deg); }
+  }
+
+  &:active { transform: translateY(1px); }
+
+  // Коли dropdown відкритий — шестерінка крутиться далі
+  .settings-wrap.open & .gear-icon {
+    transform: rotate(90deg);
+  }
+}
+
+.settings-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 190px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow:
+    0 4px 6px -1px rgba(0,0,0,.06),
+    0 10px 30px -10px rgba(0,0,0,.12);
+  overflow: hidden;
+  z-index: 100;
+  animation: dropdown-in .18s var(--ease-out) both;
+
+  @media (max-width: 900px) {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.settings-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  svg { flex-shrink: 0; opacity: .7; }
+
+  &:hover {
+    background: var(--surface-dim);
+    color: var(--ink);
+
+    svg { opacity: 1; }
+  }
+
+  &.danger {
+    color: var(--danger);
+
+    svg { opacity: .8; }
+
+    &:hover {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+  }
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+
+
+// ─────────────────────────────────────────
+// SPINNER
+// ─────────────────────────────────────────
+.mini-spin {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin .75s linear infinite;
+
+  &.light {
+    border-color: rgba(255,255,255,.3);
+    border-top-color: #fff;
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+// ─────────────────────────────────────────
+// REDUCED MOTION
+// ─────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

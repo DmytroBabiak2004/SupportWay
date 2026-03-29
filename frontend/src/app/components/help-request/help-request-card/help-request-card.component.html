@@ -1,28 +1,28 @@
-<article class="post-card">
+<article class="post-card help-request-card">
 
   <header class="post-header">
-    <div class="user-group" (click)="openProfile(post.authorUserName || post.userId)">
+    <div class="user-group" (click)="openProfile(request.authorUserName || request.userId)">
       <div class="avatar-container">
-        <img *ngIf="post.authorPhotoBase64; else initialFallback"
-             [src]="profileService.getAvatarSrc(post.authorPhotoBase64)"
+        <img *ngIf="request.authorPhotoBase64; else initialFallback"
+             [src]="profileService.getAvatarSrc(request.authorPhotoBase64)"
              alt="avatar">
         <ng-template #initialFallback>
-          <div class="initials">{{ getInitials(post.authorUserName || '?') }}</div>
+          <div class="initials">{{ getInitials(request.authorUserName || request.userName || '?') }}</div>
         </ng-template>
       </div>
 
       <div class="meta-info">
-        <span class="username">{{ post.authorUserName || 'Unknown' }}</span>
-        <span class="date" [title]="post.createdAt | date:'medium'">
-          {{ post.createdAt | relativeTime }}
+        <span class="username">{{ request.authorUserName || request.userName || 'Unknown' }}</span>
+        <span class="date" [title]="request.createdAt | date:'medium'">
+          {{ request.createdAt | relativeTime }}
         </span>
       </div>
     </div>
   </header>
 
-  <div class="post-media" *ngIf="post.image" (dblclick)="toggleLike()">
+  <div class="post-media" *ngIf="request.image" (dblclick)="toggleLike()">
     <div class="image-container">
-      <img [src]="'data:image/jpeg;base64,' + post.image" [alt]="post.title || 'Post'">
+      <img [src]="'data:image/jpeg;base64,' + request.image" [alt]="request.title || 'Help Request'">
     </div>
   </div>
 
@@ -41,15 +41,58 @@
   </div>
 
   <div class="post-content">
+    <div class="request-title" *ngIf="request.title">
+      {{ request.title }}
+    </div>
+
     <div class="caption-block">
-      <ng-container *ngIf="post.content">
-        <span class="author-name-inline" (click)="openProfile(post.authorUserName)">
-          {{ post.authorUserName }}
+      <ng-container *ngIf="request.content">
+        <span class="author-name-inline" (click)="openProfile(request.authorUserName || request.userName || request.userId)">
+          {{ request.authorUserName || request.userName }}
         </span>
-        <span class="post-text">{{ post.content }}</span>
+        <span class="post-text">{{ request.content }}</span>
       </ng-container>
     </div>
 
+    <div class="request-meta-row" *ngIf="request.locationName || request.totalPayments > 0">
+      <span class="meta-pill" *ngIf="request.locationName">📍 {{ request.locationName }}</span>
+      <span class="meta-pill" *ngIf="request.totalPayments > 0">💳 {{ request.totalPayments | number:'1.0-2' }} грн зібрано</span>
+    </div>
+  </div>
+
+  <section class="request-items-section" *ngIf="request.requestItems?.length">
+    <div class="request-items-header">
+      <h4>Потрібно</h4>
+      <span class="items-count">{{ request.requestItems.length }} позицій</span>
+    </div>
+
+    <div class="request-items-list">
+      <div class="request-item" *ngFor="let item of request.requestItems; trackBy: trackByRequestItem">
+        <div class="item-main">
+          <div class="item-name-row">
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-type">{{ item.supportTypeName }}</span>
+          </div>
+
+          <div class="item-details-row">
+            <span class="item-qty">Кількість: {{ item.quantity }}</span>
+            <span class="item-price">Ціна: {{ item.unitPrice | number:'1.0-2' }} грн</span>
+          </div>
+        </div>
+
+        <div class="item-total">
+          {{ item.quantity * item.unitPrice | number:'1.0-2' }} грн
+        </div>
+      </div>
+    </div>
+
+    <div class="request-items-summary">
+      <span>Загальна потреба</span>
+      <strong>{{ totalRequestedSum | number:'1.0-2' }} грн</strong>
+    </div>
+  </section>
+
+  <div class="post-content">
     <div class="view-comments-link" *ngIf="!showComments && commentsCount > 0" (click)="toggleComments()">
       View all {{ commentsCount }} comments
     </div>
@@ -59,7 +102,6 @@
     <div *ngIf="isLoadingComments" class="loading-state">Updating...</div>
 
     <div *ngFor="let comment of comments" class="comment-item">
-
       <div class="c-avatar" (click)="openProfile(comment.userName || comment.userId)">
         <img *ngIf="comment.userPhotoBase64; else comInitials"
              [src]="profileService.getAvatarSrc(comment.userPhotoBase64)"
@@ -81,8 +123,15 @@
     </div>
 
     <div class="comment-input-wrapper">
-      <input type="text" placeholder="Add a comment..." [(ngModel)]="newCommentText" (keydown.enter)="newCommentText.trim() && sendComment()">
-      <button class="post-link-btn" [disabled]="!newCommentText.trim()" (click)="sendComment()">Post</button>
+      <input
+        type="text"
+        placeholder="Add a comment..."
+        [(ngModel)]="newCommentText"
+        (keydown.enter)="newCommentText.trim() && sendComment()">
+
+      <button class="post-link-btn" [disabled]="!newCommentText.trim()" (click)="sendComment()">
+        Post
+      </button>
     </div>
   </div>
 

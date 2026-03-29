@@ -6,7 +6,7 @@ import { HomeComponent } from './components/home/home.component';
 import { ChatPageComponent } from './components/chat/chat-page/chat-page.component'
 import {UserProfileComponent} from './components/user-profile/user-profile.component';
 import {PostsComponent} from './components/posts/posts.component';
-import {HelpRequestCardComponent} from './components/help-request/help-request.component';
+import {HelpRequestsComponent} from './components/help-request/help-requests.component';
 
 export const routes: Routes = [
   { path: 'login', component: AuthorizationComponent },
@@ -14,7 +14,7 @@ export const routes: Routes = [
   { path: 'chat', component: ChatPageComponent, canActivate: [AuthGuard] },
   { path: 'posts', component: PostsComponent, canActivate: [AuthGuard] },
   { path: 'profile/:userId', component: UserProfileComponent, canActivate: [AuthGuard] },
-  { path: 'requests', component: HelpRequestCardComponent, canActivate: [AuthGuard] },
+  { path: 'requests', component: HelpRequestsComponent, canActivate: [AuthGuard] },
 
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' }

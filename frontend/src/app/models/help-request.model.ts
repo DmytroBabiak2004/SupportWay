@@ -1,22 +1,33 @@
-import { Post } from './post.model';
-
-// Основна модель (Read DTO)
-export interface HelpRequest extends Post {
-  // Поля, специфічні для запиту
-  locationId: string;
-  locationName: string;      // Назва району (наприклад, "Київський")
-  statusName: string;        // Назва статусу (наприклад, "Активний")
-  totalPayments: number;     // Сума зібраних коштів
+export interface HelpRequestItem {
+  id: string;
+  helpRequestId: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  supportTypeId: string;
+  supportTypeName: string;
 }
 
-// Модель для dropdown (Локація)
-export interface LocationOption {
+export interface HelpRequest {
   id: string;
-  districtName: string;
-}
+  locationId?: string | null;
+  locationName?: string;
+  totalPayments: number;
 
-// Модель для dropdown (Статус)
-export interface RequestStatusOption {
-  id: string;
-  nameOfStatus: string;
+  title: string;
+  content: string;
+  image?: string | null;
+  createdAt: string;
+
+  userId: string;
+  userName: string;
+
+  likesCount: number;
+  commentsCount: number;
+
+  authorUserName?: string;
+  authorPhotoBase64?: string;
+  isLikedByCurrentUser?: boolean;
+
+  requestItems: HelpRequestItem[];
 }
