@@ -45,27 +45,17 @@
           <span class="optional-badge">необов'язково</span>
         </label>
 
-        <!-- Selected location pill -->
         <div class="location-selected" *ngIf="selectedLocation">
           <span class="location-pin">📍</span>
           <span class="location-text">{{ selectedLocationLabel }}</span>
           <button type="button" class="clear-location-btn" (click)="clearLocation()">✕</button>
         </div>
 
-        <!-- Mode toggle buttons (only when no location selected) -->
         <div class="location-mode-btns" *ngIf="!selectedLocation">
-          <button
-            type="button"
-            class="mode-btn"
-            [class.active]="locationMode === 'search'"
-            (click)="setLocationMode('search')">
+          <button type="button" class="mode-btn" [class.active]="locationMode === 'search'" (click)="setLocationMode('search')">
             🔍 Пошук міста
           </button>
-          <button
-            type="button"
-            class="mode-btn"
-            [class.active]="locationMode === 'map'"
-            (click)="setLocationMode('map')">
+          <button type="button" class="mode-btn" [class.active]="locationMode === 'map'" (click)="setLocationMode('map')">
             🗺️ Вибрати на карті
           </button>
         </div>
@@ -74,10 +64,8 @@
         <div class="location-search-panel" *ngIf="locationMode === 'search' && !selectedLocation">
           <div class="search-input-wrap">
             <input
-              type="text"
-              class="search-input"
-              [(ngModel)]="searchQuery"
-              [ngModelOptions]="{standalone: true}"
+              type="text" class="search-input"
+              [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}"
               (input)="onSearchInput()"
               placeholder="Введіть назву міста, села..."
               autocomplete="off"
@@ -86,10 +74,7 @@
           </div>
 
           <ul class="search-results" *ngIf="searchResults.length > 0">
-            <li
-              *ngFor="let r of searchResults"
-              class="search-result-item"
-              (click)="selectSearchResult(r)">
+            <li *ngFor="let r of searchResults" class="search-result-item" (click)="selectSearchResult(r)">
               <span class="result-icon">📍</span>
               <span class="result-text">{{ r.display_name }}</span>
             </li>
@@ -111,7 +96,6 @@
             ✅ Вибрано: {{ selectedLocationLabel }}
           </p>
         </div>
-
       </div>
 
       <!-- IMAGE PREVIEW -->
@@ -120,16 +104,38 @@
         <button type="button" class="remove-btn" (click)="removeImage()">✕</button>
       </div>
 
+      <!-- ── REQUEST ITEMS SECTION ───────────────────────────────────────── -->
+      <div class="field-group">
+        <div class="items-header">
+          <label class="field-label">
+            📦 Пункти допомоги
+            <span class="optional-badge">необов'язково</span>
+          </label>
+          <button type="button" class="btn-add-item" (click)="openItemModal()">
+            ＋ Додати пункт
+          </button>
+        </div>
+
+        <!-- Added items list -->
+        <div class="items-list" *ngIf="requestItems.length > 0">
+          <div class="item-chip" *ngFor="let item of requestItems">
+            <span class="item-type-badge">{{ item.supportTypeName }}</span>
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-qty">× {{ item.quantity }}</span>
+            <span class="item-price" *ngIf="item.unitPrice > 0">{{ item.unitPrice }} грн</span>
+            <button type="button" class="item-remove-btn" (click)="removeItem(item.tempId)" title="Видалити">✕</button>
+          </div>
+        </div>
+
+        <p class="items-hint" *ngIf="requestItems.length === 0">
+          Вкажіть конкретні речі або послуги, які потрібні
+        </p>
+      </div>
+
       <!-- FOOTER -->
       <div class="modal-footer">
         <div class="attachment-actions">
-          <input
-            type="file"
-            #fileInput
-            hidden
-            accept="image/*"
-            (change)="onFileSelected($event)"
-          >
+          <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)">
           <button type="button" class="btn-icon" (click)="fileInput.click()">
             📷 Фото
           </button>
@@ -139,15 +145,66 @@
           <button type="button" class="btn secondary" (click)="onCancel()">
             Скасувати
           </button>
-          <button
-            type="submit"
-            class="btn primary"
-            [disabled]="createForm.invalid || isSubmitting">
+          <button type="submit" class="btn primary" [disabled]="createForm.invalid || isSubmitting">
             {{ isSubmitting ? 'Створення...' : 'Створити реквест' }}
           </button>
         </div>
       </div>
 
     </form>
+  </div>
+</div>
+
+<!-- ── ADD ITEM MODAL (nested) ─────────────────────────────────────────────── -->
+<div class="item-modal-backdrop" *ngIf="showItemModal" (click)="closeItemModal()">
+  <div class="item-modal-box" (click)="$event.stopPropagation()">
+
+    <div class="item-modal-header">
+      <h3>Додати пункт допомоги</h3>
+      <button type="button" class="close-btn" (click)="closeItemModal()">✕</button>
+    </div>
+
+    <!-- Support type -->
+    <div class="field-group">
+      <label class="field-label">Тип допомоги</label>
+      <select [(ngModel)]="itemSupportTypeId" [ngModelOptions]="{standalone: true}" class="select-input">
+        <option *ngFor="let t of supportTypes" [value]="t.id">{{ t.nameOfType }}</option>
+      </select>
+      <p class="search-hint" *ngIf="isLoadingSupportTypes">Завантаження типів...</p>
+      <p class="search-hint" *ngIf="!isLoadingSupportTypes && supportTypes.length === 0">
+        Типи допомоги не знайдені. Перевірте з'єднання.
+      </p>
+    </div>
+
+    <!-- Name -->
+    <div class="field-group">
+      <label class="field-label">Назва</label>
+      <input
+        type="text"
+        [(ngModel)]="itemName" [ngModelOptions]="{standalone: true}"
+        placeholder="Наприклад: Ковдра, Медикаменти, Волонтер..."
+        class="text-input"
+      >
+    </div>
+
+    <!-- Quantity + Price -->
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">Кількість</label>
+        <input type="number" [(ngModel)]="itemQuantity" [ngModelOptions]="{standalone: true}" min="1" class="text-input">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ціна за од. (грн) <span class="optional-badge">необов'язково</span></label>
+        <input type="number" [(ngModel)]="itemUnitPrice" [ngModelOptions]="{standalone: true}" min="0" step="0.01" class="text-input">
+      </div>
+    </div>
+
+    <p class="field-error" *ngIf="itemFormError">{{ itemFormError }}</p>
+
+    <div class="item-modal-actions">
+      <button type="button" class="btn secondary" (click)="closeItemModal()">Скасувати</button>
+      <button type="button" class="btn primary" (click)="confirmAddItem()">Додати</button>
+    </div>
+
   </div>
 </div>

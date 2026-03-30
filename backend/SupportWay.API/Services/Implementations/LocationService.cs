@@ -17,25 +17,14 @@ namespace SupportWay.Services
         public async Task<IEnumerable<LocationDto>> GetAllAsync()
         {
             var locations = await _repository.GetAllAsync();
-
-            // Мапінг Entity -> DTO
-            return locations.Select(l => new LocationDto
-            {
-                LocationId = l.LocationId,
-                DistrictName = l.DistrictName
-            });
+            return locations.Select(MapToDto);
         }
 
         public async Task<LocationDto?> GetByIdAsync(Guid id)
         {
             var location = await _repository.GetByIdAsync(id);
             if (location == null) return null;
-
-            return new LocationDto
-            {
-                LocationId = location.LocationId,
-                DistrictName = location.DistrictName
-            };
+            return MapToDto(location);
         }
 
         public async Task<LocationDto> CreateAsync(CreateLocationDto dto)
@@ -43,16 +32,15 @@ namespace SupportWay.Services
             var location = new Location
             {
                 LocationId = Guid.NewGuid(),
-                DistrictName = dto.DistrictName
+                DistrictName = dto.DistrictName ?? string.Empty,
+                Address = dto.Address ?? string.Empty,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude
             };
 
             await _repository.AddAsync(location);
 
-            return new LocationDto
-            {
-                LocationId = location.LocationId,
-                DistrictName = location.DistrictName
-            };
+            return MapToDto(location);
         }
 
         public async Task UpdateAsync(Guid id, CreateLocationDto dto)
@@ -60,7 +48,10 @@ namespace SupportWay.Services
             var location = await _repository.GetByIdAsync(id);
             if (location != null)
             {
-                location.DistrictName = dto.DistrictName;
+                location.DistrictName = dto.DistrictName ?? location.DistrictName;
+                location.Address = dto.Address ?? location.Address;
+                if (dto.Latitude.HasValue) location.Latitude = dto.Latitude;
+                if (dto.Longitude.HasValue) location.Longitude = dto.Longitude;
                 await _repository.UpdateAsync(location);
             }
         }
@@ -69,5 +60,14 @@ namespace SupportWay.Services
         {
             await _repository.DeleteAsync(id);
         }
+
+        private static LocationDto MapToDto(Location l) => new LocationDto
+        {
+            LocationId = l.LocationId,
+            DistrictName = l.DistrictName,
+            Address = l.Address,
+            Latitude = l.Latitude,
+            Longitude = l.Longitude
+        };
     }
 }

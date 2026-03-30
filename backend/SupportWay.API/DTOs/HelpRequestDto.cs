@@ -7,6 +7,9 @@ namespace SupportWay.Data.DTOs
         public Guid Id { get; set; }
         public Guid? LocationId { get; set; }
         public string LocationName { get; set; } = string.Empty;
+        public string? LocationAddress { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public decimal TotalPayments { get; set; }
 
         public string Title { get; set; } = string.Empty;
@@ -46,7 +49,15 @@ namespace SupportWay.Data.DTOs
         public string Content { get; set; } = string.Empty;
 
         public byte[]? Image { get; set; }
+
+        // Option A: прив'язати до існуючої локації
         public Guid? LocationId { get; set; }
+
+        // Option B: передати координати / адресу — бекенд сам створить Location
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? Address { get; set; }
+        public string? DistrictName { get; set; }
     }
 
     public class RequestStatusDto

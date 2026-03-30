@@ -15,6 +15,16 @@ public class HelpRequestsController : ControllerBase
         _service = service;
     }
 
+    [HttpGet("feed")]
+    public async Task<IActionResult> GetFeed([FromQuery] int page = 1, [FromQuery] int size = 10)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var list = await _service.GetFeedAsync(userId, page, size);
+        return Ok(list);
+    }
+
     [HttpGet("my")]
     public async Task<IActionResult> GetMyHelpRequests([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
@@ -42,7 +52,11 @@ public class HelpRequestsController : ControllerBase
         {
             Title = request.Title,
             Content = request.Content,
-            LocationId = request.LocationId
+            LocationId = request.LocationId,
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            Address = request.Address,
+            DistrictName = request.DistrictName
         };
 
         if (request.Image != null)
@@ -52,8 +66,8 @@ public class HelpRequestsController : ControllerBase
             dto.Image = memoryStream.ToArray();
         }
 
-        await _service.CreateHelpRequestAsync(dto, userId);
-        return StatusCode(201);
+        var newId = await _service.CreateHelpRequestAsync(dto, userId);
+        return StatusCode(201, new { id = newId });
     }
 
     [HttpDelete("{id}")]

@@ -3,15 +3,30 @@ import {
   OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, NgZone
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, takeUntil } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 import { HelpRequestService, LocationPayload } from '../../services/help-request.service';
 import { LocationService, NominatimResult } from '../../services/location.service';
+import { environment } from '../../../environments/environment.development';
 
 declare const L: any;
 
 export type LocationMode = 'none' | 'search' | 'map';
+
+export interface SupportType {
+  id: string;
+  nameOfType: string;
+}
+
+export interface LocalRequestItem {
+  tempId: string;
+  supportTypeId: string;
+  supportTypeName: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+}
 
 @Component({
   selector: 'app-create-help-request-modal',
@@ -24,6 +39,7 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
   private fb = inject(FormBuilder);
   private helpService = inject(HelpRequestService);
   private locationService = inject(LocationService);
+  private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
 
@@ -35,6 +51,7 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     content: ['', [Validators.required, Validators.maxLength(1000)]],
   });
 
+  // Location
   locationMode: LocationMode = 'none';
   searchQuery = '';
   searchResults: NominatimResult[] = [];
@@ -46,9 +63,22 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
   private marker: any = null;
   mapReady = false;
 
+  // Submission
   isSubmitting = false;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
+
+  // Request Items
+  requestItems: LocalRequestItem[] = [];
+  supportTypes: SupportType[] = [];
+  showItemModal = false;
+  isLoadingSupportTypes = false;
+
+  itemSupportTypeId = '';
+  itemName = '';
+  itemQuantity: number = 1;
+  itemUnitPrice: number = 0;
+  itemFormError = '';
 
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
@@ -71,6 +101,8 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
       },
       error: () => { this.isSearching = false; }
     });
+
+    this.loadSupportTypes();
   }
 
   ngAfterViewInit(): void {}
@@ -79,6 +111,21 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     this.destroy$.next();
     this.destroy$.complete();
     if (this.map) { this.map.remove(); this.map = null; }
+  }
+
+  loadSupportTypes(): void {
+    this.isLoadingSupportTypes = true;
+    this.http.get<SupportType[]>(`${environment.apiUrl}/SupportTypes`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: types => {
+          this.supportTypes = types;
+          this.isLoadingSupportTypes = false;
+          if (types.length > 0) this.itemSupportTypeId = types[0].id;
+          this.cdr.detectChanges();
+        },
+        error: () => { this.isLoadingSupportTypes = false; }
+      });
   }
 
   setLocationMode(mode: LocationMode): void {
@@ -97,9 +144,7 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     }
   }
 
-  onSearchInput(): void {
-    this.searchSubject.next(this.searchQuery);
-  }
+  onSearchInput(): void { this.searchSubject.next(this.searchQuery); }
 
   selectSearchResult(result: NominatimResult): void {
     const addr = result.address;
@@ -139,8 +184,7 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     return new Promise((resolve) => {
       if (document.getElementById('leaflet-css')) { resolve(); return; }
       const link = document.createElement('link');
-      link.id = 'leaflet-css';
-      link.rel = 'stylesheet';
+      link.id = 'leaflet-css'; link.rel = 'stylesheet';
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
       const script = document.createElement('script');
@@ -154,12 +198,10 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     this.zone.runOutsideAngular(() => {
       const el = document.getElementById('location-map');
       if (!el) return;
-
       this.map = L.map(el, { zoomControl: true }).setView([49.0, 31.5], 6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(this.map);
-
       this.map.on('click', (e: any) => {
         const { lat, lng } = e.latlng;
         if (this.marker) {
@@ -173,7 +215,6 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
         }
         this.onMapLocationSelected(lat, lng);
       });
-
       this.zone.run(() => { this.mapReady = true; this.cdr.detectChanges(); });
     });
   }
@@ -198,10 +239,7 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
       },
       error: () => {
         this.zone.run(() => {
-          this.selectedLocation = {
-            latitude: lat, longitude: lng,
-            districtName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`
-          };
+          this.selectedLocation = { latitude: lat, longitude: lng, districtName: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
           this.selectedLocationLabel = this.selectedLocation.districtName!;
           this.cdr.detectChanges();
         });
@@ -221,6 +259,41 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
 
   removeImage(): void { this.selectedFile = null; this.imagePreview = null; }
 
+  openItemModal(): void {
+    this.itemSupportTypeId = this.supportTypes[0]?.id ?? '';
+    this.itemName = '';
+    this.itemQuantity = 1;
+    this.itemUnitPrice = 0;
+    this.itemFormError = '';
+    this.showItemModal = true;
+  }
+
+  closeItemModal(): void { this.showItemModal = false; }
+
+  getSupportTypeName(id: string): string {
+    return this.supportTypes.find(t => t.id === id)?.nameOfType ?? '';
+  }
+
+  confirmAddItem(): void {
+    if (!this.itemSupportTypeId) { this.itemFormError = 'Оберіть тип допомоги'; return; }
+    if (!this.itemName.trim()) { this.itemFormError = "Введіть назву пункту"; return; }
+    if (this.itemQuantity < 1) { this.itemFormError = 'Кількість має бути > 0'; return; }
+
+    this.requestItems.push({
+      tempId: Math.random().toString(36).slice(2),
+      supportTypeId: this.itemSupportTypeId,
+      supportTypeName: this.getSupportTypeName(this.itemSupportTypeId),
+      name: this.itemName.trim(),
+      quantity: this.itemQuantity,
+      unitPrice: this.itemUnitPrice ?? 0
+    });
+    this.showItemModal = false;
+  }
+
+  removeItem(tempId: string): void {
+    this.requestItems = this.requestItems.filter(i => i.tempId !== tempId);
+  }
+
   submit(): void {
     if (this.createForm.invalid) { this.createForm.markAllAsTouched(); return; }
     this.isSubmitting = true;
@@ -231,7 +304,30 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
       this.selectedLocation ?? undefined,
       this.selectedFile ?? undefined
     ).subscribe({
-      next: () => { this.isSubmitting = false; this.created.emit(); this.close.emit(); },
+      next: (response: any) => {
+        const helpRequestId = response?.id ?? null;
+
+        if (this.requestItems.length > 0 && helpRequestId) {
+          const posts = this.requestItems.map(item =>
+            this.http.post(`${environment.apiUrl}/RequestItems`, {
+              helpRequestId,
+              supportTypeId: item.supportTypeId,
+              name: item.name,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice
+            }).toPromise().catch(() => null)
+          );
+          Promise.all(posts).then(() => {
+            this.isSubmitting = false;
+            this.created.emit();
+            this.close.emit();
+          });
+        } else {
+          this.isSubmitting = false;
+          this.created.emit();
+          this.close.emit();
+        }
+      },
       error: err => { console.error('Помилка:', err); this.isSubmitting = false; }
     });
   }

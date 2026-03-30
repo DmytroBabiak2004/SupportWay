@@ -13,6 +13,14 @@ namespace SupportWay.Data.DTOs
         public string Content { get; set; }
 
         public IFormFile? Image { get; set; }
+
+        // Option A: існуюча локація
         public Guid? LocationId { get; set; }
+
+        // Option B: нова локація (координати або пошук)
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string? Address { get; set; }
+        public string? DistrictName { get; set; }
     }
 }

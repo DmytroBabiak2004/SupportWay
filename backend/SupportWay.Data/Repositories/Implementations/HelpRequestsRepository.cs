@@ -42,6 +42,22 @@ public class HelpRequestsRepository : IHelpRequestsRepository
             .FirstOrDefaultAsync(h => h.Id == helpRequestId);
     }
 
+    public async Task<IEnumerable<HelpRequest>> GetAllHelpRequestsAsync(int pageNumber, int pageSize)
+    {
+        return await _context.HelpRequests
+            .Include(h => h.User)
+            .Include(h => h.Location)
+            .Include(h => h.Payments)
+            .Include(h => h.Likes)
+            .Include(h => h.Comments)
+            .Include(h => h.RequestItems)
+                .ThenInclude(ri => ri.SupportType)
+            .OrderByDescending(h => h.CreatedAt)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<HelpRequest>> GetHelpRequestsByUserAsync(string userId, int pageNumber, int pageSize)
     {
         return await _context.HelpRequests

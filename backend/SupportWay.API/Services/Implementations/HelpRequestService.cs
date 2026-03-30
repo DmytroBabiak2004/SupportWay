@@ -15,6 +15,25 @@ public class HelpRequestService : IHelpRequestService
         _locationRepo = locationRepo;
     }
 
+    public async Task<IEnumerable<HelpRequestDto>> GetFeedAsync(string currentUserId, int page, int size)
+    {
+        // Returns all help requests ordered by newest — feeds from followed users + own
+        var requests = await _helpRepo.GetHelpRequestsByFollowedUsersAsync(currentUserId, page, size);
+        var result = new List<HelpRequestDto>();
+        foreach (var request in requests)
+            result.Add(MapToDto(request));
+
+        // If nothing from followed users, fall back to all requests
+        if (!result.Any())
+        {
+            var all = await _helpRepo.GetAllHelpRequestsAsync(page, size);
+            foreach (var request in all)
+                result.Add(MapToDto(request));
+        }
+
+        return result;
+    }
+
     public async Task<IEnumerable<HelpRequestDto>> GetUserHelpRequestsAsync(string userId, int page, int size)
     {
         var requests = await _helpRepo.GetHelpRequestsByUserAsync(userId, page, size);
@@ -37,19 +56,38 @@ public class HelpRequestService : IHelpRequestService
         return MapToDto(request);
     }
 
-    public async Task CreateHelpRequestAsync(HelpRequestCreateDto dto, string userId)
+    public async Task<Guid> CreateHelpRequestAsync(HelpRequestCreateDto dto, string userId)
     {
+        Guid? resolvedLocationId = dto.LocationId;
+
+        if (resolvedLocationId == null &&
+            (dto.Latitude.HasValue || dto.Longitude.HasValue || !string.IsNullOrWhiteSpace(dto.Address) || !string.IsNullOrWhiteSpace(dto.DistrictName)))
+        {
+            var newLocation = new SupportWay.Data.Models.Location
+            {
+                LocationId = Guid.NewGuid(),
+                DistrictName = dto.DistrictName ?? dto.Address ?? string.Empty,
+                Address = dto.Address ?? string.Empty,
+                Latitude = dto.Latitude,
+                Longitude = dto.Longitude
+            };
+            await _locationRepo.AddAsync(newLocation);
+            resolvedLocationId = newLocation.LocationId;
+        }
+
+        var id = Guid.NewGuid();
         var helpRequest = new HelpRequest
         {
-            Id = Guid.NewGuid(),
+            Id = id,
             Content = dto.Content,
             Image = dto.Image,
             CreatedAt = DateTime.UtcNow,
             UserId = userId,
-            LocationId = dto.LocationId
+            LocationId = resolvedLocationId
         };
 
         await _helpRepo.AddHelpRequestAsync(helpRequest);
+        return id;
     }
 
     public async Task DeleteHelpRequestAsync(Guid id)
@@ -81,6 +119,9 @@ public class HelpRequestService : IHelpRequestService
             CommentsCount = r.Comments?.Count ?? 0,
             LocationId = r.LocationId,
             LocationName = r.Location?.DistrictName ?? string.Empty,
+            LocationAddress = r.Location?.Address,
+            Latitude = r.Location?.Latitude,
+            Longitude = r.Location?.Longitude,
             TotalPayments = r.Payments?.Sum(p => p.Amount) ?? 0,
             RequestItems = requestItems
         };
