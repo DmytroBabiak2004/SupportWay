@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SupportWay.Data.Models;
+using SupportWay.Data.DTOs;
 
 namespace SupportWay.Data.Repositories.Interfaces
 {
@@ -15,5 +16,8 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task AddHelpRequestAsync(HelpRequest helpRequest);
         Task UpdateHelpRequestAsync(HelpRequest helpRequest);
         Task DeleteHelpRequestAsync(Guid helpRequestId);
+        Task<(IEnumerable<HelpRequest> Items, int Total)> GetForMapAsync(
+    MapFilterParams filter,
+    CancellationToken ct = default);
     }
 }

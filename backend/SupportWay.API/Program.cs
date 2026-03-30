@@ -91,6 +91,7 @@ builder.Services.AddScoped<IProfileAnalyticsService, ProfileAnalyticsService>();
 builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
+builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
 
 
 
