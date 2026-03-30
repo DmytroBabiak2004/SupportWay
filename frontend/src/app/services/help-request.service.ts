@@ -68,5 +68,15 @@ export class HelpRequestService {
     if (!base64Image) return null;
     return `data:image/jpeg;base64,${base64Image}`;
   }
+  createHelpRequestDirect(data: any) {
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('content', data.content);
+    if (data.latitude) formData.append('latitude', data.latitude.toString().replace(',', '.'));
+    if (data.longitude) formData.append('longitude', data.longitude.toString().replace(',', '.'));
+    if (data.file) formData.append('file', data.file);
+    // ... інші поля
+    return this.http.post(`${environment.apiUrl}/HelpRequests`, formData);
+  }
 }
 

@@ -51,7 +51,6 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     content: ['', [Validators.required, Validators.maxLength(1000)]],
   });
 
-  // Location
   locationMode: LocationMode = 'none';
   searchQuery = '';
   searchResults: NominatimResult[] = [];
@@ -63,12 +62,10 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
   private marker: any = null;
   mapReady = false;
 
-  // Submission
   isSubmitting = false;
   selectedFile: File | null = null;
   imagePreview: string | null = null;
 
-  // Request Items
   requestItems: LocalRequestItem[] = [];
   supportTypes: SupportType[] = [];
   showItemModal = false;
@@ -85,14 +82,14 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
 
   ngOnInit(): void {
     this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-      switchMap(q => {
-        if (q.trim().length < 2) { this.searchResults = []; return of([]); }
-        this.isSearching = true;
-        return this.locationService.searchUkrainianCities(q);
-      }),
-      takeUntil(this.destroy$)
+        debounceTime(400),
+        distinctUntilChanged(),
+        switchMap(q => {
+          if (q.trim().length < 2) { this.searchResults = []; return of([]); }
+          this.isSearching = true;
+          return this.locationService.searchUkrainianCities(q);
+        }),
+        takeUntil(this.destroy$)
     ).subscribe({
       next: results => {
         this.isSearching = false;
@@ -116,16 +113,16 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
   loadSupportTypes(): void {
     this.isLoadingSupportTypes = true;
     this.http.get<SupportType[]>(`${environment.apiUrl}/SupportTypes`)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: types => {
-          this.supportTypes = types;
-          this.isLoadingSupportTypes = false;
-          if (types.length > 0) this.itemSupportTypeId = types[0].id;
-          this.cdr.detectChanges();
-        },
-        error: () => { this.isLoadingSupportTypes = false; }
-      });
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: types => {
+            this.supportTypes = types;
+            this.isLoadingSupportTypes = false;
+            if (types.length > 0) this.itemSupportTypeId = types[0].id;
+            this.cdr.detectChanges();
+          },
+          error: () => { this.isLoadingSupportTypes = false; }
+        });
   }
 
   setLocationMode(mode: LocationMode): void {
@@ -150,8 +147,8 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     const addr = result.address;
     const city = addr.city || addr.town || addr.village || addr.county || '';
     const label = city
-      ? `${city}${addr.state ? ', ' + addr.state : ''}`
-      : result.display_name;
+        ? `${city}${addr.state ? ', ' + addr.state : ''}`
+        : result.display_name;
 
     this.selectedLocation = {
       latitude: parseFloat(result.lat),
@@ -194,14 +191,33 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
     });
   }
 
+  private fixLeafletIcons(): void {
+    // Виправляє помилку 404 для іконок при завантаженні через CDN
+    const iconDefault = L.icon({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      tooltipAnchor: [16, -28],
+      shadowSize: [41, 41]
+    });
+    L.Marker.prototype.options.icon = iconDefault;
+  }
+
   private buildMap(): void {
     this.zone.runOutsideAngular(() => {
       const el = document.getElementById('location-map');
       if (!el) return;
+
+      this.fixLeafletIcons();
+
       this.map = L.map(el, { zoomControl: true }).setView([49.0, 31.5], 6);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'
       }).addTo(this.map);
+
       this.map.on('click', (e: any) => {
         const { lat, lng } = e.latlng;
         if (this.marker) {
@@ -226,10 +242,11 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
           const addr = (result as any).address || {};
           const city = addr.city || addr.town || addr.village || '';
           const label = city
-            ? `${city}${addr.state ? ', ' + addr.state : ''}`
-            : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+              ? `${city}${addr.state ? ', ' + addr.state : ''}`
+              : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
           this.selectedLocation = {
-            latitude: lat, longitude: lng,
+            latitude: Number(lat), // Гарантуємо число
+            longitude: Number(lng), // Гарантуємо число
             address: (result as any).display_name || `${lat}, ${lng}`,
             districtName: label
           };
@@ -239,7 +256,11 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
       },
       error: () => {
         this.zone.run(() => {
-          this.selectedLocation = { latitude: lat, longitude: lng, districtName: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
+          this.selectedLocation = {
+            latitude: Number(lat),
+            longitude: Number(lng),
+            districtName: `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+          };
           this.selectedLocationLabel = this.selectedLocation.districtName!;
           this.cdr.detectChanges();
         });
@@ -295,29 +316,42 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
   }
 
   submit(): void {
-    if (this.createForm.invalid) { this.createForm.markAllAsTouched(); return; }
+    if (this.createForm.invalid) {
+      this.createForm.markAllAsTouched();
+      return;
+    }
+
     this.isSubmitting = true;
     const { title, content } = this.createForm.getRawValue();
 
-    this.helpService.createHelpRequest(
-      title!, content!,
-      this.selectedLocation ?? undefined,
-      this.selectedFile ?? undefined
-    ).subscribe({
+    // ВАЖЛИВО: Якщо ви використовуєте FormData для файлів,
+    // сервіс повинен правильно обробляти типи даних.
+    const payload = {
+      title: title!,
+      content: content!,
+      latitude: this.selectedLocation ? Number(this.selectedLocation.latitude) : undefined,
+      longitude: this.selectedLocation ? Number(this.selectedLocation.longitude) : undefined,
+      address: this.selectedLocation?.address,
+      districtName: this.selectedLocation?.districtName,
+      file: this.selectedFile ?? undefined
+    };
+
+    this.helpService.createHelpRequestDirect(payload).subscribe({
       next: (response: any) => {
         const helpRequestId = response?.id ?? null;
 
         if (this.requestItems.length > 0 && helpRequestId) {
           const posts = this.requestItems.map(item =>
-            this.http.post(`${environment.apiUrl}/RequestItems`, {
-              helpRequestId,
-              supportTypeId: item.supportTypeId,
-              name: item.name,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice
-            }).toPromise().catch(() => null)
+              this.http.post(`${environment.apiUrl}/RequestItems`, {
+                helpRequestId,
+                supportTypeId: item.supportTypeId,
+                name: item.name,
+                quantity: Number(item.quantity),
+                unitPrice: Number(item.unitPrice)
+              }).toPromise()
           );
-          Promise.all(posts).then(() => {
+
+          Promise.all(posts).finally(() => {
             this.isSubmitting = false;
             this.created.emit();
             this.close.emit();
@@ -328,7 +362,10 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
           this.close.emit();
         }
       },
-      error: err => { console.error('Помилка:', err); this.isSubmitting = false; }
+      error: err => {
+        console.error('Помилка сервера:', err.error);
+        this.isSubmitting = false;
+      }
     });
   }
 
