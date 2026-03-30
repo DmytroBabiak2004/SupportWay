@@ -1,42 +1,127 @@
 <div class="modal-backdrop" (click)="onCancel()">
   <div class="modal-box" (click)="$event.stopPropagation()">
 
-    <h2>Новий реквест</h2>
+    <div class="modal-header">
+      <h2>Новий реквест</h2>
+      <button class="close-btn" type="button" (click)="onCancel()">✕</button>
+    </div>
 
     <form [formGroup]="createForm" (ngSubmit)="submit()">
 
       <!-- TITLE -->
-      <input
-        type="text"
-        formControlName="title"
-        placeholder="Заголовок (що потрібно?)"
-        [class.error]="createForm.get('title')?.invalid && createForm.get('title')?.touched"
-      >
+      <div class="field-group">
+        <label class="field-label">Заголовок</label>
+        <input
+          type="text"
+          formControlName="title"
+          placeholder="Що потрібно? Опишіть коротко..."
+          [class.error]="createForm.get('title')?.invalid && createForm.get('title')?.touched"
+        >
+        <span class="field-error"
+          *ngIf="createForm.get('title')?.invalid && createForm.get('title')?.touched">
+          Мінімум 5 символів
+        </span>
+      </div>
 
       <!-- CONTENT -->
-      <textarea
-        formControlName="content"
-        placeholder="Опишіть детально потребу..."
-        rows="5"
-        [class.error]="createForm.get('content')?.invalid && createForm.get('content')?.touched"
-      ></textarea>
+      <div class="field-group">
+        <label class="field-label">Опис</label>
+        <textarea
+          formControlName="content"
+          placeholder="Опишіть детально потребу, кількість, терміновість..."
+          rows="4"
+          [class.error]="createForm.get('content')?.invalid && createForm.get('content')?.touched"
+        ></textarea>
+        <span class="field-error"
+          *ngIf="createForm.get('content')?.invalid && createForm.get('content')?.touched">
+          Поле обов'язкове (макс. 1000 символів)
+        </span>
+      </div>
 
-      <!-- LOCATION -->
-      <input
-        type="text"
-        formControlName="locationId"
-        placeholder="Локація (опціонально)"
-      >
+      <!-- LOCATION SECTION -->
+      <div class="field-group">
+        <label class="field-label">
+          📍 Локація
+          <span class="optional-badge">необов'язково</span>
+        </label>
 
-      <!-- IMAGE -->
+        <!-- Selected location pill -->
+        <div class="location-selected" *ngIf="selectedLocation">
+          <span class="location-pin">📍</span>
+          <span class="location-text">{{ selectedLocationLabel }}</span>
+          <button type="button" class="clear-location-btn" (click)="clearLocation()">✕</button>
+        </div>
+
+        <!-- Mode toggle buttons (only when no location selected) -->
+        <div class="location-mode-btns" *ngIf="!selectedLocation">
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="locationMode === 'search'"
+            (click)="setLocationMode('search')">
+            🔍 Пошук міста
+          </button>
+          <button
+            type="button"
+            class="mode-btn"
+            [class.active]="locationMode === 'map'"
+            (click)="setLocationMode('map')">
+            🗺️ Вибрати на карті
+          </button>
+        </div>
+
+        <!-- SEARCH MODE -->
+        <div class="location-search-panel" *ngIf="locationMode === 'search' && !selectedLocation">
+          <div class="search-input-wrap">
+            <input
+              type="text"
+              class="search-input"
+              [(ngModel)]="searchQuery"
+              [ngModelOptions]="{standalone: true}"
+              (input)="onSearchInput()"
+              placeholder="Введіть назву міста, села..."
+              autocomplete="off"
+            >
+            <span class="search-spinner" *ngIf="isSearching">⟳</span>
+          </div>
+
+          <ul class="search-results" *ngIf="searchResults.length > 0">
+            <li
+              *ngFor="let r of searchResults"
+              class="search-result-item"
+              (click)="selectSearchResult(r)">
+              <span class="result-icon">📍</span>
+              <span class="result-text">{{ r.display_name }}</span>
+            </li>
+          </ul>
+
+          <p class="search-hint" *ngIf="searchQuery.length >= 2 && !isSearching && searchResults.length === 0">
+            Нічого не знайдено. Спробуйте інше написання.
+          </p>
+          <p class="search-hint" *ngIf="searchQuery.length < 2">
+            Введіть щонайменше 2 символи для пошуку
+          </p>
+        </div>
+
+        <!-- MAP MODE -->
+        <div class="location-map-panel" *ngIf="locationMode === 'map' && !selectedLocation">
+          <p class="map-hint">Клікніть на карті, щоб вибрати місце</p>
+          <div id="location-map" class="map-container"></div>
+          <p class="map-hint map-selected" *ngIf="selectedLocationLabel">
+            ✅ Вибрано: {{ selectedLocationLabel }}
+          </p>
+        </div>
+
+      </div>
+
+      <!-- IMAGE PREVIEW -->
       <div class="image-preview-container" *ngIf="imagePreview">
-        <img [src]="imagePreview">
+        <img [src]="imagePreview" alt="Прев'ю">
         <button type="button" class="remove-btn" (click)="removeImage()">✕</button>
       </div>
 
       <!-- FOOTER -->
       <div class="modal-footer">
-
         <div class="attachment-actions">
           <input
             type="file"
@@ -45,7 +130,6 @@
             accept="image/*"
             (change)="onFileSelected($event)"
           >
-
           <button type="button" class="btn-icon" (click)="fileInput.click()">
             📷 Фото
           </button>
@@ -55,18 +139,15 @@
           <button type="button" class="btn secondary" (click)="onCancel()">
             Скасувати
           </button>
-
           <button
             type="submit"
             class="btn primary"
             [disabled]="createForm.invalid || isSubmitting">
-
             {{ isSubmitting ? 'Створення...' : 'Створити реквест' }}
           </button>
         </div>
-
       </div>
-    </form>
 
+    </form>
   </div>
 </div>

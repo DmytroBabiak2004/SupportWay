@@ -4,6 +4,14 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
 import { HelpRequest } from '../models/help-request.model';
 
+export interface LocationPayload {
+  locationId?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+  districtName?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class HelpRequestService {
   private http = inject(HttpClient);
@@ -24,16 +32,29 @@ export class HelpRequestService {
   createHelpRequest(
     title: string,
     content: string,
-    locationId?: string,
+    location?: LocationPayload,
     imageFile?: File
   ): Observable<void> {
     const formData = new FormData();
-
     formData.append('title', title);
     formData.append('content', content);
 
-    if (locationId) {
-      formData.append('locationId', locationId);
+    if (location) {
+      if (location.locationId) {
+        formData.append('locationId', location.locationId);
+      }
+      if (location.latitude != null) {
+        formData.append('latitude', location.latitude.toString());
+      }
+      if (location.longitude != null) {
+        formData.append('longitude', location.longitude.toString());
+      }
+      if (location.address) {
+        formData.append('address', location.address);
+      }
+      if (location.districtName) {
+        formData.append('districtName', location.districtName);
+      }
     }
 
     if (imageFile) {
@@ -48,3 +69,4 @@ export class HelpRequestService {
     return `data:image/jpeg;base64,${base64Image}`;
   }
 }
+
