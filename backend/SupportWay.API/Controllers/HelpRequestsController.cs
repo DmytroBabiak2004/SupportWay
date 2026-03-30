@@ -43,7 +43,10 @@ public class HelpRequestsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromForm] CreateHelpRequestRequest request)
+    public async Task<IActionResult> Create(
+        [FromForm] CreateHelpRequestRequest request,
+        [FromQuery] double? latitude,   // ← додати
+        [FromQuery] double? longitude)  // ← додати
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
@@ -53,8 +56,9 @@ public class HelpRequestsController : ControllerBase
             Title = request.Title,
             Content = request.Content,
             LocationId = request.LocationId,
-            Latitude = request.Latitude,
-            Longitude = request.Longitude,
+            // Беремо з query якщо є, інакше з form (може бути null)
+            Latitude = latitude ?? request.Latitude,
+            Longitude = longitude ?? request.Longitude,
             Address = request.Address,
             DistrictName = request.DistrictName
         };

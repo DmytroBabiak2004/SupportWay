@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
 import { HelpRequest } from '../models/help-request.model';
@@ -30,10 +30,10 @@ export class HelpRequestService {
   }
 
   createHelpRequest(
-    title: string,
-    content: string,
-    location?: LocationPayload,
-    imageFile?: File
+      title: string,
+      content: string,
+      location?: LocationPayload,
+      imageFile?: File
   ): Observable<void> {
     const formData = new FormData();
     formData.append('title', title);
@@ -68,15 +68,19 @@ export class HelpRequestService {
     if (!base64Image) return null;
     return `data:image/jpeg;base64,${base64Image}`;
   }
-  createHelpRequestDirect(data: any) {
+
+  createHelpRequestDirect(data: any): Observable<any> {
     const formData = new FormData();
     formData.append('title', data.title);
     formData.append('content', data.content);
-    if (data.latitude) formData.append('latitude', data.latitude.toString().replace(',', '.'));
-    if (data.longitude) formData.append('longitude', data.longitude.toString().replace(',', '.'));
-    if (data.file) formData.append('file', data.file);
-    // ... інші поля
-    return this.http.post(`${environment.apiUrl}/HelpRequests`, formData);
+    if (data.address)      formData.append('address', data.address);
+    if (data.districtName) formData.append('districtName', data.districtName);
+    if (data.file)         formData.append('image', data.file); // ← 'image' не 'file'
+
+    let params = new HttpParams();
+    if (data.latitude != null)  params = params.set('latitude', data.latitude.toFixed(7));
+    if (data.longitude != null) params = params.set('longitude', data.longitude.toFixed(7));
+
+    return this.http.post<any>(`${environment.apiUrl}/HelpRequests`, formData, { params });
   }
 }
-
