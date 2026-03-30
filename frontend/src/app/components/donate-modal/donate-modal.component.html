@@ -1,0 +1,72 @@
+<div class="sw-backdrop" (click)="close()">
+  <div class="sw-modal" (click)="$event.stopPropagation()">
+
+    <button class="sw-close" (click)="close()">✕</button>
+
+    <div class="sw-modal-type" [style.color]="typeStyle().color">
+      {{ typeStyle().icon }} {{ typeLabels() }}
+    </div>
+
+    <h3 class="sw-modal-title">{{ request?.title }}</h3>
+    <p class="sw-modal-region" *ngIf="request?.region">📍 {{ request?.region }}</p>
+
+    <!-- Прогрес -->
+    <div class="sw-progress-wrap">
+      <div class="sw-progress-bar">
+        <div class="sw-progress-fill"
+             [style.width.%]="percent()"
+             [style.background]="typeStyle().color">
+        </div>
+      </div>
+      <div class="sw-progress-nums">
+        <span>{{ request?.collectedAmount | number:'1.0-0' }} ₴</span>
+        <span>{{ percent() }}% з {{ request?.targetAmount | number:'1.0-0' }} ₴</span>
+      </div>
+    </div>
+
+    <!-- Вибір суми -->
+    <label class="sw-label">Сума (₴)</label>
+    <div class="sw-presets">
+      @for (p of presets; track p) {
+        <button
+          class="sw-preset"
+          [class.active]="amount() === p"
+          (click)="amount.set(p)"
+        >{{ p | number }}</button>
+      }
+    </div>
+    <input
+      class="sw-amount-input"
+      type="number"
+      placeholder="Або введіть свою суму..."
+      [ngModel]="amount()"
+      (ngModelChange)="amount.set(+$event)"
+      min="1"
+    />
+
+    <!-- Коментар -->
+    <label class="sw-label">Коментар</label>
+    <input
+      class="sw-comment-input"
+      type="text"
+      placeholder="Необов'язково..."
+      [ngModel]="comment()"
+      (ngModelChange)="comment.set($event)"
+      maxlength="100"
+    />
+
+    @if (error()) {
+      <p class="sw-error">{{ error() }}</p>
+    }
+
+    <button class="sw-pay-btn" (click)="donate()" [disabled]="isProcessing()">
+      @if (!isProcessing()) {
+        💙 Задонатити {{ amount() | number:'1.0-0' }} ₴
+      } @else {
+        ⏳ Створюємо платіж...
+      }
+    </button>
+
+    <p class="sw-secure">🔒 Безпечна оплата через Monobank</p>
+  </div>
+</div>

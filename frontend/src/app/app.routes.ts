@@ -7,6 +7,7 @@ import { ChatPageComponent } from './components/chat/chat-page/chat-page.compone
 import {UserProfileComponent} from './components/user-profile/user-profile.component';
 import {PostsComponent} from './components/posts/posts.component';
 import {HelpRequestsComponent} from './components/help-request/help-requests.component';
+import {MapComponent} from './components/map/map.component';
 
 export const routes: Routes = [
   { path: 'login', component: AuthorizationComponent },
@@ -15,6 +16,7 @@ export const routes: Routes = [
   { path: 'posts', component: PostsComponent, canActivate: [AuthGuard] },
   { path: 'profile/:userId', component: UserProfileComponent, canActivate: [AuthGuard] },
   { path: 'requests', component: HelpRequestsComponent, canActivate: [AuthGuard] },
+  { path: 'map', component: MapComponent, canActivate: [AuthGuard] },
 
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' }

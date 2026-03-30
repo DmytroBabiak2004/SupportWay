@@ -1,0 +1,104 @@
+<aside class="sw-filter">
+  <div class="sw-filter-header">
+    <div class="sw-filter-heading">
+      <h3 class="sw-title">Фільтри</h3>
+    </div>
+
+    <button class="sw-reset-btn" type="button" (click)="resetFilters()">
+      Скинути
+    </button>
+  </div>
+
+  <div class="sw-filter-group">
+    <span class="sw-filter-label">Категорія</span>
+    <div class="sw-chip-grid">
+      @for (t of supportTypes(); track t.id) {
+        <button
+          class="sw-chip"
+          type="button"
+          [class.active]="selectedTypeId() === t.id"
+          (click)="toggleType(t.id)"
+        >
+          {{ t.nameOfType }}
+        </button>
+      }
+
+      @if (supportTypes().length === 0) {
+        <span class="sw-skeleton">Завантаження...</span>
+      }
+    </div>
+  </div>
+
+  <div class="sw-filter-group">
+    <span class="sw-filter-label">Статус</span>
+    <div class="sw-segment-control">
+      <button type="button" [class.active]="isActive() === true" (click)="isActive.set(true)">
+        Активні
+      </button>
+      <button type="button" [class.active]="isActive() === false" (click)="isActive.set(false)">
+        Завершені
+      </button>
+      <button type="button" [class.active]="isActive() === undefined" (click)="isActive.set(undefined)">
+        Всі
+      </button>
+    </div>
+  </div>
+
+  <div class="sw-divider"></div>
+
+  <div class="sw-filter-group">
+    <span class="sw-filter-label">Локація</span>
+    <div class="sw-input-wrapper">
+      <svg
+        class="sw-input-icon"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3"></circle>
+      </svg>
+
+      <input
+        class="sw-input"
+        type="text"
+        placeholder="Пошук регіону..."
+        [ngModel]="region()"
+        (ngModelChange)="region.set($event)"
+      />
+    </div>
+  </div>
+
+  <div class="sw-filter-group">
+    <span class="sw-filter-label">Фінансова ціль (макс)</span>
+    <div class="sw-input-wrapper">
+      <span class="sw-input-currency">₴</span>
+      <input
+        class="sw-input"
+        type="number"
+        placeholder="500 000"
+        [ngModel]="maxTarget()"
+        (ngModelChange)="maxTarget.set($event || undefined)"
+      />
+    </div>
+  </div>
+
+  <div class="sw-filter-group">
+    <span class="sw-filter-label">Зібрано (мін)</span>
+    <div class="sw-input-wrapper">
+      <span class="sw-input-currency">₴</span>
+      <input
+        class="sw-input"
+        type="number"
+        placeholder="10 000"
+        [ngModel]="minCollected()"
+        (ngModelChange)="minCollected.set($event || undefined)"
+      />
+    </div>
+  </div>
+</aside>

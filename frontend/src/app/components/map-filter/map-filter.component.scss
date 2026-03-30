@@ -1,0 +1,552 @@
+/* =========================================
+   SIDEBAR: ULTRA TRANSLUCENT GLASS
+   ========================================= */
+
+.sw-filter {
+  --sw-glass-top: rgba(255, 255, 255, 0.22);
+  --sw-glass-bottom: rgba(255, 255, 255, 0.08);
+  --sw-glass-radial: rgba(255, 255, 255, 0.1);
+  --sw-border: rgba(255, 255, 255, 0.16);
+  --sw-text: #0f172a;
+  --sw-muted: #475569;
+  --sw-soft: #64748b;
+  --sw-shadow: rgba(15, 23, 42, 0.05);
+  --sw-shadow-strong: rgba(15, 23, 42, 0.08);
+  --sw-white-soft: rgba(255, 255, 255, 0.34);
+  --sw-white-mid: rgba(255, 255, 255, 0.5);
+  --sw-white-strong: rgba(255, 255, 255, 0.72);
+  --sw-accent: #4f46e5;
+  --sw-accent-ring: rgba(79, 70, 229, 0.15);
+
+  height: 100%;
+  width: 100%;
+  max-width: 300px;
+  margin: 0;
+  border-radius: 0;
+  position: relative;
+  isolation: isolate;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: translateZ(0);
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+
+  background:
+    linear-gradient(
+        180deg,
+        var(--sw-glass-top) 0%,
+        rgba(255, 255, 255, 0.14) 42%,
+        var(--sw-glass-bottom) 100%
+    ),
+    radial-gradient(
+        circle at top left,
+        var(--sw-glass-radial) 0%,
+        rgba(255, 255, 255, 0.03) 36%,
+        rgba(255, 255, 255, 0.01) 70%
+    );
+
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+
+  border-right: 1px solid var(--sw-border);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    4px 0 14px var(--sw-shadow);
+
+  transition:
+    background 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    backdrop-filter 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    -webkit-backdrop-filter 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0.02) 18%,
+          transparent 42%
+      );
+  }
+
+  /* macOS-like subtle noise */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.055;
+    mix-blend-mode: soft-light;
+    background-image:
+      radial-gradient(rgba(255, 255, 255, 0.9) 0.45px, transparent 0.55px),
+      radial-gradient(rgba(15, 23, 42, 0.28) 0.45px, transparent 0.55px);
+    background-size: 10px 10px, 13px 13px;
+    background-position: 0 0, 5px 6px;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  &:hover {
+    background:
+      linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.3) 0%,
+          rgba(255, 255, 255, 0.18) 44%,
+          rgba(255, 255, 255, 0.1) 100%
+      ),
+      radial-gradient(
+          circle at top left,
+          rgba(255, 255, 255, 0.14) 0%,
+          rgba(255, 255, 255, 0.04) 38%,
+          rgba(255, 255, 255, 0.015) 72%
+      );
+
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+
+    border-right-color: rgba(255, 255, 255, 0.2);
+
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      6px 0 18px var(--sw-shadow-strong);
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.13);
+    border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.2);
+  }
+}
+
+/* =========================================
+   HEADER
+   ========================================= */
+
+.sw-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  .sw-title {
+    margin: 0;
+    color: var(--sw-text);
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  .sw-reset-btn {
+    min-height: 32px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+
+    color: var(--sw-muted);
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+
+    background: rgba(255, 255, 255, 0.26);
+    box-shadow:
+      inset 0 0 0 1px rgba(15, 23, 42, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
+
+    transition:
+      background 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 0.14s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.52);
+      color: var(--sw-text);
+      box-shadow:
+        inset 0 0 0 1px rgba(15, 23, 42, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.42);
+    }
+
+    &:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.38);
+    }
+  }
+}
+
+.sw-divider {
+  height: 1px;
+  margin: -2px 0;
+  background: linear-gradient(
+      90deg,
+      rgba(15, 23, 42, 0),
+      rgba(15, 23, 42, 0.06),
+      rgba(15, 23, 42, 0)
+  );
+}
+
+/* =========================================
+   GROUPS
+   ========================================= */
+
+.sw-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: swFadeUp 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sw-filter-group:nth-of-type(1) { animation-delay: 0.03s; }
+.sw-filter-group:nth-of-type(2) { animation-delay: 0.06s; }
+.sw-filter-group:nth-of-type(3) { animation-delay: 0.09s; }
+.sw-filter-group:nth-of-type(4) { animation-delay: 0.12s; }
+.sw-filter-group:nth-of-type(5) { animation-delay: 0.15s; }
+
+.sw-filter-label {
+  color: var(--sw-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+/* =========================================
+   CHIPS
+   ========================================= */
+
+.sw-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sw-chip {
+  min-height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+
+  color: var(--sw-muted);
+  font-size: 0.84rem;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow:
+    inset 0 0 0 1px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+
+  transition:
+    background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    color 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.14s ease,
+    box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  &:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--sw-text);
+    box-shadow:
+      inset 0 0 0 1px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  }
+
+  &:active:not(.active) {
+    transform: scale(0.965);
+  }
+
+  &.active {
+    background: rgba(15, 23, 42, 0.9);
+    color: #fff;
+    font-weight: 620;
+    box-shadow:
+      0 6px 18px rgba(15, 23, 42, 0.16),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  &:active.active {
+    transform: scale(0.965);
+  }
+}
+
+/* =========================================
+   SEGMENTED CONTROL
+   ========================================= */
+
+.sw-segment-control {
+  display: flex;
+  padding: 4px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(15, 23, 42, 0.04),
+    inset 0 1px 2px rgba(15, 23, 42, 0.025);
+
+  button {
+    flex: 1;
+    min-height: 32px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+
+    background: transparent;
+    color: var(--sw-soft);
+    font-size: 0.82rem;
+    font-weight: 560;
+
+    transition:
+      background 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      color 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      transform 0.14s ease;
+
+    &:hover:not(.active) {
+      color: var(--sw-text);
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    &:active:not(.active) {
+      transform: scale(0.97);
+    }
+
+    &.active {
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--sw-text);
+      font-weight: 630;
+      box-shadow:
+        0 1px 3px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+/* =========================================
+   INPUTS
+   ========================================= */
+
+.sw-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .sw-input-icon,
+  .sw-input-currency {
+    position: absolute;
+    left: 12px;
+    z-index: 2;
+    pointer-events: none;
+
+    color: var(--sw-soft);
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    transition: color 0.2s ease;
+  }
+
+  .sw-input {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 12px 0 34px;
+    border: none;
+    border-radius: 11px;
+    outline: none;
+
+    color: var(--sw-text);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 540;
+
+    background: rgba(255, 255, 255, 0.24);
+    box-shadow:
+      inset 0 0 0 1px rgba(15, 23, 42, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+    transition:
+      background 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      color 0.2s ease;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.4);
+      box-shadow:
+        inset 0 0 0 1px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.72);
+      box-shadow:
+        inset 0 0 0 1.5px var(--sw-accent),
+        0 0 0 3px var(--sw-accent-ring);
+    }
+
+    &:focus ~ .sw-input-icon,
+    &:focus ~ .sw-input-currency {
+      color: var(--sw-accent);
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &[type=number] {
+      -moz-appearance: textfield;
+    }
+  }
+}
+
+/* =========================================
+   SKELETON
+   ========================================= */
+
+.sw-skeleton {
+  font-size: 0.84rem;
+  color: #94a3b8;
+  animation: swPulse 1.7s ease-in-out infinite;
+}
+
+@keyframes swPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* =========================================
+   ENTRANCE
+   ========================================= */
+
+@keyframes swFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 768px) {
+  .sw-filter {
+    max-width: 100%;
+    gap: 20px;
+    padding: 16px;
+
+    /* на мобільному трохи щільніше, бо інакше читаємість падає */
+    background:
+      linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.34) 0%,
+          rgba(255, 255, 255, 0.18) 46%,
+          rgba(255, 255, 255, 0.12) 100%
+      ),
+      radial-gradient(
+          circle at top left,
+          rgba(255, 255, 255, 0.12) 0%,
+          rgba(255, 255, 255, 0.04) 38%,
+          rgba(255, 255, 255, 0.015) 70%
+      );
+
+    backdrop-filter: blur(10px) saturate(145%);
+    -webkit-backdrop-filter: blur(10px) saturate(145%);
+  }
+
+  .sw-filter-header .sw-title {
+    font-size: 1.03rem;
+  }
+
+  .sw-chip {
+    min-height: 32px;
+    padding: 0 12px;
+    font-size: 0.8rem;
+  }
+
+  .sw-input-wrapper .sw-input {
+    min-height: 38px;
+    font-size: 0.84rem;
+  }
+}
+
+/* =========================================
+   OPTIONAL: STRONGER TRANSPARENCY MODE
+   Додай клас .sw-filter--ultra якщо хочеш ще більше показати карту
+   ========================================= */
+
+.sw-filter.sw-filter--ultra {
+  background:
+    linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.08) 44%,
+        rgba(255, 255, 255, 0.05) 100%
+    ),
+    radial-gradient(
+        circle at top left,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.025) 38%,
+        rgba(255, 255, 255, 0.008) 72%
+    );
+
+  backdrop-filter: blur(6px) saturate(135%);
+  -webkit-backdrop-filter: blur(6px) saturate(135%);
+
+  &::before {
+    background:
+      linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          transparent 36%
+      );
+  }
+
+  .sw-chip,
+  .sw-reset-btn,
+  .sw-input,
+  .sw-segment-control {
+    background-clip: padding-box;
+  }
+}
