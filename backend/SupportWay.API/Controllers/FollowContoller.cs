@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportWay.Services.Interfaces;
 using System.Security.Claims;
@@ -25,7 +25,6 @@ namespace SupportWay.Api.Controllers
             if (followerId == followedId) return BadRequest("You cannot follow yourself.");
 
             await _followService.FollowUserAsync(followerId, followedId);
-
             var newCount = await _followService.GetFollowersCountAsync(followedId);
             return Ok(new { followersCount = newCount });
         }
@@ -62,6 +61,31 @@ namespace SupportWay.Api.Controllers
         {
             var count = await _followService.GetFollowingCountAsync(userId);
             return Ok(count);
+        }
+
+        [HttpGet("{userId}/followers")]
+        public async Task<IActionResult> GetFollowers(string userId)
+        {
+            var list = await _followService.GetFollowersAsync(userId);
+            return Ok(list);
+        }
+
+        [HttpGet("{userId}/following")]
+        public async Task<IActionResult> GetFollowing(string userId)
+        {
+            var list = await _followService.GetFollowingAsync(userId);
+            return Ok(list);
+        }
+
+        /// <summary>Remove a follower from my followers list (only own profile)</summary>
+        [HttpDelete("remove-follower/{followerUserId}")]
+        public async Task<IActionResult> RemoveFollower(string followerUserId)
+        {
+            var ownerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (ownerId == null) return Unauthorized();
+
+            await _followService.RemoveFollowerAsync(ownerId, followerUserId);
+            return Ok();
         }
     }
 }

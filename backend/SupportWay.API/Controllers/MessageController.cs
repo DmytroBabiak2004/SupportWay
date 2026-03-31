@@ -39,7 +39,7 @@ namespace SupportWay.Api.Controllers
             var updated = await _messageService.UpdateAsync(messageId, userId, request.Content);
 
             if (updated == null)
-                return Forbid(); 
+                return Forbid();
 
             return Ok(updated);
         }

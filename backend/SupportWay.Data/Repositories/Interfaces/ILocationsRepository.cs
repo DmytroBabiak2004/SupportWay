@@ -2,7 +2,7 @@
 
 namespace SupportWay.Data.Repositories.Interfaces
 {
-    public interface ILocationRepository
+    public interface ILocationsRepository
     {
         Task<Location> GetByIdAsync(Guid? id);
         Task<IEnumerable<Location>> GetAllAsync();

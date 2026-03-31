@@ -7,9 +7,9 @@ namespace SupportWay.Services
 {
     public class LocationService : ILocationService
     {
-        private readonly ILocationRepository _repository;
+        private readonly ILocationsRepository _repository;
 
-        public LocationService(ILocationRepository repository)
+        public LocationService(ILocationsRepository repository)
         {
             _repository = repository;
         }

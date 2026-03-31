@@ -29,6 +29,7 @@ namespace SupportWay.Data.Context
         public DbSet<BadgeType> BadgeTypes { get; set; }
         public DbSet<Badge> Badges { get; set; }
         public DbSet<ProfileBadge> ProfileBadges { get; set; }
+        public DbSet<VerificationRequest> VerificationRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

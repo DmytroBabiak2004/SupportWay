@@ -23,7 +23,7 @@ public class MessageService : IMessageService
             return null;
 
         message.Content = newContent;
-       
+
         await _repo.UpdateAsync(message);
         return message;
     }

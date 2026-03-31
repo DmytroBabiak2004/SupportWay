@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using SupportWay.Data.Models;
-using SupportWay.Services.Interfaces;
+using SupportWay.API.DTOs;
 using System.Security.Claims;
+using SupportWay.Services.Interfaces;
 
 namespace SupportWay.Api.Controllers
 {
@@ -19,13 +18,12 @@ namespace SupportWay.Api.Controllers
             _chatService = chatService;
         }
 
+        private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
         [HttpGet]
         public async Task<IActionResult> GetChatsForCurrentUser()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
-
-            var chats = await _chatService.GetChatsByUserIdAsync(userId);
+            var chats = await _chatService.GetChatsByUserIdAsync(CurrentUserId);
             return Ok(chats);
         }
 
@@ -34,21 +32,21 @@ namespace SupportWay.Api.Controllers
         {
             var chat = await _chatService.GetByIdAsync(id);
             if (chat == null) return NotFound();
-
             return Ok(chat);
         }
 
+        /// <summary>
+        /// Creates a private chat or returns the existing one.
+        /// </summary>
         [HttpPost("create")]
         public async Task<IActionResult> CreateChat([FromBody] CreateChatRequest request)
         {
             if (string.IsNullOrEmpty(request.User1Id) || string.IsNullOrEmpty(request.User2Id))
                 return BadRequest("User ids are required");
 
-            Console.WriteLine($"USER 1 ID = {request.User1Id}");
-            Console.WriteLine($"USER 2 ID = {request.User2Id}");
-
-            var chat = await _chatService.AddChatAsync(request.User1Id, request.User2Id);
-            return Ok(chat);
+            var result = await _chatService.GetOrCreatePrivateChatAsync(
+                request.User1Id, request.User2Id);
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
@@ -61,10 +59,7 @@ namespace SupportWay.Api.Controllers
         [HttpGet("{id}/is-user-in-chat")]
         public async Task<IActionResult> IsUserInChat(Guid id)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
-
-            var isInChat = await _chatService.IsUserInChatAsync(id, userId);
+            var isInChat = await _chatService.IsUserInChatAsync(id, CurrentUserId);
             return Ok(isInChat);
         }
     }

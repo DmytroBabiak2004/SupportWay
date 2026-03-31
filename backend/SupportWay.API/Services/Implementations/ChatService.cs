@@ -1,68 +1,65 @@
-﻿using Microsoft.AspNetCore.Identity;
-using SupportWay.Data.Models;
-using SupportWay.Data.Repositories.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using SupportWay.API.DTOs;
+using System.Security.Claims;
 
-public class ChatService : IChatService
+namespace SupportWay.Api.Controllers
 {
-    private readonly IChatsRepository _repo;
-    private readonly UserManager<User> _userManager;
-
-    public ChatService(IChatsRepository repo, UserManager<User> userManager)
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class ChatController : ControllerBase
     {
-        _repo = repo;
-        _userManager = userManager;
-    }
+        private readonly IChatService _chatService;
 
-    public async Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId)
-    {
-        return await _repo.GetChatsByUserIdAsync(userId);
-    }
-
-    public async Task<Chat?> GetByIdAsync(Guid id)
-    {
-        return await _repo.GetByIdAsync(id);
-    }
-    public async Task<ChatDto> AddChatAsync(string user1Id, string user2Id)
-    {
-        var user1 = await _userManager.FindByIdAsync(user1Id);
-        var user2 = await _userManager.FindByIdAsync(user2Id);
-
-        if (user1 == null || user2 == null)
-            throw new Exception("User not found");
-
-        var chat = new Chat
+        public ChatController(IChatService chatService)
         {
-            Id = Guid.NewGuid(),
-            Name = $"{user1.UserName} & {user2.UserName}",
-            StartedAt = DateTime.UtcNow,
-            UserChats = new List<UserChat>
-        {
-            new UserChat { UserId = user1.Id },
-            new UserChat { UserId = user2.Id }
+            _chatService = chatService;
         }
-        };
 
-        await _repo.AddAsync(chat);
+        private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        return new ChatDto
+        [HttpGet]
+        public async Task<IActionResult> GetChatsForCurrentUser()
         {
-            Id = chat.Id,
-            Name = chat.Name,
-            StartedAt = chat.StartedAt
-        };
-    }
+            var chats = await _chatService.GetChatsByUserIdAsync(CurrentUserId);
+            return Ok(chats);
+        }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetChatById(Guid id)
+        {
+            var chat = await _chatService.GetByIdAsync(id);
+            if (chat == null) return NotFound();
+            return Ok(chat);
+        }
 
-    public async Task DeleteChatAsync(Guid chatId)
-    {
-        var chat = await _repo.GetByIdAsync(chatId);
-        if (chat == null) return;
+        /// <summary>
+        /// Creates a private chat or returns the existing one.
+        /// </summary>
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateChat([FromBody] CreateChatRequest request)
+        {
+            if (string.IsNullOrEmpty(request.User1Id) || string.IsNullOrEmpty(request.User2Id))
+                return BadRequest("User ids are required");
 
-        await _repo.DeleteAsync(chat);
-    }
+            var result = await _chatService.GetOrCreatePrivateChatAsync(
+                request.User1Id, request.User2Id);
+            return Ok(result);
+        }
 
-    public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
-    {
-        return await _repo.IsUserInChatAsync(chatId, userId);
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteChat(Guid id)
+        {
+            await _chatService.DeleteChatAsync(id);
+            return NoContent();
+        }
+
+        [HttpGet("{id}/is-user-in-chat")]
+        public async Task<IActionResult> IsUserInChat(Guid id)
+        {
+            var isInChat = await _chatService.IsUserInChatAsync(id, CurrentUserId);
+            return Ok(isInChat);
+        }
     }
 }

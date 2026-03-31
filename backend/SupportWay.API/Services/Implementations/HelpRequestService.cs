@@ -5,11 +5,11 @@ using SupportWay.Data.Repositories.Interfaces;
 public class HelpRequestService : IHelpRequestService
 {
     private readonly IHelpRequestsRepository _helpRepo;
-    private readonly ILocationRepository _locationRepo;
+    private readonly ILocationsRepository _locationRepo;
 
     public HelpRequestService(
         IHelpRequestsRepository helpRepo,
-        ILocationRepository locationRepo)
+        ILocationsRepository locationRepo)
     {
         _helpRepo = helpRepo;
         _locationRepo = locationRepo;

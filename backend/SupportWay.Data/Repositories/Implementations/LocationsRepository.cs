@@ -5,7 +5,7 @@ using SupportWay.Data.Repositories.Interfaces;
 
 namespace SupportWay.Data.Repositories.Implementations
 {
-    public class LocationRepository : ILocationRepository
+    public class LocationRepository : ILocationsRepository
     {
         private readonly SupportWayContext _context;
 

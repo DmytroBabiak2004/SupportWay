@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
 builder.Services.AddScoped<IFollowRepository, FollowsRepository>();
-builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
 builder.Services.AddScoped<IPostCommentsRepository, PostCommentsRepository>();
 builder.Services.AddScoped<IPostLikesRepoository, PostLikesRepository>();

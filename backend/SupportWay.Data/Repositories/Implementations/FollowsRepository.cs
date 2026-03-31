@@ -1,4 +1,4 @@
-﻿using SupportWay.Data.Repositories.Interfaces;
+using SupportWay.Data.Repositories.Interfaces;
 using SupportWay.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using SupportWay.Data.Models;
@@ -13,6 +13,7 @@ namespace SupportWay.Data.Repositories.Implementations
         {
             _context = context;
         }
+
         public async Task FollowUserAsync(string followerId, string followedId)
         {
             if (followerId == followedId) return;
@@ -25,9 +26,9 @@ namespace SupportWay.Data.Repositories.Implementations
                 await _context.Follows.AddAsync(new Follow
                 {
                     FollowerId = followerId,
-                    FollowedId = followedId
+                    FollowedId = followedId,
+                    FollowedAt = DateTime.UtcNow
                 });
-
                 await _context.SaveChangesAsync();
             }
         }
@@ -45,20 +46,29 @@ namespace SupportWay.Data.Repositories.Implementations
         }
 
         public async Task<bool> IsFollowingAsync(string followerId, string followedId)
-        {
-            return await _context.Follows
+            => await _context.Follows
                 .AnyAsync(f => f.FollowerId == followerId && f.FollowedId == followedId);
-        }
+
         public async Task<int> GetFollowersCountAsync(string userId)
-        {
-            return await _context.Follows
-                .CountAsync(f => f.FollowedId == userId);
-        }
+            => await _context.Follows.CountAsync(f => f.FollowedId == userId);
 
         public async Task<int> GetFollowingCountAsync(string userId)
-        {
-            return await _context.Follows
-                .CountAsync(f => f.FollowerId == userId);
-        }
+            => await _context.Follows.CountAsync(f => f.FollowerId == userId);
+
+        public async Task<IEnumerable<Follow>> GetFollowersAsync(string userId)
+            => await _context.Follows
+                .Include(f => f.Follower)
+                    .ThenInclude(u => u.Profile)
+                .Where(f => f.FollowedId == userId)
+                .OrderByDescending(f => f.FollowedAt)
+                .ToListAsync();
+
+        public async Task<IEnumerable<Follow>> GetFollowingAsync(string userId)
+            => await _context.Follows
+                .Include(f => f.Followed)
+                    .ThenInclude(u => u.Profile)
+                .Where(f => f.FollowerId == userId)
+                .OrderByDescending(f => f.FollowedAt)
+                .ToListAsync();
     }
 }
