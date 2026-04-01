@@ -89,6 +89,7 @@ builder.Services.AddScoped<IBadgeTypeService, BadgeTypeService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IProfileAnalyticsService, ProfileAnalyticsService>();
 builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
+builder.Services.AddScoped<IVerificationService, VerificationService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
 builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();

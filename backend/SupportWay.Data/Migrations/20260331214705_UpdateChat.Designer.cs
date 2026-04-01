@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SupportWay.Data.Context;
@@ -11,9 +12,11 @@ using SupportWay.Data.Context;
 namespace SupportWay.Data.Migrations
 {
     [DbContext(typeof(SupportWayContext))]
-    partial class SupportWayContextModelSnapshot : ModelSnapshot
+    [Migration("20260331214705_UpdateChat")]
+    partial class UpdateChat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,9 +236,7 @@ namespace SupportWay.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<bool>("IsPrivate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -507,9 +508,7 @@ namespace SupportWay.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<bool>("IsVerified")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -756,7 +755,7 @@ namespace SupportWay.Data.Migrations
 
                     b.HasIndex("ProfileId");
 
-                    b.HasIndex("UserId", "Status");
+                    b.HasIndex("UserId");
 
                     b.ToTable("VerificationRequests");
                 });

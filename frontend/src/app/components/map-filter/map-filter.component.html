@@ -1,104 +1,52 @@
-<aside class="sw-filter">
-  <div class="sw-filter-header">
-    <div class="sw-filter-heading">
-      <h3 class="sw-title">Фільтри</h3>
-    </div>
-
-    <button class="sw-reset-btn" type="button" (click)="resetFilters()">
-      Скинути
-    </button>
+<aside class="mf-sidebar">
+  <div class="mf-header">
+    <h3>Фільтри</h3>
+    <button class="mf-reset" (click)="resetFilters()">Скинути</button>
   </div>
 
-  <div class="sw-filter-group">
-    <span class="sw-filter-label">Категорія</span>
-    <div class="sw-chip-grid">
-      @for (t of supportTypes(); track t.id) {
-        <button
-          class="sw-chip"
-          type="button"
-          [class.active]="selectedTypeId() === t.id"
-          (click)="toggleType(t.id)"
-        >
-          {{ t.nameOfType }}
-        </button>
-      }
-
-      @if (supportTypes().length === 0) {
-        <span class="sw-skeleton">Завантаження...</span>
-      }
-    </div>
+  <!-- Support Type -->
+  <div class="mf-group">
+    <label class="mf-label">Тип допомоги</label>
+    <select class="mf-select" [(ngModel)]="selectedTypeId" (ngModelChange)="applyFilters()">
+      <option value="">Всі типи</option>
+      <option *ngFor="let t of supportTypes" [value]="t.id">{{ t.nameOfType }}</option>
+    </select>
+    <div class="mf-loading" *ngIf="loadingTypes">Завантаження...</div>
   </div>
 
-  <div class="sw-filter-group">
-    <span class="sw-filter-label">Статус</span>
-    <div class="sw-segment-control">
-      <button type="button" [class.active]="isActive() === true" (click)="isActive.set(true)">
-        Активні
-      </button>
-      <button type="button" [class.active]="isActive() === false" (click)="isActive.set(false)">
-        Завершені
-      </button>
-      <button type="button" [class.active]="isActive() === undefined" (click)="isActive.set(undefined)">
-        Всі
-      </button>
+  <!-- Status -->
+  <div class="mf-group">
+    <label class="mf-label">Статус збору</label>
+    <div class="mf-radio-group">
+      <label class="mf-radio" [class.checked]="isActive === ''">
+        <input type="radio" name="isActive" value="" [(ngModel)]="isActive" (ngModelChange)="applyFilters()"> Всі
+      </label>
+      <label class="mf-radio" [class.checked]="isActive === 'true'">
+        <input type="radio" name="isActive" value="true" [(ngModel)]="isActive" (ngModelChange)="applyFilters()"> Активні
+      </label>
+      <label class="mf-radio" [class.checked]="isActive === 'false'">
+        <input type="radio" name="isActive" value="false" [(ngModel)]="isActive" (ngModelChange)="applyFilters()"> Завершені
+      </label>
     </div>
   </div>
 
-  <div class="sw-divider"></div>
-
-  <div class="sw-filter-group">
-    <span class="sw-filter-label">Локація</span>
-    <div class="sw-input-wrapper">
-      <svg
-        class="sw-input-icon"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-        <circle cx="12" cy="10" r="3"></circle>
-      </svg>
-
-      <input
-        class="sw-input"
-        type="text"
-        placeholder="Пошук регіону..."
-        [ngModel]="region()"
-        (ngModelChange)="region.set($event)"
-      />
-    </div>
+  <!-- Region -->
+  <div class="mf-group">
+    <label class="mf-label">Регіон</label>
+    <input class="mf-input" type="text" placeholder="Наприклад: Харків"
+           [(ngModel)]="region" (input)="applyFilters()">
   </div>
 
-  <div class="sw-filter-group">
-    <span class="sw-filter-label">Фінансова ціль (макс)</span>
-    <div class="sw-input-wrapper">
-      <span class="sw-input-currency">₴</span>
-      <input
-        class="sw-input"
-        type="number"
-        placeholder="500 000"
-        [ngModel]="maxTarget()"
-        (ngModelChange)="maxTarget.set($event || undefined)"
-      />
-    </div>
+  <!-- Amounts -->
+  <div class="mf-group">
+    <label class="mf-label">Мін. зібрано (₴)</label>
+    <input class="mf-input" type="number" min="0" placeholder="0"
+           [(ngModel)]="minCollected" (input)="applyFilters()">
   </div>
 
-  <div class="sw-filter-group">
-    <span class="sw-filter-label">Зібрано (мін)</span>
-    <div class="sw-input-wrapper">
-      <span class="sw-input-currency">₴</span>
-      <input
-        class="sw-input"
-        type="number"
-        placeholder="10 000"
-        [ngModel]="minCollected()"
-        (ngModelChange)="minCollected.set($event || undefined)"
-      />
-    </div>
+  <div class="mf-group">
+    <label class="mf-label">Макс. ціль (₴)</label>
+    <input class="mf-input" type="number" min="0" placeholder="Будь-яка"
+           [(ngModel)]="maxTarget" (input)="applyFilters()">
   </div>
 </aside>

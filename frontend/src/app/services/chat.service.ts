@@ -4,6 +4,7 @@ import * as signalR from '@microsoft/signalr';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment.development';
+import { ChatListItem } from '../models/chat.model';
 
 export interface Message {
   id: string;
@@ -12,17 +13,6 @@ export interface Message {
   content: string;
   sentAt: string;
   isRead?: boolean;
-}
-
-export interface Chat {
-  id: string;
-  name?: string;
-  userChats?: {
-    userId: string;
-    user: { userName: string };
-  }[];
-  lastMessage?: string;
-  unreadCount?: number;
 }
 
 export interface ReadReceiptEvent {
@@ -40,44 +30,41 @@ export interface MessageDeletedEvent {
 @Injectable({ providedIn: 'root' })
 export class ChatService implements OnDestroy {
   private baseUrl = `${environment.apiUrl}/chat`;
-  private hubUrl = `${environment.apiUrl.replace('/api', '')}/chatHub`;
+  private msgUrl  = `${environment.apiUrl}/chat`;
+  private hubUrl  = `${environment.apiUrl.replace('/api', '')}/chatHub`;
 
   private hubConnection: signalR.HubConnection | null = null;
 
   public connectionStatus$ = new BehaviorSubject<boolean>(false);
-  public messageReceived$ = new Subject<Message>();
-  public typingEvent$ = new Subject<{ chatId: string, userId: string }>();
-  public readReceipt$ = new Subject<ReadReceiptEvent>();
-  public messageDeleted$ = new Subject<MessageDeletedEvent>();
+  public messageReceived$  = new Subject<Message>();
+  public typingEvent$      = new Subject<{ chatId: string; userId: string }>();
+  public readReceipt$      = new Subject<ReadReceiptEvent>();
+  public messageDeleted$   = new Subject<MessageDeletedEvent>();
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
-  getChats(): Observable<Chat[]> {
-    return this.http.get<Chat[]>(this.baseUrl);
+  getChats(): Observable<ChatListItem[]> {
+    return this.http.get<ChatListItem[]>(this.baseUrl);
   }
 
   getMessages(chatId: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.baseUrl}/${chatId}/messages`);
+    return this.http.get<Message[]>(`${this.msgUrl}/${chatId}/messages`);
   }
 
-  createChat(user1Id: string, user2Id: string): Observable<Chat> {
-    return this.http.post<Chat>(`${this.baseUrl}/create`, { user1Id, user2Id });
+  createOrGetChat(user1Id: string, user2Id: string): Observable<ChatListItem> {
+    return this.http.post<ChatListItem>(`${this.baseUrl}/create`, { user1Id, user2Id });
   }
 
-  deleteChat(chatId: string): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${chatId}`);
+  deleteChat(chatId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${chatId}`);
   }
 
   async startSignalR(): Promise<void> {
     if (this.hubConnection?.state === signalR.HubConnectionState.Connected ||
-      this.hubConnection?.state === signalR.HubConnectionState.Connecting) {
-      return;
-    }
+      this.hubConnection?.state === signalR.HubConnectionState.Connecting) return;
 
     const token = localStorage.getItem('auth_token');
-    if (!token) {
-      return;
-    }
+    if (!token) return;
 
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.hubUrl, {
@@ -94,17 +81,10 @@ export class ChatService implements OnDestroy {
     try {
       await this.hubConnection.start();
       this.connectionStatus$.next(true);
-
-      this.hubConnection.onreconnected(() => {
-        this.connectionStatus$.next(true);
-      });
-
-      this.hubConnection.onclose(() => {
-        this.connectionStatus$.next(false);
-      });
-
+      this.hubConnection.onreconnected(() => this.connectionStatus$.next(true));
+      this.hubConnection.onclose(() => this.connectionStatus$.next(false));
     } catch (err) {
-      console.error('SignalR Connection Error:', err);
+      console.error('SignalR Error:', err);
       this.connectionStatus$.next(false);
     }
   }
@@ -114,15 +94,7 @@ export class ChatService implements OnDestroy {
 
     this.hubConnection.on('receiveMessage',
       (id: string, senderId: string, content: string, chatId: string, sentAt: string) => {
-        const newMessage: Message = {
-          id,
-          senderId,
-          content,
-          chatId,
-          sentAt,
-          isRead: false
-        };
-        this.messageReceived$.next(newMessage);
+        this.messageReceived$.next({ id, senderId, content, chatId, sentAt, isRead: false });
       }
     );
 
@@ -145,18 +117,13 @@ export class ChatService implements OnDestroy {
   }
 
   async sendTyping(chatId: string): Promise<void> {
-    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected)
       await this.hubConnection.invoke('Typing', chatId);
-    }
   }
 
   async markAsRead(chatId: string, lastReadMessageId: string): Promise<void> {
     await this.ensureConnection();
-    try {
-      await this.hubConnection!.invoke('Seen', chatId, lastReadMessageId);
-    } catch (err) {
-      console.error('Error sending seen status:', err);
-    }
+    try { await this.hubConnection!.invoke('Seen', chatId, lastReadMessageId); } catch {}
   }
 
   async deleteMessage(messageId: string): Promise<void> {
@@ -165,28 +132,16 @@ export class ChatService implements OnDestroy {
   }
 
   stopConnection() {
-    if (this.hubConnection) {
-      this.hubConnection.stop().then(() => {
-        this.connectionStatus$.next(false);
-      });
-    }
+    this.hubConnection?.stop().then(() => this.connectionStatus$.next(false));
   }
 
   private async ensureConnection(): Promise<void> {
-    if (!this.hubConnection) {
+    if (!this.hubConnection || this.hubConnection.state === signalR.HubConnectionState.Disconnected)
       await this.startSignalR();
-    }
 
-    if (this.hubConnection?.state === signalR.HubConnectionState.Disconnected) {
-      await this.startSignalR();
-    }
-
-    if (this.hubConnection?.state !== signalR.HubConnectionState.Connected) {
+    if (this.hubConnection?.state !== signalR.HubConnectionState.Connected)
       throw new Error('SignalR is not connected');
-    }
   }
 
-  ngOnDestroy() {
-    this.stopConnection();
-  }
+  ngOnDestroy() { this.stopConnection(); }
 }

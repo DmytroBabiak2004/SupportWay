@@ -12,5 +12,7 @@ export interface Profile {
   followersCount: number;
   followingCount: number;
   isOwnProfile: boolean;
-}
 
+  isVerified: boolean;
+  verifiedAs?: number | null;
+}

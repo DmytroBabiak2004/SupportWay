@@ -1,203 +1,209 @@
 /* --- Palette --- */
 $primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
-$bg-bubble-theirs: #ffffff;
+$bg-bubble-theirs: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+
 $text-main: #1f2937;
-$text-time-dark: #9ca3af;   /* Час на білому фоні */
-$text-time-light: rgba(255, 255, 255, 0.75); /* Час на синьому фоні */
-$shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.06);
-$shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.2);
+$text-time-dark: rgba(100, 116, 139, 0.75);
+$text-time-light: rgba(255, 255, 255, 0.65);
+
+$border-theirs: rgba(148, 163, 184, 0.12);
+
+/* 🔥 МЕНШІ ТІНІ */
+$shadow-soft:
+  0 2px 6px rgba(15, 23, 42, 0.04);
+
+$shadow-primary:
+  0 4px 10px rgba(37, 99, 235, 0.18);
 
 :host {
   display: block;
   width: 100%;
-  padding: 0 8px; /* Невеликий відступ від країв екрану */
+  min-width: 0;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
 
+/* ===== MESSAGE CONTAINER ===== */
 .message-container {
   display: flex;
-  margin-bottom: 6px; /* Компактніший список */
   width: 100%;
+  min-width: 0;
+  margin-bottom: 2px;
 
-  /* Анімація входу */
-  animation: messageEnter 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: messageEnter 0.2s ease forwards;
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(6px);
 
-  /* --- МОЇ ПОВІДОМЛЕННЯ (Праворуч) --- */
   &.mine {
     justify-content: flex-end;
 
     .bubble {
       background: $primary-gradient;
       color: #ffffff;
-      border-radius: 18px 18px 4px 18px; /* Хвостик справа внизу */
+      border-radius: 18px 18px 4px 18px;
       box-shadow: $shadow-primary;
       border: none;
+    }
 
-      .time {
-        color: $text-time-light;
+    .time {
+      color: $text-time-light;
+    }
+
+    .status-icon {
+      color: $text-time-light;
+
+      &.read {
+        color: #ffffff;
       }
+    }
 
-      .status-icon {
-        color: $text-time-light; /* Непрочитані - напівпрозорі */
-
-        &.read {
-          color: #ffffff; /* Прочитані - яскраво білі */
-        }
-      }
+    .delete-btn:hover {
+      color: #ffe0e0;
     }
   }
 }
 
+/* ===== GROUP ===== */
 .message-group {
-  max-width: 75%;
+  width: fit-content;
+  max-width: min(75%, 680px);
+  min-width: 0;
 
-  @media(min-width: 768px) {
-    max-width: 60%;
+  @media (min-width: 768px) {
+    max-width: min(60%, 680px);
+  }
+
+  @media (max-width: 480px) {
+    max-width: 88%;
   }
 }
 
-/* --- ЗАГАЛЬНИЙ СТИЛЬ BUBBLE --- */
+/* ===== BUBBLE ===== */
 .bubble {
-  position: relative;
-  padding: 8px 12px 6px 14px; /* Знизу менше, бо там мета-інфо */
+  display: inline-block;
+  max-width: 100%;
+  min-width: 70px;
+
+  padding: 8px 12px 6px 14px;
+  border-radius: 18px 18px 18px 4px;
+
   background: $bg-bubble-theirs;
   color: $text-main;
 
-  /* Хвостик зліва внизу для чужих */
-  border-radius: 18px 18px 18px 4px;
+  border: 1px solid $border-theirs;
   box-shadow: $shadow-soft;
 
-  display: inline-block; /* Щоб обтікало текст */
-  min-width: 80px; /* Мінімальна ширина для краси */
+  box-sizing: border-box;
 }
 
-/* Контент повідомлення */
+/* ===== TEXT ===== */
 .content {
-  font-size: 15px;
-  line-height: 1.4;
-  word-wrap: break-word;
-  white-space: pre-wrap; /* Зберігає переноси рядків */
+  display: inline;
+  font-size: 14.5px;
+  line-height: 1.45;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-/* Блок мета-інформації (Час + Галочки) */
+/* ===== META (TIME + STATUS + DELETE) ===== */
 .meta {
-  float: right; /* "Обтікання" текстом */
-  margin-left: 10px;
-  margin-top: 6px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 16px;
+  margin-left: 6px;
 
-  /* Вертикальне вирівнювання відносно рядка */
-  position: relative;
-  top: 2px;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
+/* ===== TIME ===== */
 .time {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 400;
   color: $text-time-dark;
-  user-select: none;
+  letter-spacing: 0.2px;
 }
 
-/* Іконка статусу (SVG) */
+/* ===== STATUS ===== */
 .status-icon {
-  display: flex;
-  align-items: center;
-  width: 16px;
-  height: 16px;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+
+  color: rgba(255, 255, 255, 0.7);
 
   svg {
     width: 100%;
     height: 100%;
 
-    /* Анімація зміни кольору */
-    transition: color 0.3s ease;
-  }
-}
-
-@keyframes messageEnter {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Для очищення float, якщо текст дуже короткий */
-.bubble::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-/* ... решта стилів без змін ... */
-
-/* Іконка статусу */
-.status-icon {
-  display: flex;
-  align-items: center;
-  width: 16px;
-  height: 16px;
-  color: rgba(255, 255, 255, 0.7); /* Колір для однієї галочки (надіслано) */
-  transition: color 0.3s ease;
-
-  svg {
-    width: 100%;
-    height: 100%;
-
-    /* За замовчуванням (isRead = false) ховаємо другу галочку */
     .second-check {
       opacity: 0;
-      transform: translateX(-2px); /* Ефект виїзду */
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateX(-2px);
+      transition: all 0.25s ease;
     }
   }
 
-  /* Стан ПРОЧИТАНО */
   &.read {
-    color: #ffffff; /* Яскраво білий */
+    color: #ffffff;
 
-    /* Показуємо другу галочку */
     svg .second-check {
       opacity: 1;
       transform: translateX(0);
     }
   }
 }
-/* ... ваші існуючі стилі ... */
 
-.meta {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px; /* Відступ між часом, галочками та смітником */
-  /* ... */
-}
-
-/* Стиль кнопки видалення */
+/* ===== DELETE BUTTON ===== */
 .delete-btn {
   background: transparent;
   border: none;
   cursor: pointer;
   padding: 0;
-  margin-left: 4px;
-  display: flex;
+  margin-left: 2px;
+
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: inherit; /* Успадковує колір тексту (білий або чорний) */
-  opacity: 0.5; /* За замовчуванням напівпрозора */
-  transition: opacity 0.2s, transform 0.2s;
+
+  color: inherit;
+
+  /* 🔥 ХОВАЄМО */
+  opacity: 0;
+  transform: scale(0.9);
+
+  transition: all 0.18s ease;
 
   svg {
-    width: 14px;  /* Розмір іконки */
-    height: 14px;
+    width: 13px;
+    height: 13px;
   }
 
   &:hover {
-    opacity: 1; /* При наведенні стає яскравою */
-    transform: scale(1.1); /* Трохи збільшується */
-    color: #ffcccc; /* Легкий червоний відтінок (опціонально) */
+    color: #ef4444;
+    transform: scale(1.1);
   }
+}
 
-  &:active {
-    transform: scale(0.95);
+/* 🔥 ПОКАЗ ПРИ HOVER */
+.message-container:hover .delete-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 📱 MOBILE — без hover */
+@media (hover: none) {
+  .delete-btn {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+}
+
+/* ===== ANIMATION ===== */
+@keyframes messageEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

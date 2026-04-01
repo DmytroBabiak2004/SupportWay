@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,35 +7,49 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './chat-composer.component.html',
-  styleUrls: ['./chat-composer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./chat-composer.component.scss']
 })
 export class ChatComposerComponent {
-  @Input() value = '';
-  @Input() placeholder = 'Написати повідомлення...';
-  @Input() disabled = false;
-
-  @Output() valueChange = new EventEmitter<string>();
-  @Output() send = new EventEmitter<void>();
+  @Output() messageSent = new EventEmitter<string>();
   @Output() typing = new EventEmitter<void>();
 
-  // Гетер, щоб перевірити, чи поле пусте (ігноруючи пробіли)
-  get isSendDisabled(): boolean {
-    return this.disabled || !this.value?.trim();
+  // Отримуємо доступ до textarea через шаблонну змінну #messageInput
+  @ViewChild('messageInput') messageInput!: ElementRef<HTMLTextAreaElement>;
+
+  text = '';
+
+  send(): void {
+    const t = this.text.trim();
+    if (!t) return;
+
+    this.messageSent.emit(t);
+    this.text = '';
+
+    // Скидаємо висоту поля після відправки повідомлення.
+    // Використовуємо setTimeout, щоб Angular встиг оновити DOM (очистити поле)
+    setTimeout(() => this.resizeTextarea(), 0);
   }
 
-  onInput(v: string): void {
-    this.valueChange.emit(v);
+  onInput(): void {
     this.typing.emit();
+    this.resizeTextarea();
   }
 
-  onEnter(): void {
-    if (this.isSendDisabled) return;
-    this.send.emit();
+  onKeydown(e: KeyboardEvent): void {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // Запобігаємо переносу рядка
+      this.send();
+    }
   }
 
-  onSendClick(): void {
-    if (this.isSendDisabled) return;
-    this.send.emit();
+  // Приватний метод для логіки авторозширення
+  private resizeTextarea(): void {
+    if (!this.messageInput) return;
+
+    const textarea = this.messageInput.nativeElement;
+    // Спочатку скидаємо висоту, щоб правильно вирахувати нову
+    textarea.style.height = 'auto';
+    // Встановлюємо висоту відповідно до реального контенту
+    textarea.style.height = `${textarea.scrollHeight}px`;
   }
 }

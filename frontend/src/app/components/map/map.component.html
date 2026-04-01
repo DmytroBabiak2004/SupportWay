@@ -1,39 +1,77 @@
 <div class="sw-map-page">
 
-  <app-map-filter class="sw-map-sidebar" (filtersChanged)="onFiltersChanged($event)" />
+  <app-map-filter class="sw-map-sidebar" (filtersChanged)="onFiltersChanged($event)"/>
 
   <div id="map" class="sw-map-container"></div>
 
-  <div class="sw-map-meta" [class.is-loading]="isLoading()">
+  <!-- Loading / count badge -->
+  <div class="sw-map-meta">
     <div class="sw-map-meta-surface">
-      @if (isLoading()) {
-        <span class="sw-loading">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="spin"
-          >
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-          </svg>
-          Синхронізація...
-        </span>
-      } @else {
-        <div class="sw-meta-content">
-          <span class="sw-meta-label">Результатів</span>
-          <span class="sw-meta-badge">{{ totalCount() }}</span>
-        </div>
-      }
+      <span class="sw-loading" *ngIf="isLoading()">
+        <svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
+        </svg>
+        Синхронізація...
+      </span>
+      <div class="sw-meta-content" *ngIf="!isLoading()">
+        <span class="sw-meta-label">Результатів</span>
+        <span class="sw-meta-badge">{{ totalCount() }}</span>
+      </div>
     </div>
   </div>
 
-  @if (showDonate()) {
-    <app-donate-modal [request]="selectedRequest()" (closed)="closeDonate()" />
-  }
+  <!-- Side Panel -->
+  <div class="sw-side-panel" *ngIf="panelRequest()" [class.open]="panelRequest()">
+    <button class="sw-panel-close" (click)="closePanel()" aria-label="Закрити">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="sw-panel-body" *ngIf="panelRequest() as r">
+      <!-- Type tags -->
+      <div class="sw-panel-types">
+        <span class="sw-panel-tag" *ngFor="let t of r.supportTypes">{{ t.nameOfType }}</span>
+      </div>
+
+      <h3 class="sw-panel-title">{{ r.title }}</h3>
+
+      <div class="sw-panel-location" *ngIf="r.region">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        {{ r.region }}
+      </div>
+
+      <!-- Progress -->
+      <div class="sw-panel-progress" *ngIf="r.targetAmount > 0">
+        <div class="sw-panel-track">
+          <div class="sw-panel-fill" [style.width.%]="panelPercent"></div>
+        </div>
+        <div class="sw-panel-nums">
+          <span>{{ r.collectedAmount | number:'1.0-0' }} ₴</span>
+          <span>{{ panelPercent }}% з {{ r.targetAmount | number:'1.0-0' }} ₴</span>
+        </div>
+      </div>
+
+      <div class="sw-panel-status">
+        <span [class]="r.isActive ? 'status-active' : 'status-closed'">
+          {{ r.isActive ? 'Активний збір' : 'Збір закрито' }}
+        </span>
+      </div>
+
+      <button class="sw-panel-donate-btn" *ngIf="r.isActive" (click)="openDonateFromPanel()">
+        💙 Задонатити
+      </button>
+    </div>
+  </div>
+
+  <!-- Donate modal -->
+  <app-donate-modal
+    *ngIf="showDonate()"
+    [request]="selectedRequest()"
+    (closed)="closeDonate()">
+  </app-donate-modal>
 
 </div>

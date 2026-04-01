@@ -1,72 +1,64 @@
 <div class="sw-backdrop" (click)="close()">
   <div class="sw-modal" (click)="$event.stopPropagation()">
 
-    <button class="sw-close" (click)="close()">✕</button>
-
-    <div class="sw-modal-type" [style.color]="typeStyle().color">
-      {{ typeStyle().icon }} {{ typeLabels() }}
-    </div>
-
-    <h3 class="sw-modal-title">{{ request?.title }}</h3>
-    <p class="sw-modal-region" *ngIf="request?.region">📍 {{ request?.region }}</p>
-
-    <!-- Прогрес -->
-    <div class="sw-progress-wrap">
-      <div class="sw-progress-bar">
-        <div class="sw-progress-fill"
-             [style.width.%]="percent()"
-             [style.background]="typeStyle().color">
-        </div>
-      </div>
-      <div class="sw-progress-nums">
-        <span>{{ request?.collectedAmount | number:'1.0-0' }} ₴</span>
-        <span>{{ percent() }}% з {{ request?.targetAmount | number:'1.0-0' }} ₴</span>
-      </div>
-    </div>
-
-    <!-- Вибір суми -->
-    <label class="sw-label">Сума (₴)</label>
-    <div class="sw-presets">
-      @for (p of presets; track p) {
-        <button
-          class="sw-preset"
-          [class.active]="amount() === p"
-          (click)="amount.set(p)"
-        >{{ p | number }}</button>
-      }
-    </div>
-    <input
-      class="sw-amount-input"
-      type="number"
-      placeholder="Або введіть свою суму..."
-      [ngModel]="amount()"
-      (ngModelChange)="amount.set(+$event)"
-      min="1"
-    />
-
-    <!-- Коментар -->
-    <label class="sw-label">Коментар</label>
-    <input
-      class="sw-comment-input"
-      type="text"
-      placeholder="Необов'язково..."
-      [ngModel]="comment()"
-      (ngModelChange)="comment.set($event)"
-      maxlength="100"
-    />
-
-    @if (error()) {
-      <p class="sw-error">{{ error() }}</p>
-    }
-
-    <button class="sw-pay-btn" (click)="donate()" [disabled]="isProcessing()">
-      @if (!isProcessing()) {
-        💙 Задонатити {{ amount() | number:'1.0-0' }} ₴
-      } @else {
-        ⏳ Створюємо платіж...
-      }
+    <button class="sw-close" (click)="close()" aria-label="Закрити">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+      </svg>
     </button>
 
-    <p class="sw-secure">🔒 Безпечна оплата через Monobank</p>
+    <!-- Type -->
+    <div class="sw-type-label">{{ typeLabel }}</div>
+
+    <h3 class="sw-title">{{ title }}</h3>
+    <p class="sw-region" *ngIf="region">📍 {{ region }}</p>
+
+    <!-- Progress -->
+    <div class="sw-progress-wrap" *ngIf="targetAmount > 0">
+      <div class="sw-progress-track">
+        <div class="sw-progress-fill" [style.width.%]="percent"></div>
+      </div>
+      <div class="sw-progress-nums">
+        <span class="sw-collected">{{ collected | number:'1.0-0' }} ₴</span>
+        <span class="sw-target">{{ percent }}% з {{ targetAmount | number:'1.0-0' }} ₴</span>
+      </div>
+    </div>
+
+    <div class="sw-inactive-notice" *ngIf="!canDonate">
+      🔒 Збір завершено або неактивний — донат недоступний.
+    </div>
+
+    <ng-container *ngIf="canDonate">
+      <label class="sw-label">Сума (₴)</label>
+      <div class="sw-presets">
+        @for (p of presets; track p) {
+          <button class="sw-preset" [class.active]="amount() === p" (click)="amount.set(p)">
+            {{ p | number }}
+          </button>
+        }
+      </div>
+      <input class="sw-amount-input" type="number"
+             placeholder="Або введіть свою суму..."
+             [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" min="1">
+
+      <label class="sw-label">Коментар</label>
+      <input class="sw-comment-input" type="text"
+             placeholder="Необов'язково..."
+             [ngModel]="comment()" (ngModelChange)="comment.set($event)" maxlength="100">
+
+      @if (error()) {
+        <p class="sw-error">{{ error() }}</p>
+      }
+
+      <button class="sw-pay-btn" (click)="donate()" [disabled]="isProcessing()">
+        @if (!isProcessing()) {
+          💙 Задонатити {{ amount() | number:'1.0-0' }} ₴
+        } @else {
+          <span class="sw-spinner"></span> Створюємо платіж...
+        }
+      </button>
+
+      <p class="sw-secure">🔒 Безпечна оплата через Monobank</p>
+    </ng-container>
   </div>
 </div>

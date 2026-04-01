@@ -12,6 +12,9 @@ export interface HelpRequest {
   id: string;
   locationId?: string | null;
   locationName?: string;
+  locationAddress?: string;
+  latitude?: number;
+  longitude?: number;
   totalPayments: number;
 
   title: string;
@@ -21,13 +24,20 @@ export interface HelpRequest {
 
   userId: string;
   userName: string;
+  authorUserName?: string;
+  authorPhotoBase64?: string | null;
 
   likesCount: number;
   commentsCount: number;
 
-  authorUserName?: string;
-  authorPhotoBase64?: string;
   isLikedByCurrentUser?: boolean;
+
+  // Funding
+  targetAmount: number;
+  collectedAmount: number;
+  isActive: boolean;
+  progressPercent: number;
+  collectionStatus: 'active' | 'completed' | 'closed';
 
   requestItems: HelpRequestItem[];
 }

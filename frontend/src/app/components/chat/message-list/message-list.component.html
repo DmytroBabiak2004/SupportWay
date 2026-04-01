@@ -1,8 +1,13 @@
 <section class="messages-box" #scrollBox>
-  <app-message-bubble
-    *ngFor="let msg of messages; trackBy: trackByMsgId"
-    [msg]="msg"
-    [isMine]="msg.senderId === currentUserId"
-    (deleteRequest)="onDelete($event)"
-  ></app-message-bubble>
+  <ng-container *ngFor="let msg of messages; let i = index; trackBy: trackByMsgId">
+    <div *ngIf="shouldShowDateSeparator(i)" class="date-separator">
+      <span>{{ formatSeparatorDate(msg.sentAt) }}</span>
+    </div>
+
+    <app-message-bubble
+      [msg]="msg"
+      [isMine]="msg.senderId === currentUserId"
+      (deleteRequest)="onDelete($event)">
+    </app-message-bubble>
+  </ng-container>
 </section>

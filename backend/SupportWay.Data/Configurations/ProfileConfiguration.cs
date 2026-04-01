@@ -11,6 +11,8 @@ namespace SupportWay.Data.Configurations
             builder.HasOne(p => p.User)
                    .WithOne(u => u.Profile)
                    .HasForeignKey<Profile>(p => p.UserId);
+            builder.Property(p => p.IsVerified).HasDefaultValue(false);
+            builder.Property(p => p.VerifiedAs).HasConversion<int?>();
         }
     }
 }

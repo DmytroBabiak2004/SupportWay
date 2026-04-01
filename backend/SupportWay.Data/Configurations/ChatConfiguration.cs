@@ -17,6 +17,8 @@ namespace SupportWay.Data.Configurations
                 .WithOne(m => m.Chat)
                 .HasForeignKey(m => m.ChatId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Chat.IsPrivate
+            builder.Property(c => c.IsPrivate).HasDefaultValue(true);
         }
     }
 }

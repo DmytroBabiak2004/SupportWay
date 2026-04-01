@@ -1,108 +1,139 @@
-/* --- Palette (Зберігаємо гармонію з чатом) --- */
-$primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
-$bg-footer: #ffffff;
-$bg-input: #f3f4f6;       /* Світло-сірий фон поля */
-$text-main: #1f2937;
-$text-placeholder: #9ca3af;
-$border-light: rgba(0,0,0,0.05);
-
 :host {
   display: block;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.input-box {
-  background: $bg-footer;
-  padding: 12px 16px; /* Компактніший відступ */
+$primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
+$bg-shell: #ffffff;
+$bg-input: #f3f4f6;
+$text-main: #111827;
+$text-placeholder: #9ca3af;
+$blue-focus: rgba(37, 99, 235, 0.12);
+$border-light: rgba(15, 23, 42, 0.06);
+
+.composer-shell {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: $bg-shell;
   border-top: 1px solid $border-light;
-  flex-shrink: 0;
-
-  /* Тінь вгору, щоб відділити від повідомлень */
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.02);
-
-  // iPhone safe area (щоб на айфонах не прилипало до низу)
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 
-.input-wrapper {
-  max-width: 1000px;
-  margin: 0 auto;
+.composer {
+  width: 100%;
+  min-height: 62px;
   display: flex;
-  align-items: center;
-  gap: 8px; /* Відступ між полем і кнопкою */
+  align-items: flex-end;
+  gap: 10px;
+  box-sizing: border-box;
 
+  padding: 10px 10px 10px 14px;
+  border-radius: 18px;
   background: $bg-input;
-  padding: 6px 6px 6px 16px; /* Справа менше, бо там кнопка */
-  border-radius: 26px; /* Дуже округле поле */
-  transition: box-shadow 0.2s, background-color 0.2s;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
 
-  /* При фокусі - легке підсвічування поля */
   &:focus-within {
     background: #ffffff;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); /* Дуже легка блакитна обводка */
+    border-color: rgba(37, 99, 235, 0.12);
+    box-shadow: 0 0 0 4px $blue-focus;
   }
 }
 
-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 8px 0;
-  font-size: 15px;
-  color: $text-main;
-  outline: none;
+.composer-input {
+  flex: 1 1 auto;
   min-width: 0;
-  line-height: 1.4;
+  width: 100%;
+  min-height: 24px;
+  max-height: 140px;
+
+  border: none;
+  outline: none;
+  resize: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: transparent;
+
+  padding: 8px 0;
+  margin: 0;
+  box-sizing: border-box;
+
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.45;
+  color: $text-main;
 
   &::placeholder {
     color: $text-placeholder;
-    font-weight: 400;
+  }
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.55);
+    border-radius: 999px;
   }
 }
 
-/* --- Кнопка відправки --- */
-.send-btn {
-  width: 40px;
-  height: 40px;
+.composer-send {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+
   border: none;
   border-radius: 50%;
-
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 
-  /* --- АКТИВНИЙ СТАН (Градієнт) --- */
+  cursor: pointer;
   background: $primary-gradient;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+  transition: all 0.2s ease;
 
   .send-icon {
-    width: 20px;
-    height: 20px;
-    fill: #ffffff; /* Біла іконка на синьому */
-    transform: translateX(2px); /* Візуально центруємо літачок */
-    transition: fill 0.2s;
+    width: 18px;
+    height: 18px;
+    stroke: #ffffff;
+    transform: translateX(-1px) translateY(1px);
   }
 
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(37, 99, 235, 0.4);
+  &:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.95);
   }
 
-  /* --- НЕАКТИВНИЙ СТАН (Сірий) --- */
   &:disabled {
-    background: transparent; /* Фон зникає */
+    background: #e5e7eb;
     box-shadow: none;
     cursor: default;
-    transform: none;
 
     .send-icon {
-      fill: #cbd5e1; /* Світло-сірий колір іконки */
+      stroke: #94a3b8;
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .composer-shell {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .composer {
+    padding: 9px 9px 9px 12px;
+    border-radius: 16px;
+  }
+
+  .composer-send {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
   }
 }

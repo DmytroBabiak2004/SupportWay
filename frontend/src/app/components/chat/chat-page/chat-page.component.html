@@ -1,40 +1,41 @@
-<div class="chat-wrapper" [class.chat-opened]="!!selectedChat">
+<div class="chat-page" [class.chat-opened]="!!selectedChat">
 
   <app-chat-sidebar
-    class="sidebar-slot"
     [chats]="chats"
-    [selectedChat]="selectedChat"
+    [selectedChatId]="selectedChat?.id ?? null"
+    [isOpen]="isSidebarOpen"
     (chatSelected)="openChat($event)"
-  ></app-chat-sidebar>
+    (chatDeleted)="onSidebarChatDeleted($event)">
+  </app-chat-sidebar>
 
-  <main class="chat-window">
-    <ng-container *ngIf="selectedChat; else emptyStateTempl">
+  <div class="chat-main">
+    <ng-container *ngIf="selectedChat; else emptyState">
 
       <app-chat-header
-        [chat]="selectedChat"
-        [title]="getChatName(selectedChat)"
+        [chatName]="selectedChat.userName || selectedChat.displayName"
+        [profileKey]="(selectedChat.userName ?? selectedChat.userId) ?? null"
+        [otherUserPhotoBase64]="selectedChat.otherUserPhotoBase64 ?? null"
         [typingText]="typingText"
-        (back)="closeChat()"
-        (deleteChat)="onDeleteChatFromHeader()"
-      ></app-chat-header>
+        (backClicked)="closeChat()"
+        (deleteClicked)="onDeleteChat()">
+      </app-chat-header>
+
       <app-message-list
         [messages]="messages"
         [currentUserId]="userId"
-        (deleteRequest)="onDeleteMessage($event)"
-      ></app-message-list>
+        (deleteRequest)="onDeleteMessage($event)">
+      </app-message-list>
 
       <app-chat-composer
-        [value]="newMessage"
-        (valueChange)="newMessage = $event"
-        (typing)="onTyping()"
-        (send)="sendMessage()"
-      ></app-chat-composer>
+        (messageSent)="sendMessage($event)"
+        (typing)="onTyping()">
+      </app-chat-composer>
 
     </ng-container>
 
-    <ng-template #emptyStateTempl>
+    <ng-template #emptyState>
       <app-empty-state></app-empty-state>
     </ng-template>
+  </div>
 
-  </main>
 </div>

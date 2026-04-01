@@ -1,5 +1,5 @@
 import {
-  Component, OnInit, OnDestroy, inject, signal
+  Component, OnInit, OnDestroy, inject, signal, ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
@@ -7,9 +7,7 @@ import { Subject, switchMap, debounceTime, distinctUntilChanged, takeUntil } fro
 import { MapDataService } from '../../services/map-data.service';
 import { MapFilterComponent } from '../map-filter/map-filter.component';
 import { DonateModalComponent } from '../donate-modal/donate-modal.component';
-import {
-  MapFilterParams, RequestMapDto, getPrimaryTypeStyle
-} from '../../models/map.models';
+import { MapFilterParams, RequestMapDto, getPrimaryTypeStyle } from '../../models/map.models';
 
 @Component({
   selector: 'app-map',
@@ -20,43 +18,36 @@ import {
 })
 export class MapComponent implements OnInit, OnDestroy {
   private readonly mapDataService = inject(MapDataService);
+  private readonly cdr            = inject(ChangeDetectorRef);
 
   private map!: L.Map;
-  private clusterGroup: any; // MarkerClusterGroup
-  private destroy$ = new Subject<void>();
+  private clusterGroup: any;
+  private destroy$     = new Subject<void>();
   private filterChange$ = new Subject<MapFilterParams>();
+  private allRequests: RequestMapDto[] = [];
 
-  readonly isLoading        = signal(false);
-  readonly totalCount       = signal(0);
-  readonly selectedRequest  = signal<RequestMapDto | null>(null);
-  readonly showDonate       = signal(false);
+  readonly isLoading       = signal(false);
+  readonly totalCount      = signal(0);
+  readonly selectedRequest = signal<RequestMapDto | null>(null);
+  readonly showDonate      = signal(false);
+  readonly panelRequest    = signal<RequestMapDto | null>(null);
 
   ngOnInit(): void {
     this.initMap();
+    this.listenToGlobalDonateEvent();
     this.listenToFilterChanges();
-    // Перший завантаження — без фільтрів
     this.filterChange$.next({});
   }
 
-  // ── Ініціалізація карти ────────────────────────────────────────────────────
-
   private initMap(): void {
-    this.map = L.map('map', {
-      center: [49.0, 31.5], // Центр України
-      zoom: 6,
-      zoomControl: true,
-      attributionControl: false
-    });
+    this.map = L.map('map', { center: [49.0, 31.5], zoom: 6, attributionControl: false });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
+      subdomains: 'abcd', maxZoom: 20
     }).addTo(this.map);
 
-    // Кластеризація — без неї при 300+ маркерах браузер помітно гальмує
     this.clusterGroup = (L as any).markerClusterGroup({
-      chunkedLoading: true,       // рендеримо маркери порціями, не блокуємо UI
+      chunkedLoading: true,
       maxClusterRadius: 60,
       showCoverageOnHover: false,
       iconCreateFunction: (cluster: any) => L.divIcon({
@@ -68,20 +59,29 @@ export class MapComponent implements OnInit, OnDestroy {
     this.map.addLayer(this.clusterGroup);
   }
 
-  // ── Підписка на зміни фільтрів з RxJS оптимізацією ───────────────────────
+  private listenToGlobalDonateEvent(): void {
+    const handler = (e: Event) => {
+      const id  = (e as CustomEvent<string>).detail;
+      const req = this.allRequests.find(r => r.id === id);
+      if (req) { this.selectedRequest.set(req); this.showDonate.set(true); }
+    };
+    window.addEventListener('sw:donate', handler);
+    this.destroy$.subscribe(() => window.removeEventListener('sw:donate', handler));
+  }
 
   private listenToFilterChanges(): void {
     this.filterChange$.pipe(
-      debounceTime(300),           // чекаємо 300ms після останньої зміни
+      debounceTime(300),
       distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-      switchMap(filter => {        // скасовує попередній запит якщо прийшов новий
+      switchMap(filter => {
         this.isLoading.set(true);
         return this.mapDataService.getMarkers(filter);
       }),
       takeUntil(this.destroy$)
     ).subscribe({
       next: result => {
-        this.renderMarkers(result.items);
+        this.allRequests = result.items as RequestMapDto[];
+        this.renderMarkers(this.allRequests);
         this.totalCount.set(result.total);
         this.isLoading.set(false);
       },
@@ -89,23 +89,21 @@ export class MapComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ── Рендер маркерів ────────────────────────────────────────────────────────
-
   private renderMarkers(requests: RequestMapDto[]): void {
     this.clusterGroup.clearLayers();
 
     requests.forEach(req => {
+      if (!req.latitude || !req.longitude) return;
       const style   = getPrimaryTypeStyle(req.supportTypes);
       const percent = req.targetAmount > 0
         ? Math.min(100, Math.round((req.collectedAmount / req.targetAmount) * 100))
         : 0;
 
       const icon = L.divIcon({
-        html: `
-          <div class="sw-pin" style="--c:${style.color}">
-            <span>${style.icon}</span>
-            <div class="sw-pin-bar" style="width:${percent}%"></div>
-          </div>`,
+        html: `<div class="sw-pin" style="--c:${style.color}">
+                 <span>${style.icon}</span>
+                 <div class="sw-pin-bar" style="width:${percent}%"></div>
+               </div>`,
         className: '',
         iconSize:   [40, 48],
         iconAnchor: [20, 48],
@@ -113,55 +111,34 @@ export class MapComponent implements OnInit, OnDestroy {
       });
 
       const marker = L.marker([req.latitude, req.longitude], { icon });
-      marker.bindPopup(this.buildPopup(req, style, percent), { maxWidth: 260 });
+
+      // Click: open side panel
+      marker.on('click', () => {
+        this.panelRequest.set(req);
+        this.cdr.markForCheck();
+      });
+
+      marker.bindTooltip(req.title, { permanent: false, direction: 'top', offset: [0, -50] });
       this.clusterGroup.addLayer(marker);
     });
   }
 
-  private buildPopup(
-    req: RequestMapDto,
-    style: { color: string; icon: string },
-    percent: number
-  ): string {
-    const typeLabels = req.supportTypes.map(t => t.nameOfType).join(', ') || 'Інше';
-    const collected  = req.collectedAmount.toLocaleString('uk-UA');
-    const target     = req.targetAmount.toLocaleString('uk-UA');
+  onFiltersChanged(filters: MapFilterParams): void { this.filterChange$.next(filters); }
 
-    return `
-      <div class="sw-popup">
-        <div class="sw-popup-type" style="color:${style.color}">
-          ${style.icon} ${typeLabels}
-        </div>
-        <p class="sw-popup-title">${req.title}</p>
-        <p class="sw-popup-region">📍 ${req.region}</p>
-        <div class="sw-popup-track">
-          <div class="sw-popup-fill" style="width:${percent}%;background:${style.color}"></div>
-        </div>
-        <div class="sw-popup-nums">
-          <span>${collected} ₴</span>
-          <span>${percent}% з ${target} ₴</span>
-        </div>
-        <button class="sw-popup-btn"
-          onclick="window.dispatchEvent(new CustomEvent('sw:donate',{detail:'${req.id}'}))">
-          💙 Задонатити
-        </button>
-      </div>`;
+  openDonateFromPanel(): void {
+    if (this.panelRequest()) {
+      this.selectedRequest.set(this.panelRequest());
+      this.showDonate.set(true);
+    }
   }
 
-  // ── Публічні методи для шаблону ───────────────────────────────────────────
+  closeDonate(): void { this.showDonate.set(false); this.selectedRequest.set(null); }
+  closePanel(): void  { this.panelRequest.set(null); }
 
-  onFiltersChanged(filters: MapFilterParams): void {
-    this.filterChange$.next(filters);
-  }
-
-  onDonateRequested(req: RequestMapDto): void {
-    this.selectedRequest.set(req);
-    this.showDonate.set(true);
-  }
-
-  closeDonate(): void {
-    this.showDonate.set(false);
-    this.selectedRequest.set(null);
+  get panelPercent(): number {
+    const r = this.panelRequest();
+    if (!r || !r.targetAmount) return 0;
+    return Math.min(100, Math.round((r.collectedAmount / r.targetAmount) * 100));
   }
 
   ngOnDestroy(): void {

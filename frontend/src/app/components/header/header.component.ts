@@ -22,6 +22,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   isUserDropdownOpen = false;
 
   currentUser: UserInfo | null = null;
+  isAdmin = false;
   userProfile: Profile | null = null;
 
   private subscription = new Subscription();
@@ -36,6 +37,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const authSub = this.authService.getUserInfo$().pipe(
       tap(user => {
         this.currentUser = user;
+        this.isAdmin = (user?.roles ?? []).includes('Admin');
         if (user && !this.userProfile) {
           this.userProfile = { username: user.username } as Profile;
         }

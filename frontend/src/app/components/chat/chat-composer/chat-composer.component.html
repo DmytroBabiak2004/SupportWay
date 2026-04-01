@@ -1,23 +1,32 @@
-<footer class="input-box">
-  <div class="input-wrapper">
-    <input
-      [ngModel]="value"
-      (ngModelChange)="onInput($event)"
-      (keydown.enter)="onEnter()"
-      [placeholder]="placeholder"
-      autocomplete="off"
-    />
+<div class="composer-shell">
+  <div class="composer">
+    <textarea
+      #messageInput
+      class="composer-input"
+      placeholder="Написати повідомлення..."
+      [(ngModel)]="text"
+      (input)="onInput()"
+      (keydown)="onKeydown($event)"
+      rows="1">
+    </textarea>
 
     <button
-      type="button"
-      class="send-btn"
-      (click)="onSendClick()"
-      [disabled]="isSendDisabled"
-      aria-label="Надіслати"
-    >
-      <svg viewBox="0 0 24 24" class="send-icon">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+      (click)="send()"
+      [disabled]="!text?.trim()"
+      aria-label="Відправити"
+      class="composer-send"
+      type="button">
+      <svg
+        class="send-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.4"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
       </svg>
     </button>
   </div>
-</footer>
+</div>

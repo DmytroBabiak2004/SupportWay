@@ -1,64 +1,113 @@
 import {
-  AfterViewChecked,
-  ChangeDetectionStrategy,
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   Input,
-  OnChanges,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  OnChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Message } from '../../../services/chat.service';
 import { MessageBubbleComponent } from '../message-bubble/message-bubble.component';
+import { Message } from '../../../services/chat.service';
 
 @Component({
   selector: 'app-message-list',
   standalone: true,
   imports: [CommonModule, MessageBubbleComponent],
   templateUrl: './message-list.component.html',
-  styleUrls: ['./message-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./message-list.component.scss']
 })
-export class MessageListComponent implements OnChanges, AfterViewChecked {
+export class MessageListComponent implements AfterViewInit, OnChanges {
   @Input() messages: Message[] = [];
-  @Input() currentUserId = '';
-
-  // ✅ 1. Одинарна подія для відправки ID наверх
+  @Input() currentUserId!: string;
   @Output() deleteRequest = new EventEmitter<string>();
 
-  @ViewChild('scrollBox') private scrollBox?: ElementRef<HTMLElement>;
+  @ViewChild('scrollBox') scrollBox!: ElementRef<HTMLElement>;
 
-  private shouldScroll = false;
-  private prevLen = 0;
+  private initialScrollDone = false;
+
+  trackByMsgId(_: number, msg: Message): string {
+    return msg.id;
+  }
+
+  onDelete(messageId: string): void {
+    this.deleteRequest.emit(messageId);
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollToBottom(true);
+    this.initialScrollDone = true;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ('messages' in changes) {
-      const nextLen = this.messages?.length ?? 0;
-      if (nextLen !== this.prevLen) {
-        this.prevLen = nextLen;
-        this.shouldScroll = true;
-      }
+    if (changes['messages']) {
+      queueMicrotask(() => {
+        if (!this.scrollBox) return;
+
+        if (!this.initialScrollDone) {
+          this.scrollToBottom(true);
+          return;
+        }
+
+        this.scrollToBottom(true);
+      });
     }
   }
 
-  ngAfterViewChecked(): void {
-    if (!this.shouldScroll) return;
-    this.shouldScroll = false;
-    const el = this.scrollBox?.nativeElement;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
+  shouldShowDateSeparator(index: number): boolean {
+    if (index === 0) return true;
+
+    const current = this.messages[index];
+    const previous = this.messages[index - 1];
+
+    if (!current?.sentAt || !previous?.sentAt) return false;
+
+    return !this.isSameDay(current.sentAt, previous.sentAt);
   }
 
-  // Спрощений трекер
-  trackByMsgId = (_: number, msg: Message) => msg.id;
+  formatSeparatorDate(value: string | Date): string {
+    const date = new Date(value);
+    const now = new Date();
 
-  // ✅ 2. Виправлений метод
-  // Ми приймаємо messageId як аргумент (який прийшов від бульбашки через $event)
-  // І просто передаємо його далі батькові.
-  onDelete(messageId: string): void {
-    this.deleteRequest.emit(messageId);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const diffMs = today.getTime() - target.getTime();
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffDays === 0) return 'Сьогодні';
+    if (diffDays === 1) return 'Вчора';
+
+    const sameYear = now.getFullYear() === date.getFullYear();
+
+    return new Intl.DateTimeFormat('uk-UA', {
+      day: 'numeric',
+      month: 'long',
+      ...(sameYear ? {} : { year: 'numeric' })
+    }).format(date);
+  }
+
+  private isSameDay(a: string | Date, b: string | Date): boolean {
+    const dateA = new Date(a);
+    const dateB = new Date(b);
+
+    return (
+      dateA.getFullYear() === dateB.getFullYear() &&
+      dateA.getMonth() === dateB.getMonth() &&
+      dateA.getDate() === dateB.getDate()
+    );
+  }
+
+  private scrollToBottom(smooth = false): void {
+    if (!this.scrollBox) return;
+
+    const el = this.scrollBox.nativeElement;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
   }
 }

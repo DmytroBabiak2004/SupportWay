@@ -1,174 +1,83 @@
-/* chat.component.scss */
-
-// Розтягуємо компонент на весь екран
-:host {
-  display: block;
-  height: 100vh; /* Висота екрану */
-  overflow: hidden; /* Щоб не було скролу сторінки, тільки всередині блоків */
-}
-
-.chat-wrapper {
+.chat-page {
   display: flex;
-  height: 100%;
-  width: 100%;
-  background-color: #fff;
+  height: calc(100vh - 60px);
+  overflow: hidden;
   position: relative;
+  background: var(--bg);
 }
 
-/* --- ЛОГІКА ДЛЯ SIDEBAR (Слот) --- */
-.sidebar-slot {
-  width: 320px; /* Ширина на десктопі */
-  height: 100%;
-  border-right: 1px solid #dfe1e5;
-  flex-shrink: 0; /* Не стискати */
-  z-index: 2;
-}
-
-/* --- ЛОГІКА ДЛЯ CHAT WINDOW (Основна частина) --- */
-.chat-window {
-  flex: 1; /* Займає все вільне місце */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0; /* Хак для flexbox, щоб контент не розпирав контейнер */
-  background-color: #fff;
-  z-index: 1;
-}
-
-/* =========================================
-   АДАПТИВ (MOBILE) - max-width: 768px
-   ========================================= */
-@media (max-width: 768px) {
-
-  /* 1. ЗА ЗАМОВЧУВАННЯМ (Чат не вибрано) */
-  .sidebar-slot {
-    width: 100%; /* Сайдбар на весь екран */
-    display: block;
-  }
-
-  .chat-window {
-    display: none; /* Ховаємо вікно чату */
-    position: absolute; /* Або fixed, щоб перекривав */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* 2. КОЛИ ЧАТ ВІДКРИТО (Додається клас .chat-opened) */
-  .chat-wrapper.chat-opened {
-
-    /* Ховаємо сайдбар */
-    .sidebar-slot {
-      display: none;
-    }
-
-    /* Показуємо чат на весь екран */
-    .chat-window {
-      display: flex;
-      z-index: 10; /* Поверх усього */
-    }
-  }
-}
-/* --- chat.component.scss --- */
-
-// 1. Глобальні налаштування для компонента
-:host {
-  display: block;
-  height: 100vh; /* На весь екран */
-  width: 100vw;
-  overflow: hidden; /* Ніяких скролів сторінки */
-}
-
-.chat-wrapper {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  background-color: #fff;
-  position: relative;
-}
-
-/* --- САЙДБАР (Обгортка) --- */
-/* Ми стилізуємо саме тег компонента */
+/* ===== SIDEBAR ===== */
 app-chat-sidebar {
-  width: 360px; /* Фіксована ширина */
+  width: 320px;
+  flex-shrink: 0;
   height: 100%;
   border-right: 1px solid #e5e5e5;
-  flex-shrink: 0; /* Не стискається */
-  z-index: 2;
-  display: block; /* Важливо для компонента */
+  background: #fff;
 }
 
-/* --- ВІКНО ЧАТУ (Обгортка) --- */
-.chat-window {
-  flex: 1; /* Займає все вільне місце */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0;
-  background-color: #fff;
-  z-index: 1;
-}
-
-/* --- АДАПТИВ (Мобільний) --- */
-@media (max-width: 768px) {
-
-  /* 1. Стандартний стан (Список чатів) */
-  app-chat-sidebar {
-    width: 100%; /* На всю ширину */
-  }
-
-  .chat-window {
-    display: none; /* Чат схований */
-  }
-
-  /* 2. Стан "Чат відкрито" (додається клас .chat-opened) */
-  .chat-wrapper.chat-opened {
-
-    app-chat-sidebar {
-      display: none; /* Ховаємо список */
-    }
-
-    .chat-window {
-      display: flex; /* Показуємо чат */
-      width: 100%;
-    }
-  }
-}
-/* chat.component.scss */
-
-// Варіант 1: Якщо ви знаєте висоту навігації (наприклад, 64px)
-:host {
-  display: block;
-  // Віднімаємо висоту навігації від висоти екрану
-  height: calc(100vh - 64px);
-  width: 100%;
-  overflow: hidden;
-}
-
-// Варіант 2 (Кращий): Якщо батьківський контейнер (app-root) вже використовує flex
-/*
-:host {
-  display: flex;
-  flex-direction: column;
-  height: 100%; // Просто заповнюємо доступне місце
-  overflow: hidden;
-}
-*/
-
-.chat-wrapper {
-  display: flex;
-  width: 100%;
-  height: 100%; // Важливо!
-  background: #f0f2f5;
-  // Або додайте сюди картинку-фон, як у Telegram
-  // background-image: url('assets/chat-bg-pattern.png');
-}
-
-.chat-window {
+/* ===== MAIN CHAT ===== */
+.chat-main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
   height: 100%;
-  min-height: 0; // Магічна властивість для Flexbox, щоб скрол працював
+}
+
+/* ===== CHILDREN ===== */
+app-chat-header {
+  flex: 0 0 auto;
+}
+
+app-message-list {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+app-chat-composer {
+  flex: 0 0 auto;
+}
+
+/* ===================================== */
+/* 📱 MOBILE */
+/* ===================================== */
+
+@media (max-width: 768px) {
+
+  .chat-page {
+    position: relative;
+  }
+
+  /* Sidebar займає весь екран */
+  app-chat-sidebar {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    z-index: 10;
+    border-right: none;
+  }
+
+  /* Chat поверх */
+  .chat-main {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    background: #fff;
+    z-index: 20;
+
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+
+  /* 🔥 КОЛИ ЧАТ ВІДКРИТИЙ */
+  .chat-page.chat-opened {
+    .chat-main {
+      transform: translateX(0);
+    }
+
+    app-chat-sidebar {
+      pointer-events: none;
+    }
+  }
 }

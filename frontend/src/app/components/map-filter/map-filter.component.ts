@@ -1,5 +1,5 @@
 import {
-  Component, Output, EventEmitter, signal, computed, effect, inject, OnInit
+  Component, OnInit, Output, EventEmitter, inject, signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,46 +17,42 @@ import { MapFilterParams, SupportTypeDto } from '../../models/map.models';
 export class MapFilterComponent implements OnInit {
   @Output() filtersChanged = new EventEmitter<MapFilterParams>();
 
-  private readonly http = inject(HttpClient);
+  private http = inject(HttpClient);
 
-  // Типи підтримки з бекенду (SupportTypesController вже існує)
-  readonly supportTypes    = signal<SupportTypeDto[]>([]);
-  readonly selectedTypeId  = signal<string | undefined>(undefined);
-  readonly isActive        = signal<boolean | undefined>(true);
-  readonly region          = signal('');
-  readonly maxTarget       = signal<number | undefined>(undefined);
-  readonly minCollected    = signal<number | undefined>(undefined);
+  supportTypes: SupportTypeDto[] = [];
+  loadingTypes = true;
 
-  // computed збирає всі сигнали в один об'єкт фільтра
-  readonly currentFilters = computed<MapFilterParams>(() => ({
-    supportTypeId: this.selectedTypeId(),
-    isActive:      this.isActive(),
-    region:        this.region() || undefined,
-    maxTarget:     this.maxTarget(),
-    minCollected:  this.minCollected()
-  }));
-
-  constructor() {
-
-    effect(() => {
-      this.filtersChanged.emit(this.currentFilters());
-    });
-  }
+  // filter state
+  selectedTypeId: string = '';
+  isActive: string = '';     // '' | 'true' | 'false'
+  region: string = '';
+  maxTarget: number | null = null;
+  minCollected: number | null = null;
 
   ngOnInit(): void {
-        this.http.get<SupportTypeDto[]>(`${environment.apiUrl}/supporttypes`)
-      .subscribe(types => this.supportTypes.set(types));
+    this.http.get<SupportTypeDto[]>(`${environment.apiUrl}/SupportTypes`)
+      .subscribe({
+        next: types => { this.supportTypes = types; this.loadingTypes = false; },
+        error: () => { this.loadingTypes = false; }
+      });
   }
 
-  toggleType(id: string): void {
-    this.selectedTypeId.set(this.selectedTypeId() === id ? undefined : id);
+  applyFilters(): void {
+    const params: MapFilterParams = {};
+    if (this.selectedTypeId) params.supportTypeId = this.selectedTypeId;
+    if (this.isActive !== '') params.isActive = this.isActive === 'true';
+    if (this.region.trim()) params.region = this.region.trim();
+    if (this.maxTarget != null) params.maxTarget = this.maxTarget;
+    if (this.minCollected != null) params.minCollected = this.minCollected;
+    this.filtersChanged.emit(params);
   }
 
   resetFilters(): void {
-    this.selectedTypeId.set(undefined);
-    this.isActive.set(true);
-    this.region.set('');
-    this.maxTarget.set(undefined);
-    this.minCollected.set(undefined);
+    this.selectedTypeId = '';
+    this.isActive       = '';
+    this.region         = '';
+    this.maxTarget      = null;
+    this.minCollected   = null;
+    this.filtersChanged.emit({});
   }
 }
