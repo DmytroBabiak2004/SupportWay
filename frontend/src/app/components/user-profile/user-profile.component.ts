@@ -1,24 +1,23 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, of } from 'rxjs';
+import { Subject, of, Observable } from 'rxjs';
+
 import { finalize, takeUntil, switchMap, tap, catchError } from 'rxjs/operators';
 
-// Твої сервіси
 import { ProfileService } from '../../services/profile.service';
 import { AuthService } from '../../services/auth.service';
 import { FollowService } from '../../services/follow.service';
 import { ChatService } from '../../services/chat.service';
 import { RatingService } from '../../services/rating.service';
-
-// Твої моделі
 import { Profile } from '../../models/profile.model';
 
-// Дочірні компоненти
 import { ProfileCardComponent } from './profile-card/profile-card.component';
 import { ProfileHeatmapComponent } from './profile-heatmap/profile-heatmap.component';
 import { ProfileRadarChartComponent } from './profile-radar-chart/profile-radar-chart.component';
 import { ProfileBadgesComponent } from './profile-badges/profile-badges.component';
+import { FollowModalComponent } from './follow-modal/follow-modal.component';
+import { VerificationModalComponent } from './verification-modal/verification-modal.component';
 
 @Component({
   selector: 'app-user-profile',
@@ -30,19 +29,25 @@ import { ProfileBadgesComponent } from './profile-badges/profile-badges.componen
     ProfileCardComponent,
     ProfileHeatmapComponent,
     ProfileRadarChartComponent,
-    ProfileBadgesComponent
+    ProfileBadgesComponent,
+    FollowModalComponent,
+    VerificationModalComponent,
   ]
 })
 export class UserProfileComponent implements OnInit, OnDestroy {
   profile?: Profile;
   currentUserId?: string;
 
-  loading = false;
+  loading           = false;
   savingDescription = false;
-  uploadingPhoto = false;
-  isLoadingFollow = false;
-  isFollowing = false;
+  uploadingPhoto    = false;
+  isLoadingFollow   = false;
+  isFollowing       = false;
   error?: string;
+
+  showFollowModal       = false;
+  followModalMode: 'followers' | 'following' = 'followers';
+  showVerificationModal = false;
 
   private destroy$ = new Subject<void>();
 
@@ -57,165 +62,126 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // 1. Отримуємо дані про поточного юзера
     this.authService.getUserInfo$()
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => this.currentUserId = user?.id);
 
-    // 2. Слідкуємо за параметрами URL
     this.route.paramMap.pipe(
-      tap(() => {
-        this.loading = true;
-        this.error = undefined;
-      }),
+      tap(() => { this.loading = true; this.error = undefined; }),
       switchMap(params => {
         const userId = params.get('userId');
         return this.profileService.getProfile(userId ?? undefined).pipe(
-          catchError(err => {
-            this.error = 'Профіль не знайдено';
-            return of(undefined);
-          })
+          catchError(() => { this.error = 'Профіль не знайдено'; return of(undefined); })
         );
       }),
       takeUntil(this.destroy$)
     ).subscribe(p => {
       this.profile = p;
       this.loading = false;
-
-      if (p) {
-        // 3. Якщо профіль не мій, перевіряємо чи я підписаний
-        if (!this.isOwnProfile) {
-          this.checkFollowStatus(p.userId);
-        }
-      }
+      if (p && !this.isOwnProfile) this.checkFollowStatus(p.userId);
     });
   }
 
-  // --- Гетери ---
-
   get isOwnProfile(): boolean {
-    if (!this.profile || !this.currentUserId) return false;
-    return String(this.profile.userId) === String(this.currentUserId);
+    return !!this.profile && !!this.currentUserId &&
+      String(this.profile.userId) === String(this.currentUserId);
   }
-
-  // --- Приватні методи ---
 
   private checkFollowStatus(targetUserId: string): void {
     this.followService.isFollowing(targetUserId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(status => this.isFollowing = status);
+      .subscribe(s => this.isFollowing = s);
   }
-
-  // --- Обробники подій від <app-profile-card> ---
 
   onPhotoSelected(e: Event): void {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-
     this.uploadingPhoto = true;
     this.profileService.updatePhoto(file)
       .pipe(finalize(() => this.uploadingPhoto = false))
       .subscribe({
-        next: () => {
-          const currentId = this.route.snapshot.paramMap.get('userId');
-          // Оновлюємо профіль після завантаження
-          this.profileService.getProfile(currentId ?? undefined).subscribe(p => this.profile = p);
-        },
+        next: () => this.reloadProfile(),
         error: () => this.error = 'Помилка завантаження фото'
       });
   }
 
   saveDescription(text: string): void {
     this.savingDescription = true;
-
     this.profileService.updateDescription(text)
       .pipe(finalize(() => this.savingDescription = false))
       .subscribe({
-        next: () => {
-          if (this.profile) this.profile.description = text;
-        },
+        next: () => { if (this.profile) this.profile.description = text; },
         error: () => this.error = 'Не вдалося зберегти опис'
       });
   }
 
   toggleFollow(): void {
     if (!this.profile || this.isLoadingFollow || this.isOwnProfile) return;
-
     this.isLoadingFollow = true;
+
     const targetId = this.profile.userId;
 
-    if (this.isFollowing) {
-      this.followService.unfollow(targetId)
-        .pipe(finalize(() => this.isLoadingFollow = false))
-        .subscribe({
-          next: () => {
-            this.isFollowing = false;
-            if (this.profile) this.profile.followersCount--;
-          },
-          error: () => this.error = 'Не вдалося скасувати підписку'
-        });
-    } else {
-      this.followService.follow(targetId)
-        .pipe(finalize(() => this.isLoadingFollow = false))
-        .subscribe({
-          next: () => {
-            this.isFollowing = true;
-            if (this.profile) this.profile.followersCount++;
-          },
-          error: () => this.error = 'Не вдалося підписатися'
-        });
-    }
+    // ЯВНО вказуємо тип Observable<unknown>, щоб уникнути Union Type помилок
+    const action$: Observable<unknown> = this.isFollowing
+      ? this.followService.unfollow(targetId)
+      : this.followService.follow(targetId);
+
+    action$.pipe(
+      finalize(() => this.isLoadingFollow = false),
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        const delta = this.isFollowing ? -1 : 1;
+        this.isFollowing = !this.isFollowing;
+        if (this.profile) this.profile.followersCount += delta;
+      },
+      error: () => { // Прибрали (err: any), якщо помилка ніде не використовується
+        this.error = 'Не вдалося виконати дію';
+      }
+    });
+    // Жодних `as any` більше не потрібно!
   }
-
   sendMessage(): void {
-    const targetUserId = this.profile?.userId;
-    if (!targetUserId || !this.currentUserId) return;
-
+    const targetId = this.profile?.userId;
+    if (!targetId || !this.currentUserId) return;
     this.loading = true;
-
-    this.chatService.createChat(this.currentUserId, targetUserId)
-      .pipe(
-        finalize(() => this.loading = false),
-        takeUntil(this.destroy$)
-      )
+    this.chatService.createOrGetChat(this.currentUserId, targetId)
+      .pipe(finalize(() => this.loading = false), takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.router.navigate(['/chat']);
-        },
-        error: (err) => {
-          this.error = 'Не вдалося відкрити діалог';
-          console.error(err);
-        }
+        next: chat => this.router.navigate(['/chat'], { queryParams: { chatId: chat.id } }),
+        error: () => this.error = 'Не вдалося відкрити діалог'
       });
   }
 
   setRate(value: number): void {
-    if (!this.profile || this.isOwnProfile || this.loading) return;
-
+    if (!this.profile || this.isOwnProfile) return;
     this.ratingService.rateProfile(this.profile.profileId, value)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (res) => {
-          if (this.profile) {
-            this.profile.rating = res.averageRating;
-          }
-        },
-        error: (err) => {
-          this.error = 'Не вдалося зберегти оцінку';
-          console.error(err);
-        }
+        next: res => { if (this.profile) this.profile.rating = res.averageRating; },
+        error: () => this.error = 'Не вдалося зберегти оцінку'
       });
   }
 
   onLogout(): void {
-    if (confirm('Ви впевнені, що хочете вийти?')) {
+    if (confirm('Вийти з акаунту?')) {
       this.authService.logout();
       this.router.navigate(['/login']);
     }
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  openFollowers(): void { this.followModalMode = 'followers'; this.showFollowModal = true; }
+  openFollowing(): void { this.followModalMode = 'following'; this.showFollowModal = true; }
+
+  onFollowCountChanged(): void { this.reloadProfile(); }
+
+  openVerificationModal(): void { this.showVerificationModal = true; }
+
+  reloadProfile(): void {
+    const id = this.route.snapshot.paramMap.get('userId');
+    this.profileService.getProfile(id ?? undefined)
+      .subscribe(p => { if (p) this.profile = p; });
   }
+
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }

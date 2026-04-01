@@ -1,0 +1,112 @@
+<div class="admin-page">
+  <div class="admin-header">
+    <div>
+      <h1>Заявки на верифікацію</h1>
+      <p>Управління профілями волонтерів, військових та користувачів</p>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="admin-toolbar">
+    <select class="admin-select" [(ngModel)]="statusFilter" (ngModelChange)="filterByStatus()">
+      <option value="">Всі заявки</option>
+      <option [value]="0">Очікують</option>
+      <option [value]="1">Схвалені</option>
+      <option [value]="2">Відхилені</option>
+    </select>
+    <button class="admin-refresh-btn" (click)="load()">↻ Оновити</button>
+  </div>
+
+  <div class="admin-success" *ngIf="successMsg">{{ successMsg }}</div>
+  <div class="admin-error" *ngIf="error">{{ error }}</div>
+
+  <!-- Loading -->
+  <div class="admin-loading" *ngIf="loading"><span class="admin-spinner"></span></div>
+
+  <!-- Table -->
+  <div class="admin-table-wrap" *ngIf="!loading">
+    <table class="admin-table" *ngIf="filtered.length > 0">
+      <thead>
+        <tr>
+          <th>Користувач</th>
+          <th>Тип</th>
+          <th>Статус</th>
+          <th>Дата</th>
+          <th>Дії</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of filtered" [class.row-pending]="r.status === 0">
+          <td class="td-user">
+            <div class="user-cell">
+              <div class="user-av">
+                <img *ngIf="r.photoBase64" [src]="profileService.getAvatarSrc(r.photoBase64)" [alt]="r.username">
+                <span *ngIf="!r.photoBase64">{{ r.username?.[0]?.toUpperCase() }}</span>
+              </div>
+              <span class="user-name">{{'@' + r.username }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="type-badge">
+              {{ ICONS[r.verificationType] }} {{ LABELS[r.verificationType] }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="statusClass(r.status)">{{ statusLabel(r.status) }}</span>
+          </td>
+          <td class="td-date">{{ r.createdAt | date:'dd.MM.yy' }}</td>
+          <td>
+            <button class="action-btn" (click)="openDetail(r)">Переглянути →</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="admin-empty" *ngIf="filtered.length === 0">
+      <p>Заявок не знайдено</p>
+    </div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="detail-backdrop" *ngIf="selectedRequest" (click)="selectedRequest = null">
+  <div class="detail-panel" (click)="$event.stopPropagation()">
+    <div class="detail-header">
+      <h3>Заявка від {{'@' + selectedRequest.username }}</h3>
+      <button class="detail-close" (click)="selectedRequest = null">✕</button>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-row">
+        <span class="detail-label">Тип:</span>
+        <span>{{ ICONS[selectedRequest.verificationType] }} {{ LABELS[selectedRequest.verificationType] }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Статус:</span>
+        <span class="status-badge" [ngClass]="statusClass(selectedRequest.status)">
+          {{ statusLabel(selectedRequest.status) }}
+        </span>
+      </div>
+      <div class="detail-row" *ngIf="selectedRequest.notes">
+        <span class="detail-label">Пояснення:</span>
+        <p class="detail-notes">{{ selectedRequest.notes }}</p>
+      </div>
+
+      <label class="detail-label">Коментар адміністратора</label>
+      <textarea class="detail-textarea" rows="3" [(ngModel)]="adminComment"
+                placeholder="Опціональний коментар для користувача..."></textarea>
+
+      <div class="detail-actions" *ngIf="selectedRequest.status === 0">
+        <button class="btn-approve" (click)="decide(true)" [disabled]="processing">
+          ✓ Схвалити
+        </button>
+        <button class="btn-reject" (click)="decide(false)" [disabled]="processing">
+          ✕ Відхилити
+        </button>
+      </div>
+      <p class="detail-decided" *ngIf="selectedRequest.status !== 0">
+        Рішення прийнято {{ selectedRequest.decidedAt | date:'dd.MM.yyyy HH:mm' }}
+      </p>
+    </div>
+  </div>
+</div>

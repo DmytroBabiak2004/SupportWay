@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common'; // DatePipe вже всередині
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Profile } from '../../../models/profile.model';
 import { ProfileService } from '../../../services/profile.service';
+import { VERIFICATION_ICONS, VERIFICATION_COLORS, VERIFICATION_LABELS } from '../../../models/verification.model';
 
 @Component({
   selector: 'app-profile-card',
@@ -12,7 +13,6 @@ import { ProfileService } from '../../../services/profile.service';
   styleUrls: ['./profile-card.component.scss']
 })
 export class ProfileCardComponent {
-
   @Input({ required: true }) profile!: Profile;
   @Input() loading = false;
   @Input() isOwnProfile = false;
@@ -20,39 +20,57 @@ export class ProfileCardComponent {
   @Input() uploadingPhoto = false;
   @Input() savingDescription = false;
 
-  @Output() photoSelected = new EventEmitter<Event>();
-  @Output() rateProfile = new EventEmitter<number>();
-  @Output() descriptionSaved = new EventEmitter<string>();
-  @Output() followToggled = new EventEmitter<void>();
-  @Output() messageSent = new EventEmitter<void>();
-  @Output() loggedOut = new EventEmitter<void>();
-  @Output() settingsNavigated = new EventEmitter<void>();
+  @Output() photoSelected     = new EventEmitter<Event>();
+  @Output() rateProfile       = new EventEmitter<number>();
+  @Output() descriptionSaved  = new EventEmitter<string>();
+  @Output() followToggled     = new EventEmitter<void>();
+  @Output() messageSent       = new EventEmitter<void>();
+  @Output() loggedOut         = new EventEmitter<void>();
+  @Output() followersClicked  = new EventEmitter<void>();
+  @Output() followingClicked  = new EventEmitter<void>();
+  @Output() verifyRequested   = new EventEmitter<void>();
 
   isEditingDescription = false;
   descriptionDraft = '';
-
-  /** Чи розгорнуто повний опис профілю */
   bioExpanded = false;
-
-  /** Чи відкрите dropdown-меню налаштувань */
   settingsOpen = false;
+
+  readonly ICONS   = VERIFICATION_ICONS;
+  readonly COLORS  = VERIFICATION_COLORS;
+  readonly LABELS  = VERIFICATION_LABELS;
 
   constructor(public profileService: ProfileService) {}
 
   get initials(): string {
     if (!this.profile) return '?';
-    const first = this.profile.name?.trim()[0] || '';
-    const last = this.profile.fullName?.trim()[0] || '';
-    if (first || last) return (first + last).toUpperCase();
+    const f = this.profile.name?.trim()[0] || '';
+    const l = this.profile.fullName?.trim()[0] || '';
+    if (f || l) return (f + l).toUpperCase();
     return (this.profile.username?.[0] || '?').toUpperCase();
   }
 
-  // --- Управління описом ---
+  get verificationIcon(): string {
+    return this.profile?.isVerified && this.profile.verifiedAs
+      ? this.ICONS[this.profile.verifiedAs] ?? ''
+      : '';
+  }
+
+  get verificationColor(): string {
+    return this.profile?.isVerified && this.profile.verifiedAs
+      ? this.COLORS[this.profile.verifiedAs] ?? ''
+      : '';
+  }
+
+  get verificationLabel(): string {
+    return this.profile?.isVerified && this.profile.verifiedAs
+      ? this.LABELS[this.profile.verifiedAs] ?? ''
+      : '';
+  }
 
   startEditDescription(): void {
-    this.descriptionDraft = this.profile?.description ?? '';
-    this.isEditingDescription = true;
-    this.bioExpanded = false; // скидаємо розгортку при переході в режим редагування
+    this.descriptionDraft      = this.profile?.description ?? '';
+    this.isEditingDescription  = true;
+    this.bioExpanded           = false;
   }
 
   cancelEditDescription(): void {
@@ -61,49 +79,16 @@ export class ProfileCardComponent {
   }
 
   saveDescription(): void {
-    if (this.descriptionDraft !== this.profile.description) {
+    if (this.descriptionDraft !== this.profile.description)
       this.descriptionSaved.emit(this.descriptionDraft);
-    }
     this.isEditingDescription = false;
   }
 
-  // --- Налаштування ---
-
-  /**
-   * Перемикає dropdown налаштувань.
-   * Закривається автоматично при кліку поза компонентом —
-   * рекомендовано додати (clickOutside) або HostListener у батьківському компоненті.
-   */
-  toggleSettings(): void {
-    this.settingsOpen = !this.settingsOpen;
-  }
-
-  navigateToSettings(): void {
-    this.settingsOpen = false;
-    this.settingsNavigated.emit();
-  }
-
-  // --- Методи-обгортки для подій з HTML ---
-
-  onPhotoSelected(event: Event): void {
-    this.photoSelected.emit(event);
-  }
-
-  setRate(star: number): void {
-    if (this.isOwnProfile) return;
-    this.rateProfile.emit(star);
-  }
-
-  toggleFollow(): void {
-    this.followToggled.emit();
-  }
-
-  sendMessage(): void {
-    this.messageSent.emit();
-  }
-
-  onLogout(): void {
-    this.settingsOpen = false;
-    this.loggedOut.emit();
-  }
+  toggleSettings(): void { this.settingsOpen = !this.settingsOpen; }
+  onPhotoSelected(event: Event): void { this.photoSelected.emit(event); }
+  setRate(star: number): void { if (!this.isOwnProfile) this.rateProfile.emit(star); }
+  toggleFollow(): void { this.followToggled.emit(); }
+  sendMessage(): void { this.messageSent.emit(); }
+  onLogout(): void { this.settingsOpen = false; this.loggedOut.emit(); }
+  requestVerify(): void { this.settingsOpen = false; this.verifyRequested.emit(); }
 }

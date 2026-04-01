@@ -3,11 +3,10 @@
     <div class="spinner-xl"></div>
   </div>
 
-  <div class="error-banner" *ngIf="error">
-    {{ error }}
-  </div>
+  <div class="error-banner" *ngIf="error">{{ error }}</div>
 
   <div class="profile-container" *ngIf="!loading && profile">
+
     <section class="profile-top-section">
       <app-profile-card
         [profile]="profile"
@@ -20,25 +19,43 @@
         (descriptionSaved)="saveDescription($event)"
         (followToggled)="toggleFollow()"
         (messageSent)="sendMessage()"
-        (loggedOut)="onLogout()">
+        (loggedOut)="onLogout()"
+        (followersClicked)="openFollowers()"
+        (followingClicked)="openFollowing()"
+        (verifyRequested)="openVerificationModal()">
       </app-profile-card>
     </section>
 
     <section class="analytics-section" *ngIf="profile.profileId">
-
       <div class="analytics-grid">
         <div class="analytics-card heatmap-card">
           <app-profile-heatmap [profileId]="profile.profileId"></app-profile-heatmap>
         </div>
-
         <div class="analytics-card badges-card">
           <app-profile-badges [profileId]="profile.profileId"></app-profile-badges>
         </div>
-
         <div class="analytics-card radar-card full-width">
           <app-profile-radar-chart [profileId]="profile.profileId"></app-profile-radar-chart>
         </div>
       </div>
     </section>
+
   </div>
 </main>
+
+<!-- Followers / Following Modal -->
+<app-follow-modal
+  *ngIf="showFollowModal && profile"
+  [userId]="profile.userId"
+  [mode]="followModalMode"
+  [isOwnProfile]="isOwnProfile"
+  (closed)="showFollowModal = false"
+  (countChanged)="onFollowCountChanged()">
+</app-follow-modal>
+
+<!-- Verification Modal -->
+<app-verification-modal
+  *ngIf="showVerificationModal"
+  (closed)="showVerificationModal = false"
+  (submitted)="reloadProfile()">
+</app-verification-modal>

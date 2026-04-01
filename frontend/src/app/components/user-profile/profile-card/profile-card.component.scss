@@ -702,3 +702,42 @@
     transition-duration: .01ms !important;
   }
 }
+
+/* ── New additions ── */
+.verify-chip {
+  font-size: 15px;
+  margin-left: 4px;
+  cursor: default;
+}
+
+.stat-item.clickable {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: var(--r-2);
+  transition: background var(--dur-1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &:hover { background: var(--item-hover); }
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background var(--dur-1);
+
+  &:hover { background: var(--item-hover); }
+  &.danger { color: #ef4444; &:hover { background: rgba(239,68,68,.08); } }
+}
+
+.settings-divider { height: 1px; background: var(--border); margin: 4px 0; }

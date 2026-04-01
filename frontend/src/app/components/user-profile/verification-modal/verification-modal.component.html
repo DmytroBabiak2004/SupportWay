@@ -1,0 +1,72 @@
+<div class="vm-backdrop" (click)="closed.emit()">
+  <div class="vm-modal" (click)="$event.stopPropagation()">
+
+    <div class="vm-header">
+      <h3>Верифікація профілю</h3>
+      <button class="vm-close" (click)="closed.emit()" aria-label="Закрити">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="vm-body">
+      <!-- Loading -->
+      <div class="vm-loading" *ngIf="loading">
+        <span class="vm-spinner"></span>
+      </div>
+
+      <!-- Success -->
+      <div class="vm-success" *ngIf="success">
+        <div class="vm-success-icon">✓</div>
+        <p>Заявку подано! Дякуємо.</p>
+      </div>
+
+      <ng-container *ngIf="!loading && !success">
+
+        <!-- Existing request -->
+        <div class="vm-existing" *ngIf="existingRequest">
+          <div class="vm-existing-title">Остання заявка</div>
+          <div class="vm-existing-row">
+            <span class="vm-status-badge" [ngClass]="statusClass">{{ statusLabel }}</span>
+          </div>
+          <p class="vm-admin-comment" *ngIf="existingRequest.adminComment">
+            💬 {{ existingRequest.adminComment }}
+          </p>
+          <p class="vm-hint" *ngIf="existingRequest.status !== 2">
+            Нову заявку можна подати лише після відхилення поточної.
+          </p>
+        </div>
+
+        <!-- Submit form -->
+        <ng-container *ngIf="canSubmitNew">
+          <p class="vm-desc">Оберіть тип верифікації:</p>
+
+          <div class="vm-types">
+            <label class="vm-type-card" *ngFor="let t of types" [class.selected]="selectedType === t.value">
+              <input type="radio" name="vtype" [value]="t.value" [(ngModel)]="selectedType" hidden>
+              <span class="vm-type-icon">{{ t.icon }}</span>
+              <div>
+                <span class="vm-type-label">{{ t.label }}</span>
+                <span class="vm-type-desc">{{ t.desc }}</span>
+              </div>
+            </label>
+          </div>
+
+          <label class="vm-label">Пояснення (необов'язково)</label>
+          <textarea class="vm-textarea" rows="3" maxlength="500"
+                    placeholder="Опишіть вашу роль або надайте посилання..."
+                    [(ngModel)]="notes"></textarea>
+
+          <p class="vm-error" *ngIf="error">{{ error }}</p>
+
+          <button class="vm-submit-btn" (click)="submit()" [disabled]="isSubmitting">
+            <span class="vm-spinner small" *ngIf="isSubmitting"></span>
+            {{ isSubmitting ? 'Надсилаємо...' : 'Подати заявку' }}
+          </button>
+        </ng-container>
+
+      </ng-container>
+    </div>
+  </div>
+</div>
