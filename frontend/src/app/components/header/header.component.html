@@ -32,14 +32,7 @@
           <a (click)="handleNavClick()" routerLink="/posts" routerLinkActive="active">Публікації</a>
         </li>
         <li class="nav-item dropdown" [class.open]="isDropdownOpen">
-          <a class="dropdown-toggle" (click)="toggleDropdown($event)">
-            Підписки <span class="arrow">▼</span>
-          </a>
-          <ul class="dropdown-menu">
-            <li><a (click)="handleNavClick()" routerLink="/chairs">Крісла</a></li>
-            <li><a (click)="handleNavClick()" routerLink="/tables">Столи</a></li>
-          </ul>
-        </li>
+          <a (click)="handleNavClick()" routerLink="/admin">Верифікація</a></li>
       </ul>
 
       <div class="mini-profile" *ngIf="currentUser && userProfile">

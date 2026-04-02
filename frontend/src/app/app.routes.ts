@@ -8,6 +8,7 @@ import {UserProfileComponent} from './components/user-profile/user-profile.compo
 import {PostsComponent} from './components/posts/posts.component';
 import {HelpRequestsComponent} from './components/help-request/help-requests.component';
 import {MapComponent} from './components/map/map.component';
+import {AdminVerificationComponent} from './components/admin/admin-verification.component';
 
 export const routes: Routes = [
   { path: 'login', component: AuthorizationComponent },
@@ -17,7 +18,7 @@ export const routes: Routes = [
   { path: 'profile/:userId', component: UserProfileComponent, canActivate: [AuthGuard] },
   { path: 'requests', component: HelpRequestsComponent, canActivate: [AuthGuard] },
   { path: 'map', component: MapComponent, canActivate: [AuthGuard] },
-
+  { path: 'admin', component: AdminVerificationComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', redirectTo: 'home' }
 ];
