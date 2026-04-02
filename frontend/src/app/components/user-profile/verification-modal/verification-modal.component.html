@@ -1,72 +1,122 @@
 <div class="vm-backdrop" (click)="closed.emit()">
   <div class="vm-modal" (click)="$event.stopPropagation()">
 
+    <!-- HEADER -->
     <div class="vm-header">
-      <h3>Верифікація профілю</h3>
-      <button class="vm-close" (click)="closed.emit()" aria-label="Закрити">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-          <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+      <div class="vm-title-wrap">
+        <h3>Верифікація профілю</h3>
+        <p>Підтвердіть свою роль для підвищення довіри</p>
+      </div>
+
+      <button class="vm-close" (click)="closed.emit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M18 6L6 18M6 6l12 12" stroke-width="2"/>
         </svg>
       </button>
     </div>
 
     <div class="vm-body">
-      <!-- Loading -->
+
+      <!-- LOADING -->
       <div class="vm-loading" *ngIf="loading">
         <span class="vm-spinner"></span>
       </div>
 
-      <!-- Success -->
+      <!-- SUCCESS -->
       <div class="vm-success" *ngIf="success">
-        <div class="vm-success-icon">✓</div>
-        <p>Заявку подано! Дякуємо.</p>
+        <div class="vm-success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 6L9 17l-5-5" stroke-width="2"/>
+          </svg>
+        </div>
+        <p>Заявку успішно подано</p>
       </div>
 
       <ng-container *ngIf="!loading && !success">
 
-        <!-- Existing request -->
+        <!-- EXISTING -->
         <div class="vm-existing" *ngIf="existingRequest">
-          <div class="vm-existing-title">Остання заявка</div>
-          <div class="vm-existing-row">
-            <span class="vm-status-badge" [ngClass]="statusClass">{{ statusLabel }}</span>
+          <div class="vm-existing-top">
+            <span class="vm-existing-title">Остання заявка</span>
+            <span class="vm-status-badge" [ngClass]="statusClass">
+              {{ statusLabel }}
+            </span>
           </div>
-          <p class="vm-admin-comment" *ngIf="existingRequest.adminComment">
-            💬 {{ existingRequest.adminComment }}
-          </p>
+
+          <div class="vm-admin-comment" *ngIf="existingRequest.adminComment">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" stroke-width="2"/>
+            </svg>
+            <span>{{ existingRequest.adminComment }}</span>
+          </div>
+
           <p class="vm-hint" *ngIf="existingRequest.status !== 2">
-            Нову заявку можна подати лише після відхилення поточної.
+            Нову заявку можна подати після відхилення
           </p>
         </div>
 
-        <!-- Submit form -->
+        <!-- FORM -->
         <ng-container *ngIf="canSubmitNew">
-          <p class="vm-desc">Оберіть тип верифікації:</p>
+
+          <p class="vm-desc">Оберіть тип:</p>
 
           <div class="vm-types">
-            <label class="vm-type-card" *ngFor="let t of types" [class.selected]="selectedType === t.value">
-              <input type="radio" name="vtype" [value]="t.value" [(ngModel)]="selectedType" hidden>
-              <span class="vm-type-icon">{{ t.icon }}</span>
-              <div>
-                <span class="vm-type-label">{{ t.label }}</span>
-                <span class="vm-type-desc">{{ t.desc }}</span>
+            <label class="vm-type-card"
+                   *ngFor="let t of types"
+                   [class.selected]="selectedType === t.value">
+
+              <input type="radio"
+                     name="type"
+                     [value]="t.value"
+                     [(ngModel)]="selectedType"
+                     hidden>
+
+              <div class="vm-type-icon">
+                <svg *ngIf="t.value === VTYPE.Volunteer" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 2v20M2 12h20" stroke-width="2"/>
+                </svg>
+
+                <svg *ngIf="t.value === VTYPE.Military" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z" stroke-width="2"/>
+                </svg>
+
+                <svg *ngIf="t.value === VTYPE.User" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="12" cy="12" r="9" stroke-width="2"/>
+                  <path d="M8 12l2 2 4-4" stroke-width="2"/>
+                </svg>
               </div>
+
+              <div>
+                <div class="vm-type-label">{{ t.label }}</div>
+                <div class="vm-type-desc">{{ t.desc }}</div>
+              </div>
+
             </label>
           </div>
 
-          <label class="vm-label">Пояснення (необов'язково)</label>
-          <textarea class="vm-textarea" rows="3" maxlength="500"
-                    placeholder="Опишіть вашу роль або надайте посилання..."
-                    [(ngModel)]="notes"></textarea>
+          <label class="vm-label">Пояснення</label>
+
+          <textarea class="vm-textarea"
+                    rows="3"
+                    [(ngModel)]="notes"
+                    placeholder="Опишіть деталі...">
+          </textarea>
 
           <p class="vm-error" *ngIf="error">{{ error }}</p>
 
-          <button class="vm-submit-btn" (click)="submit()" [disabled]="isSubmitting">
-            <span class="vm-spinner small" *ngIf="isSubmitting"></span>
+          <button class="vm-submit-btn"
+                  (click)="submit()"
+                  [disabled]="isSubmitting">
+
+            <span *ngIf="isSubmitting" class="vm-spinner small"></span>
+
             {{ isSubmitting ? 'Надсилаємо...' : 'Подати заявку' }}
           </button>
+
         </ng-container>
 
       </ng-container>
+
     </div>
   </div>
 </div>

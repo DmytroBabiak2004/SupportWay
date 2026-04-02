@@ -1,6 +1,12 @@
 export type VerificationType = 1 | 2 | 3; // 1=Volunteer 2=Military 3=User
 export type VerificationStatus = 0 | 1 | 2; // 0=Pending 1=Approved 2=Rejected
 
+export const VERIFICATION_TYPES = {
+  Volunteer: 1 as VerificationType,
+  Military: 2 as VerificationType,
+  User: 3 as VerificationType
+} as const;
+
 export const VERIFICATION_LABELS: Record<number, string> = {
   1: 'Волонтер',
   2: 'Військовий',

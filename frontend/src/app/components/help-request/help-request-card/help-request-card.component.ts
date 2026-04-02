@@ -41,32 +41,97 @@ export class HelpRequestCardComponent implements OnInit {
   currentUserId = '';
 
   ngOnInit(): void {
+    // Надійна перевірка на null/undefined
     this.likesCount = this.request.likesCount || 0;
     this.commentsCount = this.request.commentsCount || 0;
-    this.isLiked = this.request.isLikedByCurrentUser || false;
+    this.isLiked = !!this.request.isLikedByCurrentUser; // Жорстке приведення до boolean
 
     this.authService.getUserInfo$()
       .pipe(filter(user => !!user))
       .subscribe(user => {
         this.currentUserId = user!.id;
+
+        // Якщо бекенд не повернув статус лайка при завантаженні стрічки,
+        // потрібно смикнути API щоб дізнатись, чи лайкав цей юзер пост.
+        if (this.request.isLikedByCurrentUser === undefined || this.request.isLikedByCurrentUser === null) {
+          this.checkIfUserLiked();
+        }
       });
   }
 
-  openProfile(usernameOrId: string | undefined): void {
-    if (!usernameOrId) return;
-    this.router.navigate(['/profile', usernameOrId]);
+  // Оновлений метод checkIfUserLiked (дублікат видалено)
+  private checkIfUserLiked(): void {
+    if (!this.currentUserId) return;
+
+    // Оновлюємо кількість лайків
+    this.likeService.getLikesCount(this.request.id).subscribe({
+      next: count => this.likesCount = count ?? this.likesCount,
+      error: () => {}
+    });
+
+    // ТУТ ПОТРІБЕН ВИКЛИК: Перевіряємо чи лайкав саме цей юзер.
+    // Якщо в likeService немає методу hasUserLikedPost, його треба додати на бекенді та у сервісі.
+    // this.likeService.hasUserLikedPost(this.request.id, this.currentUserId).subscribe(isLiked => {
+    //    this.isLiked = isLiked;
+    // });
   }
 
-  getInitials(name: string): string {
-    return name ? name[0].toUpperCase() : '?';
+  // Виправлення багу з фото (дублікат видалено)
+  getRequestImageSrc(image?: string | null): string | null {
+    if (!image?.trim()) return null;
+    // Якщо база64 не має префіксу, додаємо його
+    if (image.startsWith('data:image/')) return image;
+    return `data:image/jpeg;base64,${image}`;
+  }
+
+  getInitials(name: string | undefined | null): string {
+    if (!name?.trim()) return '?';
+
+    const parts = name.trim().split(/\s+/).slice(0, 2);
+    return parts.map(p => p[0]?.toUpperCase() || '').join('') || '?';
+  }
+
+  getProfileRouteValue(): string | null {
+    return this.request.authorUserName?.trim()
+      || this.request.userName?.trim()
+      || this.request.userId?.trim()
+      || null;
+  }
+
+  openProfile(routeValue?: string | null): void {
+    const target = routeValue?.trim();
+    if (!target) return;
+
+    this.router.navigate(['/profile', target]);
+  }
+
+  openRequestAuthorProfile(): void {
+    const routeValue = this.getProfileRouteValue();
+    if (!routeValue) return;
+
+    this.router.navigate(['/profile', routeValue]);
   }
 
   get totalRequestedSum(): number {
     if (!this.request.requestItems?.length) return 0;
 
     return this.request.requestItems.reduce((sum, item) => {
-      return sum + (item.quantity * item.unitPrice);
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.unitPrice) || 0;
+      return sum + qty * price;
     }, 0);
+  }
+
+  get collectedAmount(): number {
+    return Number(this.request.totalPayments) || 0;
+  }
+
+  get progressPercent(): number {
+    const total = this.totalRequestedSum;
+    if (!total || total <= 0) return 0;
+
+    const percent = (this.collectedAmount / total) * 100;
+    return Math.max(0, Math.min(percent, 100));
   }
 
   toggleLike(): void {
@@ -94,6 +159,7 @@ export class HelpRequestCardComponent implements OnInit {
 
   toggleComments(): void {
     this.showComments = !this.showComments;
+
     if (this.showComments && this.comments.length === 0) {
       this.loadComments();
     }
@@ -122,7 +188,7 @@ export class HelpRequestCardComponent implements OnInit {
 
     const dto: CreatePostCommentDto = {
       postId: this.request.id,
-      text: this.newCommentText,
+      text: this.newCommentText.trim(),
       requestId: uuidv4()
     };
 

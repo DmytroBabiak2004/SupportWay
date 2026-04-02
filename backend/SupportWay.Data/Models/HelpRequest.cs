@@ -14,7 +14,6 @@
 
         public bool IsActive { get; set; } = true;
 
-        // ── ІСНУЮЧІ (не змінюємо) ──────────────────────────────────────────────
         public ICollection<RequestItem> RequestItems { get; set; } = new List<RequestItem>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     }

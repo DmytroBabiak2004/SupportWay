@@ -75,7 +75,7 @@ export class FollowModalComponent implements OnInit {
 
   openProfile(u: FollowUser): void {
     this.closed.emit();
-    this.router.navigate(['/profile', u.userId]);
+    this.router.navigate(['/profile', u.username]);
   }
 
   removeFollower(u: FollowUser): void {

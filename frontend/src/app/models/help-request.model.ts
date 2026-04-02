@@ -26,6 +26,7 @@ export interface HelpRequest {
   userName: string;
   authorUserName?: string;
   authorPhotoBase64?: string | null;
+  userPhotoBase64?: string | null; // Додай це, якщо бек шле таку назву
 
   likesCount: number;
   commentsCount: number;

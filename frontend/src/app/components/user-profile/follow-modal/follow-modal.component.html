@@ -45,19 +45,24 @@
         </div>
 
         <div class="fm-actions">
-          <button class="fm-action-btn danger"
+          <button type="button"
+                  class="btn ghost danger"
                   *ngIf="isOwnProfile && mode === 'followers' && user.userId !== currentUserId"
-                  (click)="removeFollower(user)">
+                  (click)="removeFollower(user); $event.stopPropagation()">
             Видалити
           </button>
-          <button class="fm-action-btn"
+
+          <button type="button"
+                  class="btn solid unfollow"
                   *ngIf="isOwnProfile && mode === 'following'"
-                  (click)="unfollow(user)">
+                  (click)="unfollow(user); $event.stopPropagation()">
             Відписатись
           </button>
-          <button class="fm-action-btn"
+
+          <button type="button"
+                  class="btn ghost"
                   *ngIf="!isOwnProfile"
-                  (click)="openProfile(user)">
+                  (click)="openProfile(user); $event.stopPropagation()">
             Профіль →
           </button>
         </div>
