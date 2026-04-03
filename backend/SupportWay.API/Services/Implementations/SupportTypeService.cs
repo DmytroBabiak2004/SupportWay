@@ -1,4 +1,4 @@
-﻿using SupportWay.Data.DTOs;
+﻿using SupportWay.API.DTOs;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
 using SupportWay.Services.Interfaces;

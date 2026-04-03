@@ -1,4 +1,4 @@
-﻿using SupportWay.Data.DTOs;
+﻿using SupportWay.API.DTOs;
 using SupportWay.Data.Models;
 using System;
 using System.Collections.Generic;

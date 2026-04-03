@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportWay.Data.DTOs;
+using SupportWay.API.DTOs;
 using System.Security.Claims;
 
 [ApiController]
@@ -11,9 +12,7 @@ public class HelpRequestsController : ControllerBase
     private readonly IHelpRequestService _service;
 
     public HelpRequestsController(IHelpRequestService service)
-    {
-        _service = service;
-    }
+        => _service = service;
 
     [HttpGet("feed")]
     public async Task<IActionResult> GetFeed([FromQuery] int page = 1, [FromQuery] int size = 10)
@@ -35,6 +34,7 @@ public class HelpRequestsController : ControllerBase
         return Ok(list);
     }
 
+    /// <summary>GET /api/HelpRequests/{id} — повертає HelpRequestDto (feed-сумісний)</summary>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -42,11 +42,23 @@ public class HelpRequestsController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
+    /// <summary>
+    /// GET /api/HelpRequests/{id}/details — повна картка для side panel карти.
+    /// AllowAnonymous, бо карта публічна.
+    /// </summary>
+    [HttpGet("{id}/details")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetDetails(Guid id)
+    {
+        var result = await _service.GetHelpRequestDetailsAsync(id);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(
         [FromForm] CreateHelpRequestRequest request,
-        [FromQuery] double? latitude,   // ← додати
-        [FromQuery] double? longitude)  // ← додати
+        [FromQuery] double? latitude,
+        [FromQuery] double? longitude)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
@@ -56,7 +68,6 @@ public class HelpRequestsController : ControllerBase
             Title = request.Title,
             Content = request.Content,
             LocationId = request.LocationId,
-            // Беремо з query якщо є, інакше з form (може бути null)
             Latitude = latitude ?? request.Latitude,
             Longitude = longitude ?? request.Longitude,
             Address = request.Address,
@@ -65,9 +76,9 @@ public class HelpRequestsController : ControllerBase
 
         if (request.Image != null)
         {
-            using var memoryStream = new MemoryStream();
-            await request.Image.CopyToAsync(memoryStream);
-            dto.Image = memoryStream.ToArray();
+            using var ms = new MemoryStream();
+            await request.Image.CopyToAsync(ms);
+            dto.Image = ms.ToArray();
         }
 
         var newId = await _service.CreateHelpRequestAsync(dto, userId);

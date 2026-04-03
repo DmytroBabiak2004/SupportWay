@@ -7,7 +7,7 @@ import { Subject, switchMap, debounceTime, distinctUntilChanged, takeUntil } fro
 import { MapDataService }        from '../../services/map-data.service';
 import { HelpRequestService }    from '../../services/help-request.service';
 import { MapFilterComponent }    from './map-filter/map-filter.component';
-import { DonateModalComponent }  from '../donate-modal/donate-modal.component';
+import { DonateModalComponent }  from '../../dialog/donate-modal/donate-modal.component';
 import { MapMetaPillComponent }      from './map-meta-pill/map-meta-pill.component';
 import { MapSidePanelComponent }     from './map-side-panel/map-side-panel.component';
 import { MapPanelHeaderComponent }   from './map-panel-header/map-panel-header.component';

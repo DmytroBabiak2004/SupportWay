@@ -58,15 +58,16 @@ export class MapFilterComponent implements OnInit {
 
   applyFilters(): void {
     const params: MapFilterParams = {};
-    if (this.selectedTypeId)          params.supportTypeId       = this.selectedTypeId;
-    if (this.isActive !== '')          params.isActive            = this.isActive === 'true';
-    if (this.region.trim())            params.region              = this.region.trim();
-    if (this.search.trim())            params.search              = this.search.trim();
-    if (this.maxTargetAmount != null)  params.maxTargetAmount     = this.maxTargetAmount;
+
+    if (this.selectedTypeId) params.supportTypeId = this.selectedTypeId;
+    if (this.isActive !== '') params.isActive = this.isActive === 'true';
+    if (this.region.trim()) params.region = this.region.trim();
+    if (this.search.trim()) params.search = this.search.trim();
+    if (this.maxTargetAmount != null) params.maxTargetAmount = this.maxTargetAmount;
     if (this.minCollectedAmount != null) params.minCollectedAmount = this.minCollectedAmount;
+
     this.filtersChanged.emit(params);
   }
-
   resetFilters(): void {
     this.selectedTypeId      = '';
     this.isActive            = '';

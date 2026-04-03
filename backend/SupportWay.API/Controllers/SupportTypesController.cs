@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SupportWay.Data.DTOs;
+using SupportWay.API.DTOs;
 using SupportWay.Services.Interfaces;
 
 namespace SupportWay.API.Controllers

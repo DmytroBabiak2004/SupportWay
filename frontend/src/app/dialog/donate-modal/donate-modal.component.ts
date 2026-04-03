@@ -1,5 +1,12 @@
 import {
-  Component, Input, Output, EventEmitter, signal, inject, OnChanges
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  signal,
+  inject,
+  OnChanges,
+  SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,27 +22,18 @@ import { MapMarkerDto } from '../../models/map.models';
   styleUrls: ['./donate-modal.component.scss']
 })
 export class DonateModalComponent implements OnChanges {
-  /**
-   * Для використання з карток (HelpRequest feed)
-   */
   @Input() helpRequest: HelpRequest | null = null;
-
-  /**
-   * Для використання з карти (MapMarkerDto — один маркер = один RequestItem)
-   */
   @Input() request: MapMarkerDto | null = null;
 
   @Output() closed = new EventEmitter<void>();
 
   private readonly paymentService = inject(PaymentService);
 
-  readonly presets      = [200, 500, 1000, 2500, 5000];
-  readonly amount       = signal(500);
-  readonly comment      = signal('');
-  readonly isProcessing = signal(false);
-  readonly error        = signal('');
-
-  // ─── Уніфіковані геттери для обох типів ─────────────────────────────────
+  readonly presets: number[] = [200, 500, 1000, 2500, 5000];
+  readonly amount = signal<number>(500);
+  readonly comment = signal<string>('');
+  readonly isProcessing = signal<boolean>(false);
+  readonly error = signal<string>('');
 
   get title(): string {
     return this.helpRequest?.title ?? this.request?.title ?? '';
@@ -57,44 +55,67 @@ export class DonateModalComponent implements OnChanges {
     return this.helpRequest?.isActive ?? this.request?.isActive ?? false;
   }
 
-  /**
-   * Завжди helpRequestId:
-   * - з HelpRequest: це id самого запиту
-   * - з MapMarkerDto: це helpRequestId (не requestItemId!)
-   */
   get helpRequestId(): string {
     return this.helpRequest?.id ?? this.request?.helpRequestId ?? '';
   }
 
   get percent(): number {
-    if (!this.targetAmount) return 0;
-    return Math.min(100, Math.round(this.collected / this.targetAmount * 100));
+    if (this.targetAmount <= 0) {
+      return 0;
+    }
+
+    const rawPercent = (this.collected / this.targetAmount) * 100;
+    return Math.max(0, Math.min(100, Math.round(rawPercent)));
   }
 
   get canDonate(): boolean {
-    return this.isActive;
+    return this.isActive && !!this.helpRequestId;
   }
 
   get typeLabel(): string {
     if (this.helpRequest?.requestItems?.length) {
-      const types = [...new Set(this.helpRequest.requestItems.map(i => i.supportTypeName))];
-      return types.slice(0, 2).join(', ') || 'Інше';
+      const uniqueTypes: string[] = [];
+
+      for (const item of this.helpRequest.requestItems) {
+        const typeName = item.supportTypeName?.trim();
+
+        if (typeName && !uniqueTypes.includes(typeName)) {
+          uniqueTypes.push(typeName);
+        }
+      }
+
+      if (uniqueTypes.length > 0) {
+        return uniqueTypes.slice(0, 2).join(', ');
+      }
     }
-    if (this.request?.supportTypeName) {
-      return this.request.supportTypeName;
+
+    if (this.request?.supportTypeName?.trim()) {
+      return this.request.supportTypeName.trim();
     }
+
     return 'Інше';
   }
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
     this.error.set('');
     this.isProcessing.set(false);
+    this.comment.set('');
+
+    if (changes['helpRequest'] || changes['request']) {
+      this.amount.set(this.getInitialAmount());
+    }
   }
 
   donate(): void {
-    if (!this.helpRequestId || !this.canDonate) return;
-    if (this.amount() <= 0) {
-      this.error.set('Введіть суму більше 0');
+    if (!this.canDonate) {
+      this.error.set('Цей збір зараз недоступний для донату.');
+      return;
+    }
+
+    const currentAmount = Number(this.amount());
+
+    if (!Number.isFinite(currentAmount) || currentAmount <= 0) {
+      this.error.set('Введіть коректну суму більше 0.');
       return;
     }
 
@@ -103,11 +124,14 @@ export class DonateModalComponent implements OnChanges {
 
     this.paymentService.donate({
       helpRequestId: this.helpRequestId,
-      amount:        this.amount(),
-      comment:       this.comment() || `Донат SupportWay — ${this.title}`
+      amount: currentAmount,
+      comment: this.comment().trim() || `Донат SupportWay — ${this.title}`
     }).subscribe({
-      next: res => {
-        window.open(res.checkoutUrl, '_blank');
+      next: (res) => {
+        if (res?.checkoutUrl) {
+          window.open(res.checkoutUrl, '_blank');
+        }
+
         this.isProcessing.set(false);
         this.closed.emit();
       },
@@ -120,5 +144,18 @@ export class DonateModalComponent implements OnChanges {
 
   close(): void {
     this.closed.emit();
+  }
+
+  private getInitialAmount(): number {
+    if (this.presets.length === 0) {
+      return 100;
+    }
+
+    if (this.targetAmount > 0) {
+      const suggested = Math.min(this.targetAmount, this.presets[0]);
+      return suggested > 0 ? suggested : this.presets[0];
+    }
+
+    return this.presets[1] ?? this.presets[0];
   }
 }

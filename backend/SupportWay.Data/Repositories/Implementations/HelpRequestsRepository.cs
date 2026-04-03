@@ -9,9 +9,9 @@ public class HelpRequestsRepository : IHelpRequestsRepository
     private readonly SupportWayContext _context;
 
     public HelpRequestsRepository(SupportWayContext context)
-    {
-        _context = context;
-    }
+        => _context = context;
+
+    // ─── Існуючі методи без змін ────────────────────────────────────────────
 
     public async Task AddHelpRequestAsync(HelpRequest helpRequest)
     {
@@ -33,6 +33,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
     {
         return await _context.HelpRequests
             .Include(h => h.User)
+                .ThenInclude(u => u.Profile)
             .Include(h => h.Location)
             .Include(h => h.Payments)
             .Include(h => h.Likes)
@@ -45,6 +46,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
     public async Task<IEnumerable<HelpRequest>> GetAllHelpRequestsAsync(int pageNumber, int pageSize)
     {
         return await _context.HelpRequests
+            .AsNoTracking()
             .Include(h => h.User)
             .Include(h => h.Location)
             .Include(h => h.Payments)
@@ -61,6 +63,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
     public async Task<IEnumerable<HelpRequest>> GetHelpRequestsByUserAsync(string userId, int pageNumber, int pageSize)
     {
         return await _context.HelpRequests
+            .AsNoTracking()
             .Include(h => h.User)
             .Include(h => h.Location)
             .Include(h => h.Payments)
@@ -83,6 +86,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
             .ToListAsync();
 
         return await _context.HelpRequests
+            .AsNoTracking()
             .Include(h => h.User)
             .Include(h => h.Location)
             .Include(h => h.Payments)
@@ -103,49 +107,96 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<(IEnumerable<HelpRequest> Items, int Total)> GetForMapAsync(
-    MapFilterParams filter,
-    CancellationToken ct = default)
+    // ─── Новий map-markers метод ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Projection на рівні EF: SelectMany по RequestItems → MapMarkerDto.
+    /// Один результуючий рядок = один RequestItem.
+    /// Жодного N+1, жодних EF entities у поверненому результаті.
+    /// </summary>
+    public async Task<(IEnumerable<MapMarkerDto> Items, int Total)> GetMapMarkersAsync(
+        MapFilterParams filter,
+        CancellationToken ct = default)
     {
-        IQueryable<HelpRequest> query = _context.HelpRequests
+        // Базовий запит по HelpRequest із координатами
+        var helpRequestQuery = _context.HelpRequests
             .AsNoTracking()
-            .Include(h => h.Location)
-            .Include(h => h.RequestItems)
-                .ThenInclude(ri => ri.SupportType)
             .Where(h =>
                 (h.Latitude.HasValue && h.Longitude.HasValue) ||
                 (h.Location != null && h.Location.Latitude.HasValue && h.Location.Longitude.HasValue));
 
-      
-        if (filter.SupportTypeId.HasValue)
-            query = query.Where(h =>
-                h.RequestItems.Any(ri => ri.SupportTypeId == filter.SupportTypeId.Value));
-
+        // Фільтри по HelpRequest
         if (filter.IsActive.HasValue)
-            query = query.Where(h => h.IsActive == filter.IsActive.Value);
+            helpRequestQuery = helpRequestQuery.Where(h => h.IsActive == filter.IsActive.Value);
 
-       
         if (!string.IsNullOrWhiteSpace(filter.Region))
         {
-            var regionLower = filter.Region.ToLower();
-            query = query.Where(h =>
+            var region = filter.Region.ToLower();
+            helpRequestQuery = helpRequestQuery.Where(h =>
                 h.Location != null &&
-                h.Location.DistrictName.ToLower().Contains(regionLower));
+                h.Location.DistrictName.ToLower().Contains(region));
         }
 
-        if (filter.MaxTarget.HasValue)
-            query = query.Where(h => h.TargetAmount <= filter.MaxTarget.Value);
+        if (filter.MinCollectedAmount.HasValue)
+            helpRequestQuery = helpRequestQuery.Where(h => h.CollectedAmount >= filter.MinCollectedAmount.Value);
 
-        if (filter.MinCollected.HasValue)
-            query = query.Where(h => h.CollectedAmount >= filter.MinCollected.Value);
+        if (filter.MaxTargetAmount.HasValue)
+            helpRequestQuery = helpRequestQuery.Where(h => h.TargetAmount <= filter.MaxTargetAmount.Value);
 
-        var total = await query.CountAsync(ct);
+        // Projection через SelectMany → RequestItem рівень
+        var markersQuery = helpRequestQuery
+            .SelectMany(h => h.RequestItems
+                .Where(ri => ri.SupportType != null),
+                (h, ri) => new MapMarkerDto
+                {
+                    RequestItemId = ri.Id,
+                    HelpRequestId = h.Id,
+                    RequestItemName = ri.Name,
+                    Quantity = ri.Quantity,
+                    UnitPrice = ri.UnitPrice,
+                    SupportTypeId = ri.SupportTypeId,
+                    SupportTypeName = ri.SupportType!.NameOfType,
 
-        var items = await query
-            .OrderByDescending(h => h.CreatedAt)
+                    Latitude = h.Latitude ?? h.Location!.Latitude!.Value,
+                    Longitude = h.Longitude ?? h.Location!.Longitude!.Value,
+                    LocationName = h.Location != null ? h.Location.DistrictName : string.Empty,
+                    LocationAddress = h.Location != null ? h.Location.Address : string.Empty,
+
+                    ShortContent = h.Content.Length > 120 ? h.Content.Substring(0, 120) + "…" : h.Content,
+
+                    TargetAmount = h.TargetAmount,
+                    CollectedAmount = h.CollectedAmount,
+                    IsActive = h.IsActive,
+                    CreatedAt = h.CreatedAt,
+
+                    UserId = h.UserId,
+                    UserName = h.User != null ? h.User.UserName : string.Empty,
+
+                    LikesCount = h.Likes != null ? h.Likes.Count : 0,
+                    CommentsCount = h.Comments != null ? h.Comments.Count : 0
+                });
+
+        // Фільтр по SupportType
+        if (filter.SupportTypeId.HasValue)
+            markersQuery = markersQuery.Where(m => m.SupportTypeId == filter.SupportTypeId.Value);
+
+        // Пошук по title / content / item name
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = filter.Search.ToLower();
+            markersQuery = markersQuery.Where(m =>
+                m.Title.ToLower().Contains(search) ||
+                m.ShortContent.ToLower().Contains(search) ||
+                m.RequestItemName.ToLower().Contains(search));
+        }
+
+        var total = await markersQuery.CountAsync(ct);
+
+        var items = await markersQuery
+            .OrderByDescending(m => m.CreatedAt)
             .Skip((filter.Page - 1) * filter.Size)
             .Take(filter.Size)
-            .ToListAsync(ct); 
+            .ToListAsync(ct);
 
         return (items, total);
     }

@@ -13,7 +13,7 @@ import { UserSearchComponent } from './user-search/user-search.component';
   selector: 'app-header',
   templateUrl: './header.component.html',
   standalone: true,
-  imports: [RouterModule, NgClass, UserSearchComponent, NgIf, AsyncPipe],
+  imports: [RouterModule, UserSearchComponent, NgIf],
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit, OnDestroy {

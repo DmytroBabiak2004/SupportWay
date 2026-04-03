@@ -72,32 +72,30 @@
 
 // ─── Leaflet: custom SVG pin ──────────────────────────────────────
 :global {
-  .sw-pin {
-    position: relative;
-    width: 32px;
-    height: 44px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.22));
-    transition: filter 0.2s ease, transform 0.2s ease;
+  // ─── Pin wrapper — className on L.divIcon ───────────────────────
+  // No position/flex/size here — Leaflet sizes the element via iconSize.
+  // Transitions on the SVG child keep hover crisp.
+  .sw-pin-wrapper {
     cursor: pointer;
-
-    &:hover {
-      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.32));
-      transform: translateY(-3px) scale(1.06);
-    }
+    line-height: 0;          // kill phantom inline whitespace
+    transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.2);
 
     svg.sw-pin-svg {
-      width: 32px;
-      height: 44px;
-      overflow: visible;
+      display: block;
+      overflow: visible;     // allow drop-shadow to bleed outside viewBox
+      transition: filter 0.18s ease, transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+    }
+
+    &:hover svg.sw-pin-svg {
+      filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.35));
+      transform: translateY(-4px) scale(1.12);
     }
   }
 
-  .sw-pin--selected {
-    filter: drop-shadow(0 6px 16px rgba(37, 99, 235, 0.5));
-    transform: translateY(-4px) scale(1.12);
+  // Selected state (added via JS)
+  .sw-pin-wrapper--selected svg.sw-pin-svg {
+    filter: drop-shadow(0 6px 16px rgba(37, 99, 235, 0.55));
+    transform: translateY(-5px) scale(1.15);
   }
 
   // ─── Cluster bubble ──────────────────────────────────────────────
@@ -141,7 +139,7 @@
   .leaflet-control-zoom {
     border: none !important;
     box-shadow: 0 4px 20px rgba(15, 23, 42, 0.14),
-                0 0 0 1px rgba(255, 255, 255, 0.8) inset !important;
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset !important;
     border-radius: 14px !important;
     overflow: hidden;
     margin-bottom: 20px !important;
@@ -198,4 +196,183 @@
   top: 20px;
   left: 20px;
   z-index: 50;
+}
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&display=swap');
+
+// ─── Design tokens ───────────────────────────────────────────────
+:host {
+  --sw-accent:        #2563eb;
+  --sw-accent-2:      #0ea5e9;
+  --sw-accent-soft:   rgba(37, 99, 235, 0.1);
+  --sw-surface:       rgba(255, 255, 255, 0.88);
+  --sw-surface-solid: #ffffff;
+  --sw-glass:         rgba(255, 255, 255, 0.72);
+  --sw-glass-border:  rgba(255, 255, 255, 0.6);
+  --sw-border:        rgba(15, 23, 42, 0.07);
+  --sw-text-main:     #0f172a;
+  --sw-text-muted:    #475569;
+  --sw-text-soft:     #94a3b8;
+  --sw-shadow-sm:     0 4px 12px rgba(15, 23, 42, 0.08);
+  --sw-shadow-md:     0 12px 32px rgba(15, 23, 42, 0.12);
+  --sw-shadow-lg:     0 24px 56px rgba(15, 23, 42, 0.16);
+  --sw-radius-sm:     10px;
+  --sw-radius-md:     16px;
+  --sw-radius-lg:     20px;
+  --sw-radius-pill:   999px;
+  --sw-ease-spring:   cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  font-family: 'Onest', sans-serif;
+  display: block;
+  height: 100%;
+}
+
+// ─── Page layout ──────────────────────────────────────────────────
+.sw-map-page {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.sw-map-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #e8edf4;
+}
+
+.sw-map-pill {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  animation: pillReveal 0.5s var(--sw-ease-spring) both;
+}
+
+.sw-panel-content {
+  margin: 0 20px 18px;
+  font-size: 0.855rem;
+  color: var(--sw-text-muted);
+  line-height: 1.65;
+  font-weight: 450;
+}
+
+.sw-map-filter-float {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 50;
+}
+
+// ─── Leaflet global overrides ─────────────────────────────────────
+:global {
+
+  // ── Pin: className is '' so Leaflet adds NO extra styles ──────────
+  // The SVG is the only element — we style it directly via its tag.
+  // overflow:hidden on SVG keeps shadow inside viewBox padding.
+  // Hover: scale around the pin's anchor point (bottom-centre).
+  .leaflet-marker-icon > svg {
+    display: block;
+    cursor: pointer;
+    transition:
+      transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.2),
+      filter    0.18s ease;
+    transform-origin: 50% 85%;  // bottom-centre of 32×40 = 16px / 34px = 85%
+
+    &:hover {
+      transform: scale(1.18) translateY(-3px);
+      filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.32));
+    }
+  }
+
+  // ── Cluster ──────────────────────────────────────────────────────
+  .sw-cluster {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Onest', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 2.5px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4), 0 0 0 5px rgba(37, 99, 235, 0.1);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+
+    &:hover { transform: scale(1.12); }
+  }
+
+  // ── Tooltip ───────────────────────────────────────────────────────
+  .leaflet-tooltip {
+    font-family: 'Onest', sans-serif !important;
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    padding: 5px 11px !important;
+    border-radius: 9px !important;
+    background: rgba(15, 23, 42, 0.88) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18) !important;
+    color: #f1f5f9 !important;
+    pointer-events: none !important;
+  }
+
+  .leaflet-tooltip::before { display: none !important; }
+
+  // ── Zoom control ──────────────────────────────────────────────────
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+    margin-bottom: 20px !important;
+    margin-right: 20px !important;
+    backdrop-filter: blur(20px) !important;
+    background: rgba(255, 255, 255, 0.88) !important;
+  }
+
+  .leaflet-control-zoom a {
+    font-family: 'Onest', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    color: #0f172a !important;
+    background: transparent !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+    transition: background 0.15s ease !important;
+
+    &:hover { background: rgba(37, 99, 235, 0.07) !important; color: #2563eb !important; }
+    &:last-child { border-bottom: none !important; }
+  }
+
+  .leaflet-control-attribution {
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: 8px 0 0 0 !important;
+    font-size: 0.65rem !important;
+    color: #64748b !important;
+    padding: 3px 8px !important;
+  }
+
+  // ── Leaflet default icon reset — prevents broken image fallback ──
+  .leaflet-default-icon-path { display: none; }
+}
+
+// ─── Animations ───────────────────────────────────────────────────
+@keyframes pillReveal {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@media (max-width: 768px) {
+  .sw-map-pill { top: 12px; left: 50%; transform: translateX(-50%); }
 }

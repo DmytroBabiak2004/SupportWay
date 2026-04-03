@@ -1,7 +1,56 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SupportWay.Data.DTOs
+namespace SupportWay.API.DTOs
 {
+
+    public class HelpRequestDetailsDto
+    {
+        public Guid Id { get; set; }
+
+        // Location
+        public Guid? LocationId { get; set; }
+        public string LocationName { get; set; } = string.Empty;
+        public string LocationAddress { get; set; } = string.Empty;
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public string? ImageBase64 { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        // Author
+        public string UserId { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string? AuthorPhotoBase64 { get; set; }
+
+        // Stats
+        public int LikesCount { get; set; }
+        public int CommentsCount { get; set; }
+
+        // Funding
+        public decimal TargetAmount { get; set; }
+        public decimal CollectedAmount { get; set; }
+        public decimal TotalPayments { get; set; }
+        public bool IsActive { get; set; }
+
+        /// <summary>Відсоток виконання: CollectedAmount / TargetAmount * 100</summary>
+        public int ProgressPercent { get; set; }
+
+        public List<RequestItemDetailsDto> RequestItems { get; set; } = new();
+    }
+
+    public class RequestItemDetailsDto
+    {
+        public Guid Id { get; set; }
+        public Guid HelpRequestId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public Guid SupportTypeId { get; set; }
+        public string SupportTypeName { get; set; } = string.Empty;
+    }
+
+    // Залишаємо старий HelpRequestDto для feed/list endpoints (без breaking change)
     public class HelpRequestDto
     {
         public Guid Id { get; set; }
@@ -11,8 +60,6 @@ namespace SupportWay.Data.DTOs
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public decimal TotalPayments { get; set; }
-
-        public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public byte[]? Image { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -23,6 +70,10 @@ namespace SupportWay.Data.DTOs
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
 
+        public decimal TargetAmount { get; set; }
+        public decimal CollectedAmount { get; set; }
+        public bool IsActive { get; set; }
+
         public List<RequestItemDto> RequestItems { get; set; } = new();
     }
 
@@ -31,11 +82,9 @@ namespace SupportWay.Data.DTOs
         public Guid Id { get; set; }
         public Guid HelpRequestId { get; set; }
         public Guid SupportTypeId { get; set; }
-
         public string Name { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
-
         public string SupportTypeName { get; set; } = string.Empty;
     }
 
@@ -50,25 +99,11 @@ namespace SupportWay.Data.DTOs
 
         public byte[]? Image { get; set; }
 
-        // Option A: прив'язати до існуючої локації
         public Guid? LocationId { get; set; }
-
-        // Option B: передати координати / адресу — бекенд сам створить Location
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string? Address { get; set; }
         public string? DistrictName { get; set; }
-    }
-
-    public class RequestStatusDto
-    {
-        public Guid Id { get; set; }
-        public string NameOfStatus { get; set; } = string.Empty;
-    }
-
-    public class CreateRequestStatusDto
-    {
-        public string NameOfStatus { get; set; } = string.Empty;
     }
 
     public class SupportTypeDto

@@ -1,50 +1,110 @@
 <div class="sw-backdrop" (click)="close()">
   <div class="sw-modal" (click)="$event.stopPropagation()">
-
     <button class="sw-close" (click)="close()" aria-label="Закрити">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" />
       </svg>
     </button>
 
-    <!-- Type -->
-    <div class="sw-type-label">{{ typeLabel }}</div>
+    <div class="sw-header">
+      <div class="sw-type-label">{{ typeLabel }}</div>
 
-    <h3 class="sw-title">{{ title }}</h3>
-    <p class="sw-region" *ngIf="region">📍 {{ region }}</p>
+      <h3 class="sw-title">{{ title }}</h3>
 
-    <!-- Progress -->
-    <div class="sw-progress-wrap" *ngIf="targetAmount > 0">
-      <div class="sw-progress-track">
-        <div class="sw-progress-fill" [style.width.%]="percent"></div>
+      <p class="sw-region" *ngIf="region">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 21s6-5.686 6-11a6 6 0 1 0-12 0c0 5.314 6 11 6 11Z" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="10" r="2.5"/>
+        </svg>
+        <span>{{ region }}</span>
+      </p>
+    </div>
+
+    <div class="sw-progress-card" *ngIf="targetAmount > 0">
+      <div class="sw-progress-top">
+        <div class="sw-progress-stat">
+          <span class="sw-progress-label">Зібрано</span>
+          <span class="sw-progress-value sw-progress-value--accent">
+            {{ collected | number:'1.0-0' }} ₴
+          </span>
+        </div>
+
+        <div class="sw-progress-stat sw-progress-stat--right">
+          <span class="sw-progress-label">Ціль</span>
+          <span class="sw-progress-value">
+            {{ targetAmount | number:'1.0-0' }} ₴
+          </span>
+        </div>
       </div>
-      <div class="sw-progress-nums">
-        <span class="sw-collected">{{ collected | number:'1.0-0' }} ₴</span>
-        <span class="sw-target">{{ percent }}% з {{ targetAmount | number:'1.0-0' }} ₴</span>
+
+      <div class="sw-progress-track">
+        <div class="sw-progress-fill" [style.width.%]="percent">
+          <span class="sw-progress-glow"></span>
+        </div>
+      </div>
+
+      <div class="sw-progress-bottom">
+        <span class="sw-progress-percent">{{ percent }}%</span>
+        <span class="sw-progress-caption">поточний прогрес збору</span>
       </div>
     </div>
 
     <div class="sw-inactive-notice" *ngIf="!canDonate">
-      🔒 Збір завершено або неактивний — донат недоступний.
+      <div class="sw-inactive-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="11" width="14" height="9" rx="2"></rect>
+          <path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
+        </svg>
+      </div>
+      <div class="sw-inactive-text">
+        <strong>Платіж недоступний</strong>
+        <span>Збір завершено або тимчасово неактивний.</span>
+      </div>
     </div>
 
     <ng-container *ngIf="canDonate">
-      <label class="sw-label">Сума (₴)</label>
-      <div class="sw-presets">
-        @for (p of presets; track p) {
-          <button class="sw-preset" [class.active]="amount() === p" (click)="amount.set(p)">
-            {{ p | number }}
-          </button>
-        }
-      </div>
-      <input class="sw-amount-input" type="number"
-             placeholder="Або введіть свою суму..."
-             [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" min="1">
+      <div class="sw-form-section">
+        <label class="sw-label">Сума внеску</label>
 
-      <label class="sw-label">Коментар</label>
-      <input class="sw-comment-input" type="text"
-             placeholder="Необов'язково..."
-             [ngModel]="comment()" (ngModelChange)="comment.set($event)" maxlength="100">
+        <div class="sw-presets">
+          @for (p of presets; track p) {
+            <button
+              type="button"
+              class="sw-preset"
+              [class.active]="amount() === p"
+              (click)="amount.set(p)"
+            >
+              {{ p | number }} ₴
+            </button>
+          }
+        </div>
+
+        <div class="sw-input-wrap">
+          <input
+            class="sw-amount-input"
+            type="number"
+            placeholder="Введіть суму"
+            [ngModel]="amount()"
+            (ngModelChange)="amount.set(+$event)"
+            min="1"
+          />
+        </div>
+      </div>
+
+      <div class="sw-form-section">
+        <label class="sw-label">Коментар до платежу</label>
+
+        <div class="sw-input-wrap">
+          <input
+            class="sw-comment-input"
+            type="text"
+            placeholder="Необов’язково"
+            [ngModel]="comment()"
+            (ngModelChange)="comment.set($event)"
+            maxlength="100"
+          />
+        </div>
+      </div>
 
       @if (error()) {
         <p class="sw-error">{{ error() }}</p>
@@ -52,13 +112,19 @@
 
       <button class="sw-pay-btn" (click)="donate()" [disabled]="isProcessing()">
         @if (!isProcessing()) {
-          💙 Задонатити {{ amount() | number:'1.0-0' }} ₴
+          <span class="sw-pay-btn-main">Задонатити {{ amount() | number:'1.0-0' }} ₴</span>
         } @else {
-          <span class="sw-spinner"></span> Створюємо платіж...
+          <span class="sw-spinner"></span>
+          <span>Створення платежу...</span>
         }
       </button>
 
-      <p class="sw-secure">🔒 Безпечна оплата через Monobank</p>
+      <div class="sw-secure">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 3l7 4v5c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V7l7-4Z" stroke-linejoin="round"/>
+        </svg>
+        <span>Безпечна оплата через Monobank</span>
+      </div>
     </ng-container>
   </div>
 </div>
