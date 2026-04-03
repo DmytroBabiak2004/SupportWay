@@ -1,0 +1,28 @@
+<div class="pill-wrap">
+  <div class="pill" [class.loading]="isLoading()">
+
+    <ng-container *ngIf="isLoading(); else countTpl">
+      <div class="pill-loader">
+        <svg class="spin" width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
+        </svg>
+        <span class="pill-loader-text">Синхронізація</span>
+        <span class="pulse-dots"><i></i><i></i><i></i></span>
+      </div>
+    </ng-container>
+
+    <ng-template #countTpl>
+      <!-- SVG pin icon instead of emoji -->
+      <svg class="pill-icon" width="14" height="18" viewBox="0 0 14 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M7 0C3.134 0 0 3.134 0 7C0 11.5 7 18 7 18C7 18 14 11.5 14 7C14 3.134 10.866 0 7 0Z"
+              fill="#2563eb"/>
+        <circle cx="7" cy="7" r="3" fill="white" opacity="0.9"/>
+      </svg>
+      <span class="pill-label">Маркерів</span>
+      <span class="pill-divider"></span>
+      <span class="pill-count">{{ totalCount() }}</span>
+    </ng-template>
+
+  </div>
+</div>

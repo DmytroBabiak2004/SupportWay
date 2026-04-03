@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700;800&display=swap');
+
+:host {
+  font-family: 'Onest', sans-serif;
+  display: block;
+}
+
+.pa-root {
+  padding: 14px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pa-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pa-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+
+  svg { flex-shrink: 0; }
+}
+
+.pa-spacer { flex: 1; }
+
+.pa-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+
+  &.active {
+    background: rgba(22, 163, 74, 0.09);
+    color: #16a34a;
+    .pa-dot { background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18); animation: pulse 2s ease infinite; }
+  }
+
+  &.closed {
+    background: rgba(241, 245, 249, 0.8);
+    color: #94a3b8;
+    .pa-dot { background: #94a3b8; }
+  }
+}
+
+.pa-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pa-donate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Onest', sans-serif;
+  font-size: 0.93rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.30), 0 1px 0 rgba(255,255,255,0.15) inset;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.2),
+              box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.38);
+    &::before { opacity: 1; }
+  }
+
+  &:active { transform: translateY(0) scale(0.987); }
+}
+
+.pa-btn-icon { font-size: 1rem; }
+.pa-btn-text { flex: 0 0 auto; }
+.pa-btn-arrow {
+  display: flex;
+  align-items: center;
+  opacity: 0.65;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+
+  .pa-donate-btn:hover & { transform: translateX(3px); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18); }
+  50%       { box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.08); }
+}

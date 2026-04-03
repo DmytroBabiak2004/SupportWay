@@ -1,0 +1,29 @@
+<div class="pi-root" *ngIf="items().length > 0">
+
+  <div class="pi-header">
+    <h4 class="pi-title">Потреби</h4>
+    <span class="pi-count">{{ items().length }}</span>
+  </div>
+
+  <ul class="pi-list">
+    <li class="pi-item" *ngFor="let item of items(); let i = index"
+        [style.animation-delay.ms]="i * 50">
+      <div class="pi-item-left">
+        <span class="pi-item-icon">{{ getIcon(item.supportTypeName) }}</span>
+        <div class="pi-item-text">
+          <span class="pi-item-name">{{ item.name }}</span>
+          <span class="pi-item-meta">
+            {{ item.quantity }} шт.
+            <span class="pi-dot">·</span>
+            {{ item.unitPrice | number:'1.0-0' }} ₴ / шт.
+          </span>
+        </div>
+      </div>
+      <div class="pi-item-right">
+        <span class="pi-item-total">{{ (item.quantity * item.unitPrice) | number:'1.0-0' }} ₴</span>
+        <span class="pi-type-badge">{{ item.supportTypeName }}</span>
+      </div>
+    </li>
+  </ul>
+
+</div>

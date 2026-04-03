@@ -1,0 +1,45 @@
+<div class="ph-root">
+
+  <!-- Hero Image -->
+  <div class="ph-hero" [class.no-image]="!imageSrc()">
+    <img *ngIf="imageSrc() as src" [src]="src" alt="Зображення запиту" loading="lazy">
+    <div class="ph-hero-overlay"></div>
+
+    <!-- Tags float over image -->
+    <div class="ph-tags">
+      <span class="ph-tag" *ngFor="let item of requestItems() | slice:0:3">
+        {{ item.supportTypeName }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Text block -->
+  <div class="ph-body">
+    <h2 class="ph-title">{{ title() }}</h2>
+
+    <div class="ph-author">
+      <div class="ph-avatar-wrap">
+        <img *ngIf="authorPhotoSrc() as src; else fallback"
+             [src]="src" alt="Автор" class="ph-avatar">
+        <ng-template #fallback>
+          <div class="ph-avatar ph-avatar-letter">{{ firstChar() }}</div>
+        </ng-template>
+        <span class="ph-avatar-ring"></span>
+      </div>
+
+      <div class="ph-author-info">
+        <span class="ph-author-name">{{ userName() }}</span>
+        <span class="ph-author-date">{{ createdAt() | date:'dd MMMM yyyy' : '' : 'uk' }}</span>
+      </div>
+    </div>
+
+    <div class="ph-location" *ngIf="locationName() || locationAddress()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <span>{{ locationName() }}<ng-container *ngIf="locationAddress()">, {{ locationAddress() }}</ng-container></span>
+    </div>
+  </div>
+
+</div>

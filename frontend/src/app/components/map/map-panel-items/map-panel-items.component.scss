@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap');
+
+:host {
+  font-family: 'Onest', sans-serif;
+  display: block;
+}
+
+.pi-root { margin: 0 20px 16px; }
+
+.pi-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.pi-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin: 0;
+}
+
+.pi-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.pi-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pi-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 11px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  animation: fadeSlideUp 0.25s ease both;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+    border-color: rgba(37, 99, 235, 0.18);
+  }
+}
+
+.pi-item-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
+.pi-item-icon { font-size: 1rem; line-height: 1; flex-shrink: 0; }
+
+.pi-item-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.pi-item-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pi-item-meta {
+  font-size: 0.72rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pi-dot { opacity: 0.4; margin: 0 2px; }
+
+.pi-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+
+.pi-item-total {
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.pi-type-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(241, 245, 249, 0.9);
+  color: #64748b;
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  white-space: nowrap;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

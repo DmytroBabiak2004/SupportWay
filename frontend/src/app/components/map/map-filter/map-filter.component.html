@@ -1,0 +1,99 @@
+<div class="mf-float" [class.mf-float--open]="isOpen">
+
+  <!-- Toggle button -->
+  <button class="mf-toggle" (click)="toggleOpen()" [class.mf-toggle--active]="isOpen">
+    <svg class="mf-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="4" y1="6" x2="20" y2="6" stroke-linecap="round"/>
+      <line x1="4" y1="12" x2="16" y2="12" stroke-linecap="round"/>
+      <line x1="4" y1="18" x2="12" y2="18" stroke-linecap="round"/>
+    </svg>
+    <span class="mf-toggle-label">Фільтри</span>
+    <span class="mf-badge" *ngIf="activeCount > 0">{{ activeCount }}</span>
+    <svg class="mf-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+         [class.mf-chevron--up]="isOpen">
+      <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <!-- Dropdown panel -->
+  <div class="mf-panel" *ngIf="isOpen">
+
+    <div class="mf-panel-header">
+      <span class="mf-panel-title">Фільтри</span>
+      <button class="mf-reset" (click)="resetFilters()" *ngIf="activeCount > 0">
+        Скинути всі
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="mf-group">
+      <label class="mf-label">Пошук</label>
+      <div class="mf-input-wrap">
+        <svg class="mf-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/>
+        </svg>
+        <input class="mf-input" type="text" placeholder="Заголовок, потреба, опис"
+               [(ngModel)]="search" (input)="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Support Type -->
+    <div class="mf-group">
+      <label class="mf-label">Тип допомоги</label>
+      <div class="mf-select-wrap">
+        <select class="mf-select" [(ngModel)]="selectedTypeId" (ngModelChange)="applyFilters()">
+          <option value="">Всі типи</option>
+          <option *ngFor="let t of supportTypes" [value]="t.id">{{ t.nameOfType }}</option>
+        </select>
+        <svg class="mf-select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="mf-loading-line" *ngIf="loadingTypes">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="mf-group">
+      <label class="mf-label">Статус</label>
+      <div class="mf-chips">
+        <button class="mf-chip" [class.mf-chip--active]="isActive === ''"
+                (click)="setStatus('')">Всі</button>
+        <button class="mf-chip" [class.mf-chip--active]="isActive === 'true'"
+                (click)="setStatus('true')">
+          <span class="mf-chip-dot mf-chip-dot--green"></span>Активні
+        </button>
+        <button class="mf-chip" [class.mf-chip--active]="isActive === 'false'"
+                (click)="setStatus('false')">
+          <span class="mf-chip-dot"></span>Завершені
+        </button>
+      </div>
+    </div>
+
+    <!-- Region -->
+    <div class="mf-group">
+      <label class="mf-label">Регіон</label>
+      <div class="mf-input-wrap">
+        <svg class="mf-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        <input class="mf-input" type="text" placeholder="Наприклад: Харків"
+               [(ngModel)]="region" (input)="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Amount range -->
+    <div class="mf-group">
+      <label class="mf-label">Сума (₴)</label>
+      <div class="mf-row">
+        <input class="mf-input mf-input--sm" type="number" min="0" placeholder="Від"
+               [(ngModel)]="minCollectedAmount" (input)="applyFilters()">
+        <span class="mf-range-sep">—</span>
+        <input class="mf-input mf-input--sm" type="number" min="0" placeholder="До"
+               [(ngModel)]="maxTargetAmount" (input)="applyFilters()">
+      </div>
+    </div>
+
+  </div>
+</div>
