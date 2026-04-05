@@ -1,0 +1,193 @@
+<div class="dp-shell" [class.dp-shell--visible]="visible()" role="complementary" aria-label="Деталі запиту">
+
+  <!-- ── Loading state ──────────────────────────────────────────────────── -->
+  <div class="dp-state dp-state--loading" *ngIf="isLoading() && !error()">
+    <div class="dp-spinner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span>Завантаження…</span>
+  </div>
+
+  <!-- ── Error state ────────────────────────────────────────────────────── -->
+  <div class="dp-state dp-state--error" *ngIf="error() && !isLoading()">
+    <div class="dp-state-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="28" height="28">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="13" stroke-linecap="round"/>
+        <circle cx="12" cy="16.5" r="0.8" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <p>{{ error() }}</p>
+    <button class="dp-retry" (click)="retry.emit()">Спробувати знову</button>
+  </div>
+
+  <!-- ── Content ────────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="details() as d">
+    <div class="dp-content" *ngIf="!isLoading() && !error()">
+
+      <!-- Close button -->
+      <button class="dp-close" (click)="closed.emit()" aria-label="Закрити">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+          <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <!-- ─ Hero image ───────────────────────────────────────────────────── -->
+      <div class="dp-hero" [class.dp-hero--no-image]="!imageSrc(d.imageBase64)">
+        <img *ngIf="imageSrc(d.imageBase64) as src"
+             [src]="src"
+             alt="Зображення запиту"
+             class="dp-hero-img"
+             loading="lazy">
+        <div class="dp-hero-gradient" [style.--accent]="accentColor()"></div>
+
+        <!-- Type tags float over image -->
+        <div class="dp-tags">
+          <span class="dp-tag"
+                *ngFor="let item of d.requestItems | slice:0:3"
+                [style.background]="tagBg(item.supportTypeName)"
+                [style.color]="tagColor(item.supportTypeName)">
+            {{ item.supportTypeName }}
+          </span>
+        </div>
+      </div>
+
+      <!-- ─ Scrollable body ─────────────────────────────────────────────── -->
+      <div class="dp-scroll">
+
+        <!-- Title + status -->
+        <div class="dp-header">
+          <div class="dp-status-row">
+            <span class="dp-status-badge"
+                  [class.dp-status-badge--active]="d.isActive"
+                  [class.dp-status-badge--closed]="!d.isActive">
+              <span class="dp-status-dot"></span>
+              {{ d.isActive ? 'Активний збір' : 'Збір закрито' }}
+            </span>
+          </div>
+          <h2 class="dp-title">{{ d.title }}</h2>
+        </div>
+
+        <!-- Author + location row -->
+        <div class="dp-meta">
+          <!-- Author -->
+          <div class="dp-author">
+            <div class="dp-avatar-wrap">
+              <img *ngIf="imageSrc(d.authorPhotoBase64) as src; else avatarFallback"
+                   [src]="src"
+                   class="dp-avatar" alt="Автор">
+              <ng-template #avatarFallback>
+                <div class="dp-avatar dp-avatar--letter" [style.background]="accentColor() + '22'" [style.color]="accentColor()">
+                  {{ firstChar() }}
+                </div>
+              </ng-template>
+            </div>
+            <div class="dp-author-text">
+              <span class="dp-author-name">{{ d.userName }}</span>
+              <span class="dp-author-date">{{ d.createdAt | date:'dd MMM yyyy' : '' : 'uk' }}</span>
+            </div>
+          </div>
+          <!-- Location -->
+          <div class="dp-location" *ngIf="d.locationName || d.locationAddress">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span>{{ d.locationName }}<ng-container *ngIf="d.locationAddress">, {{ d.locationAddress }}</ng-container></span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <p class="dp-desc" *ngIf="d.content">
+          {{ d.content | slice:0:240 }}<span *ngIf="d.content.length > 240">…</span>
+        </p>
+
+        <!-- ─ Funding progress ────────────────────────────────────────────── -->
+        <div class="dp-progress" *ngIf="d.targetAmount > 0">
+          <div class="dp-progress-header">
+            <span class="dp-progress-label">Зібрано</span>
+            <span class="dp-progress-pct" [class.dp-progress-pct--full]="progress() >= 100">
+              {{ progress() }}%
+            </span>
+          </div>
+          <div class="dp-progress-track">
+            <div class="dp-progress-fill"
+                 [style.width.%]="progress()"
+                 [style.--fill-color]="accentColor()">
+            </div>
+          </div>
+          <div class="dp-progress-nums">
+            <div class="dp-pnum">
+              <span class="dp-pnum-val">{{ d.collectedAmount | number:'1.0-0' }} ₴</span>
+              <span class="dp-pnum-cap">зібрано</span>
+            </div>
+            <div class="dp-pnum dp-pnum--right">
+              <span class="dp-pnum-val">{{ d.targetAmount | number:'1.0-0' }} ₴</span>
+              <span class="dp-pnum-cap">ціль</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─ Request items ───────────────────────────────────────────────── -->
+        <div class="dp-items" *ngIf="d.requestItems?.length">
+          <div class="dp-section-head">
+            <span class="dp-section-title">Потреби</span>
+            <span class="dp-section-count">{{ d.requestItems.length }}</span>
+          </div>
+          <ul class="dp-item-list">
+            <li class="dp-item" *ngFor="let item of d.requestItems; let i = index"
+                [style.animation-delay.ms]="i * 45">
+              <div class="dp-item-label">
+                <span class="dp-item-type-dot"
+                      [style.background]="tagColor(item.supportTypeName)"></span>
+                <span class="dp-item-name">{{ item.name }}</span>
+              </div>
+              <div class="dp-item-right">
+                <span class="dp-item-qty">{{ item.quantity }} шт.</span>
+                <span class="dp-item-price">{{ (item.quantity * item.unitPrice) | number:'1.0-0' }} ₴</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- ─ Footer: stats + donate ─────────────────────────────────────── -->
+        <div class="dp-footer">
+          <div class="dp-stats">
+            <!-- Likes -->
+            <div class="dp-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              <span>{{ d.likesCount }}</span>
+            </div>
+            <!-- Comments -->
+            <div class="dp-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <span>{{ d.commentsCount }}</span>
+            </div>
+          </div>
+
+          <!-- Donate button -->
+          <button class="dp-donate"
+                  *ngIf="d.isActive"
+                  (click)="donate.emit()"
+                  [style.--btn-color]="accentColor()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                    fill="currentColor" stroke="none"/>
+            </svg>
+            <span>Задонатити</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+              <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+      </div><!-- /dp-scroll -->
+    </div><!-- /dp-content -->
+  </ng-container>
+
+</div>
