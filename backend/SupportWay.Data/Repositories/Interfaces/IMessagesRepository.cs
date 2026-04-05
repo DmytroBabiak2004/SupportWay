@@ -13,5 +13,4 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task MarkChatAsReadUpToAsync(Guid chatId, string userId, DateTime upToSentAt);
         Task<bool> IsUserInChatAsync(Guid chatId, string userId);
     }
-
 }

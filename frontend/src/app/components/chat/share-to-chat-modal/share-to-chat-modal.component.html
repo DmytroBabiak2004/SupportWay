@@ -1,0 +1,109 @@
+<div class="modal-backdrop" (click)="close()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="modal-title-group">
+          <h2>Поділитися в чат</h2>
+          <p>{{ entityType === 'post' ? 'Публікація' : 'Запит допомоги' }}</p>
+        </div>
+
+        <button class="btn-close" type="button" (click)="close()" aria-label="Закрити">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <div class="share-preview">
+        <div class="badge">{{ entityType === 'post' ? 'Пост' : 'Запит' }}</div>
+        <div class="preview-title" *ngIf="previewTitle">{{ previewTitle }}</div>
+        <div class="preview-content" *ngIf="previewContent">
+          {{ getShortContent(previewContent) }}
+        </div>
+      </div>
+
+      <div class="search-wrap">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            placeholder="Пошук чату..."
+            [(ngModel)]="search"
+            (ngModelChange)="filterChats()">
+        </div>
+      </div>
+
+      <div class="chat-list" *ngIf="!isLoading; else loadingTpl">
+        <button
+          type="button"
+          class="chat-item"
+          *ngFor="let chat of filteredChats; trackBy: trackByChatId"
+          [class.active]="selectedChatId === chat.id"
+          (click)="selectChat(chat.id)">
+
+          <div class="card-glow-bg"></div>
+
+          <div class="chat-avatar-stage">
+            <img *ngIf="getAvatar(chat)" [src]="getAvatar(chat)" alt="Avatar" class="avatar-img" />
+            <div *ngIf="!getAvatar(chat)" class="avatar-fallback">
+              {{ getInitials(chat.displayName) }}
+            </div>
+          </div>
+
+          <div class="text-box">
+            <div class="chat-name">{{ chat.displayName }}</div>
+            <div class="chat-meta">
+              <span *ngIf="chat.lastMessage">{{ chat.lastMessage }}</span>
+              <span *ngIf="!chat.lastMessage">Немає повідомлень</span>
+            </div>
+          </div>
+
+          <div class="selection-indicator">
+            <div class="indicator-inner"></div>
+          </div>
+        </button>
+
+        <div class="empty-state" *ngIf="filteredChats.length === 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <p>Чати не знайдено</p>
+        </div>
+      </div>
+
+      <ng-template #loadingTpl>
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Завантаження чатів...</p>
+        </div>
+      </ng-template>
+
+      <div class="caption-wrap">
+        <textarea
+          rows="3"
+          placeholder="Додати коментар до репосту (необов'язково)"
+          [(ngModel)]="caption"></textarea>
+      </div>
+
+      <div class="error" *ngIf="error">{{ error }}</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="ghost-btn" type="button" (click)="close()">Скасувати</button>
+      <button
+        class="primary-btn"
+        type="button"
+        [disabled]="!selectedChatId || isSubmitting"
+        (click)="submit()">
+        {{ isSubmitting ? 'Надсилання...' : 'Надіслати' }}
+      </button>
+    </div>
+
+  </div>
+</div>

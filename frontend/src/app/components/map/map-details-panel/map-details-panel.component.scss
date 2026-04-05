@@ -567,3 +567,77 @@
     }
   }
 }
+/* Мобільна адаптація: Bottom Sheet */
+@media (max-width: 768px) {
+  .dp-shell {
+    /* Скидаємо позиціонування збоку */
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+
+    /* Робимо на всю ширину, але з відступами для краси */
+    width: 100%;
+    max-width: 100%;
+    height: 80vh; /* Займає 80% екрану */
+
+    /* Округлюємо тільки верхні кути */
+    border-radius: 32px 32px 0 0;
+    border-bottom: none;
+
+    /* Змінюємо анімацію появи: тепер виїжджає знизу, а не збоку */
+    transform: translateY(100%);
+
+    &--visible {
+      transform: translateY(0);
+    }
+
+    /* Додаємо "ручку" (drag handle) для візуального розуміння, що це шторка */
+    &::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48px;
+      height: 5px;
+      background: rgba(15, 23, 42, 0.2);
+      border-radius: 10px;
+      z-index: 50;
+      backdrop-filter: blur(4px);
+    }
+  }
+
+  /* Адаптуємо кнопку закриття під нові скруглення */
+  .dp-close {
+    top: 20px;
+    right: 20px;
+  }
+
+  /* Округлюємо верхні кути картинки так само як і у шторки */
+  .dp-hero {
+    border-radius: 32px 32px 0 0;
+  }
+
+  /* Трохи зменшуємо відступи для мобільних екранів */
+  .dp-scroll {
+    padding: 20px 16px;
+  }
+
+  /* Робимо кнопку донату на всю ширину для зручного натискання пальцем */
+  .dp-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .dp-donate {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+  }
+
+  .dp-stats {
+    justify-content: center;
+  }
+}

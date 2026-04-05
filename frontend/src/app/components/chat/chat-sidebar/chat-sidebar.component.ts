@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, HostListener, HostBinding } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { ChatService } from '../../../services/chat.service';
 import { ChatListItem } from '../../../models/chat.model';
 import { ProfileService } from '../../../services/profile.service';
@@ -23,9 +24,6 @@ export class ChatSidebarComponent implements OnChanges {
   searchText = '';
   filteredChats: ChatListItem[] = [];
 
-  // --- Логіка зміни ширини сайдбару ---
-  // Робимо null, щоб за замовчуванням (наприклад, на мобілці) інлайн-стиль не застосовувався,
-  // а працював CSS (flex або width: 100%).
   @HostBinding('style.width.px') sidebarWidth: number | null = 320;
   isResizing = false;
 
@@ -44,16 +42,24 @@ export class ChatSidebarComponent implements OnChanges {
 
   filterChats(): void {
     const term = this.searchText.trim().toLowerCase();
+
     this.filteredChats = term
-      ? this.chats.filter(c => c.displayName.toLowerCase().includes(term))
+      ? this.chats.filter(c =>
+        (c.displayName ?? '').toLowerCase().includes(term) ||
+        (c.lastMessage ?? '').toLowerCase().includes(term)
+      )
       : [...this.chats];
   }
 
-  openChat(chat: ChatListItem): void { this.chatSelected.emit(chat); }
+  openChat(chat: ChatListItem): void {
+    this.chatSelected.emit(chat);
+  }
 
   deleteChat(chat: ChatListItem, event: Event): void {
     event.stopPropagation();
+
     if (!confirm(`Видалити чат із "${chat.displayName}"?`)) return;
+
     this.chatService.deleteChat(chat.id).subscribe({
       next: () => this.chatDeleted.emit(chat.id),
       error: console.error
@@ -66,36 +72,46 @@ export class ChatSidebarComponent implements OnChanges {
 
   formatTime(iso?: string): string {
     if (!iso) return '';
+
     const d = new Date(iso);
     const now = new Date();
-    if (d.toDateString() === now.toDateString())
+
+    if (d.toDateString() === now.toDateString()) {
       return d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-    if (d.toDateString() === yesterday.toDateString()) return 'Вчора';
+    }
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+
+    if (d.toDateString() === yesterday.toDateString()) {
+      return 'Вчора';
+    }
+
     return d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
   }
 
-  // --- Відстеження розміру екрану ---
-  @HostListener('window:resize', ['$event'])
+  getLastMessagePreview(text?: string | null): string {
+    const value = text?.trim() ?? '';
+    if (!value) return 'Немає повідомлень';
+    return value.length > 44 ? `${value.slice(0, 44)}…` : value;
+  }
+
+  @HostListener('window:resize')
   onResize() {
     this.checkScreenSize();
   }
 
   private checkScreenSize() {
-    // Якщо екран мобільний, знімаємо інлайн-ширину, щоб працював CSS
     if (window.innerWidth <= 768) {
       this.sidebarWidth = null;
     } else {
-      // Якщо повертаємось на десктоп і ширина не встановлена, ставимо базову
       if (this.sidebarWidth === null) {
         this.sidebarWidth = 320;
       }
     }
   }
 
-  // --- Методи для перетягування (Resize) ---
   startResize(event: MouseEvent): void {
-    // Забороняємо ресайз на мобільних
     if (window.innerWidth <= 768) return;
 
     this.isResizing = true;

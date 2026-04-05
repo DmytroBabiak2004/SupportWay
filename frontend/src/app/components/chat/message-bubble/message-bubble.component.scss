@@ -8,12 +8,9 @@ $text-time-light: rgba(255, 255, 255, 0.65);
 
 $border-theirs: rgba(148, 163, 184, 0.12);
 
-/* 🔥 МЕНШІ ТІНІ */
-$shadow-soft:
-  0 2px 6px rgba(15, 23, 42, 0.04);
-
-$shadow-primary:
-  0 4px 10px rgba(37, 99, 235, 0.18);
+/* МЕНШІ ТІНІ */
+$shadow-soft: 0 2px 6px rgba(15, 23, 42, 0.04);
+$shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.18);
 
 :host {
   display: block;
@@ -28,7 +25,7 @@ $shadow-primary:
   display: flex;
   width: 100%;
   min-width: 0;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 
   animation: messageEnter 0.2s ease forwards;
   opacity: 0;
@@ -51,14 +48,31 @@ $shadow-primary:
 
     .status-icon {
       color: $text-time-light;
-
       &.read {
         color: #ffffff;
       }
     }
 
-    .delete-btn:hover {
-      color: #ffe0e0;
+    .delete-btn {
+      color: $text-time-light;
+      &:hover {
+        color: #ffe0e0;
+      }
+    }
+
+    /* Стилі картки репосту для СВОЇХ повідомлень (на синьому фоні) */
+    .shared-card {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+
+      .shared-badge { color: rgba(255, 255, 255, 0.8); }
+      .shared-author { color: #ffffff; }
+      .shared-title { color: #ffffff; }
+      .shared-content { color: rgba(255, 255, 255, 0.9); }
+      .shared-avatar {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+      }
     }
   }
 }
@@ -80,7 +94,9 @@ $shadow-primary:
 
 /* ===== BUBBLE ===== */
 .bubble {
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   max-width: 100%;
   min-width: 70px;
 
@@ -92,16 +108,106 @@ $shadow-primary:
 
   border: 1px solid $border-theirs;
   box-shadow: $shadow-soft;
-
   box-sizing: border-box;
 }
 
+/* ===== SHARED CARD (Стилі для чужих повідомлень за замовчуванням) ===== */
+.shared-card {
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-top: 2px;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  .shared-top {
+    padding: 10px 10px 0;
+  }
+
+  .shared-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .shared-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: rgba(148, 163, 184, 0.2);
+    display: grid;
+    place-items: center;
+    font-weight: 600;
+    font-size: 12px;
+    color: #0f172a;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .shared-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .shared-badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: #2563eb;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .shared-author {
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .shared-title {
+    padding: 8px 10px 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .shared-content {
+    padding: 6px 10px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+    opacity: 0.85;
+  }
+
+  .shared-image {
+    padding: 0 10px 10px;
+
+    img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+  }
+}
+
 /* ===== TEXT ===== */
-.content {
-  display: inline;
+.message-text {
   font-size: 14.5px;
   line-height: 1.45;
-
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -109,12 +215,11 @@ $shadow-primary:
 
 /* ===== META (TIME + STATUS + DELETE) ===== */
 .meta {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
-  margin-left: 6px;
-
-  vertical-align: bottom;
+  margin-top: 2px;
   white-space: nowrap;
 }
 
@@ -131,8 +236,7 @@ $shadow-primary:
   display: inline-flex;
   width: 14px;
   height: 14px;
-
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(148, 163, 184, 0.7);
 
   svg {
     width: 100%;
@@ -146,7 +250,7 @@ $shadow-primary:
   }
 
   &.read {
-    color: #ffffff;
+    color: #3b82f6; /* Колір прочитаного для чужого/звичайного фону */
 
     svg .second-check {
       opacity: 1;
@@ -166,13 +270,11 @@ $shadow-primary:
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: $text-time-dark;
 
-  color: inherit;
-
-  /* 🔥 ХОВАЄМО */
+  /* ХОВАЄМО ЗА ЗАМОВЧУВАННЯМ */
   opacity: 0;
   transform: scale(0.9);
-
   transition: all 0.18s ease;
 
   svg {
@@ -186,13 +288,13 @@ $shadow-primary:
   }
 }
 
-/* 🔥 ПОКАЗ ПРИ HOVER */
+/* ПОКАЗ ПРИ HOVER НА КОНТЕЙНЕР */
 .message-container:hover .delete-btn {
   opacity: 1;
   transform: scale(1);
 }
 
-/* 📱 MOBILE — без hover */
+/* MOBILE — без hover */
 @media (hover: none) {
   .delete-btn {
     opacity: 0.5;

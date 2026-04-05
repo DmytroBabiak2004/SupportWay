@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router'; // 1. Імпорт Router
+import { Router } from '@angular/router';
 import { v4 as uuidv4 } from 'uuid';
+import { filter } from 'rxjs/operators';
 
 import { Post } from '../../../models/post.model';
 import { ProfileService } from '../../../services/profile.service';
@@ -10,13 +11,13 @@ import { PostLikeService } from '../../../services/post-like.service';
 import { PostCommentService } from '../../../services/post-comment.service';
 import { PostComment, CreatePostCommentDto } from '../../../models/post-comment.model';
 import { AuthService } from '../../../services/auth.service';
-import { filter } from 'rxjs/operators';
 import { RelativeTimePipe } from '../../../pipes/relative-time.pipe';
+import { ShareToChatModalComponent } from '../../chat/share-to-chat-modal/share-to-chat-modal.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, ShareToChatModalComponent],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.scss']
 })
@@ -25,11 +26,9 @@ export class PostCardComponent implements OnInit {
   private likeService = inject(PostLikeService);
   private commentService = inject(PostCommentService);
   private authService = inject(AuthService);
-  private router = inject(Router); // 2. Інжект Router
+  private router = inject(Router);
 
   @Input({ required: true }) post!: Post;
-
-  // Ми можемо залишити цей Output для сумісності, але навігацію робитимемо всередині
   @Output() profileClick = new EventEmitter<Post>();
 
   isLiked = false;
@@ -41,6 +40,8 @@ export class PostCardComponent implements OnInit {
   newCommentText = '';
   isLoadingComments = false;
   currentUserId = '';
+
+  isShareModalOpen = false;
 
   ngOnInit() {
     this.likesCount = this.post.likesCount || 0;
@@ -57,14 +58,10 @@ export class PostCardComponent implements OnInit {
       });
   }
 
-  // --- 3. Новий метод для навігації ---
   openProfile(usernameOrId: string | undefined): void {
     if (!usernameOrId) return;
-    // Логіка переходу: /profile/username
     this.router.navigate(['/profile', usernameOrId]);
   }
-
-  // ... решта методів без змін ...
 
   private checkIfUserLiked() {
     if (!this.currentUserId) return;
@@ -138,5 +135,17 @@ export class PostCardComponent implements OnInit {
       },
       error: err => console.error('Помилка', err)
     });
+  }
+
+  openShareModal(): void {
+    this.isShareModalOpen = true;
+  }
+
+  closeShareModal(): void {
+    this.isShareModalOpen = false;
+  }
+
+  onShared(): void {
+    alert('Пост надіслано в чат');
   }
 }

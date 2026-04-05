@@ -6,6 +6,19 @@ import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment.development';
 import { ChatListItem } from '../models/chat.model';
 
+export type MessageType = 'text' | 'sharedPost' | 'sharedHelpRequest';
+
+export interface SharedPreview {
+  id: string;
+  entityType: 'post' | 'helpRequest';
+  authorUserName: string;
+  authorPhotoBase64?: string | null;
+  title?: string | null;
+  content: string;
+  imageBase64?: string | null;
+  createdAt: string;
+}
+
 export interface Message {
   id: string;
   chatId: string;
@@ -13,6 +26,11 @@ export interface Message {
   content: string;
   sentAt: string;
   isRead?: boolean;
+
+  messageType: number;
+  sharedPostId?: string | null;
+  sharedHelpRequestId?: string | null;
+  sharedPreview?: SharedPreview | null;
 }
 
 export interface ReadReceiptEvent {
@@ -59,9 +77,27 @@ export class ChatService implements OnDestroy {
     return this.http.delete<void>(`${this.baseUrl}/${chatId}`);
   }
 
+  sharePostHttp(chatId: string, postId: string, caption?: string): Observable<Message> {
+    return this.http.post<Message>(`${this.baseUrl}/share/post`, {
+      chatId,
+      postId,
+      caption: caption ?? ''
+    });
+  }
+
+  shareHelpRequestHttp(chatId: string, helpRequestId: string, caption?: string): Observable<Message> {
+    return this.http.post<Message>(`${this.baseUrl}/share/help-request`, {
+      chatId,
+      helpRequestId,
+      caption: caption ?? ''
+    });
+  }
+
   async startSignalR(): Promise<void> {
-    if (this.hubConnection?.state === signalR.HubConnectionState.Connected ||
-      this.hubConnection?.state === signalR.HubConnectionState.Connecting) return;
+    if (
+      this.hubConnection?.state === signalR.HubConnectionState.Connected ||
+      this.hubConnection?.state === signalR.HubConnectionState.Connecting
+    ) return;
 
     const token = localStorage.getItem('auth_token');
     if (!token) return;
@@ -92,11 +128,9 @@ export class ChatService implements OnDestroy {
   private registerServerEvents() {
     if (!this.hubConnection) return;
 
-    this.hubConnection.on('receiveMessage',
-      (id: string, senderId: string, content: string, chatId: string, sentAt: string) => {
-        this.messageReceived$.next({ id, senderId, content, chatId, sentAt, isRead: false });
-      }
-    );
+    this.hubConnection.on('receiveMessage', (message: Message) => {
+      this.messageReceived$.next(message);
+    });
 
     this.hubConnection.on('typing', (fromUserId: string, chatId: string) => {
       this.typingEvent$.next({ chatId, userId: fromUserId });
@@ -116,14 +150,27 @@ export class ChatService implements OnDestroy {
     await this.hubConnection!.invoke('SendMessage', chatId, content);
   }
 
+  async sharePost(chatId: string, postId: string, caption?: string): Promise<void> {
+    await this.ensureConnection();
+    await this.hubConnection!.invoke('SharePost', chatId, postId, caption ?? '');
+  }
+
+  async shareHelpRequest(chatId: string, helpRequestId: string, caption?: string): Promise<void> {
+    await this.ensureConnection();
+    await this.hubConnection!.invoke('ShareHelpRequest', chatId, helpRequestId, caption ?? '');
+  }
+
   async sendTyping(chatId: string): Promise<void> {
-    if (this.hubConnection?.state === signalR.HubConnectionState.Connected)
+    if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
       await this.hubConnection.invoke('Typing', chatId);
+    }
   }
 
   async markAsRead(chatId: string, lastReadMessageId: string): Promise<void> {
     await this.ensureConnection();
-    try { await this.hubConnection!.invoke('Seen', chatId, lastReadMessageId); } catch {}
+    try {
+      await this.hubConnection!.invoke('Seen', chatId, lastReadMessageId);
+    } catch {}
   }
 
   async deleteMessage(messageId: string): Promise<void> {
@@ -135,13 +182,34 @@ export class ChatService implements OnDestroy {
     this.hubConnection?.stop().then(() => this.connectionStatus$.next(false));
   }
 
-  private async ensureConnection(): Promise<void> {
-    if (!this.hubConnection || this.hubConnection.state === signalR.HubConnectionState.Disconnected)
-      await this.startSignalR();
-
-    if (this.hubConnection?.state !== signalR.HubConnectionState.Connected)
-      throw new Error('SignalR is not connected');
+  getMessageTypeName(messageType: number): MessageType {
+    switch (messageType) {
+      case 1: return 'sharedPost';
+      case 2: return 'sharedHelpRequest';
+      default: return 'text';
+    }
   }
 
-  ngOnDestroy() { this.stopConnection(); }
+  getPreviewImageSrc(base64?: string | null): string | null {
+    if (!base64?.trim()) return null;
+    if (base64.startsWith('data:image/')) return base64;
+    return `data:image/jpeg;base64,${base64}`;
+  }
+
+  private async ensureConnection(): Promise<void> {
+    if (
+      !this.hubConnection ||
+      this.hubConnection.state === signalR.HubConnectionState.Disconnected
+    ) {
+      await this.startSignalR();
+    }
+
+    if (this.hubConnection?.state !== signalR.HubConnectionState.Connected) {
+      throw new Error('SignalR is not connected');
+    }
+  }
+
+  ngOnDestroy() {
+    this.stopConnection();
+  }
 }

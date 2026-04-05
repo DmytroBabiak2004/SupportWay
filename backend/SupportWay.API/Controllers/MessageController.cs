@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SupportWay.API.DTOs;
-using SupportWay.Services.Interfaces;
 using System.Security.Claims;
 
 namespace SupportWay.Api.Controllers
@@ -20,10 +19,10 @@ namespace SupportWay.Api.Controllers
 
         [HttpGet("{chatId:guid}/messages")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetChatHistory(Guid chatId)
         {
-            var history = await _messageService.GetHistoryAsync(chatId);
+            var userId = GetCurrentUserId();
+            var history = await _messageService.GetHistoryAsync(chatId, userId);
             return Ok(history);
         }
 
@@ -43,7 +42,6 @@ namespace SupportWay.Api.Controllers
 
             return Ok(updated);
         }
-
 
         [HttpDelete("messages/{messageId:guid}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -75,6 +73,33 @@ namespace SupportWay.Api.Controllers
             return success ? Ok() : Forbid();
         }
 
+        [HttpPost("share/post")]
+        public async Task<ActionResult<MessageDto>> SharePost([FromBody] SharePostRequestDto request)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _messageService.SharePostAsync(
+                request.ChatId,
+                userId,
+                request.PostId,
+                request.Caption
+            );
+
+            return Ok(result);
+        }
+
+        [HttpPost("share/help-request")]
+        public async Task<ActionResult<MessageDto>> ShareHelpRequest([FromBody] ShareHelpRequestRequestDto request)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _messageService.ShareHelpRequestAsync(
+                request.ChatId,
+                userId,
+                request.HelpRequestId,
+                request.Caption
+            );
+
+            return Ok(result);
+        }
 
         private string GetCurrentUserId() =>
             User.FindFirstValue(ClaimTypes.NameIdentifier)

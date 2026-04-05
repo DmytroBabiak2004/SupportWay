@@ -15,6 +15,7 @@ public class ChatMessageRepository : IMessagesRepository
     public async Task<IEnumerable<Message>> GetMessagesByChatIdAsync(Guid chatId)
     {
         return await _context.Messages
+            .AsNoTracking()
             .Where(m => m.ChatId == chatId)
             .OrderBy(m => m.SentAt)
             .ToListAsync();
@@ -52,6 +53,7 @@ public class ChatMessageRepository : IMessagesRepository
             await _context.SaveChangesAsync();
         }
     }
+
     public Task<bool> IsUserInChatAsync(Guid chatId, string userId)
     {
         return _context.UserChats.AnyAsync(uc => uc.ChatId == chatId && uc.UserId == userId);
@@ -59,16 +61,13 @@ public class ChatMessageRepository : IMessagesRepository
 
     public async Task MarkChatAsReadUpToAsync(Guid chatId, string userId, DateTime upToSentAt)
     {
-   
         await _context.Messages
             .Where(m =>
                 m.ChatId == chatId &&
                 !m.IsRead &&
                 m.SentAt <= upToSentAt &&
-                m.SenderId != userId 
+                m.SenderId != userId
             )
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(m => m.IsRead, true)
-            );
+            .ExecuteUpdateAsync(setters => setters.SetProperty(m => m.IsRead, true));
     }
 }

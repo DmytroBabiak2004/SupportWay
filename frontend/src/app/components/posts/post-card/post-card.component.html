@@ -37,6 +37,14 @@
         <svg viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg>
         <span class="count-label" *ngIf="commentsCount > 0">{{ commentsCount }}</span>
       </button>
+
+      <button class="action-btn share-btn" (click)="openShareModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+          <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path>
+          <path d="M12 16V4"></path>
+          <path d="m7 9 5-5 5 5"></path>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -59,7 +67,6 @@
     <div *ngIf="isLoadingComments" class="loading-state">Updating...</div>
 
     <div *ngFor="let comment of comments" class="comment-item">
-
       <div class="c-avatar" (click)="openProfile(comment.userName || comment.userId)">
         <img *ngIf="comment.userPhotoBase64; else comInitials"
              [src]="profileService.getAvatarSrc(comment.userPhotoBase64)"
@@ -87,3 +94,13 @@
   </div>
 
 </article>
+
+<app-share-to-chat-modal
+  *ngIf="isShareModalOpen"
+  [entityType]="'post'"
+  [entityId]="post.id"
+  [previewTitle]="post.title || null"
+  [previewContent]="post.content || null"
+  (closed)="closeShareModal()"
+  (shared)="onShared()">
+</app-share-to-chat-modal>

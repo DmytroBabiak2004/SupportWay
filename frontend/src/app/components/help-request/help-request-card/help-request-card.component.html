@@ -44,6 +44,14 @@
         </svg>
         <span class="count-label" *ngIf="commentsCount > 0">{{ commentsCount }}</span>
       </button>
+
+      <button class="action-btn share-btn" (click)="openShareModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
+          <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path>
+          <path d="M12 16V4"></path>
+          <path d="m7 9 5-5 5 5"></path>
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -93,6 +101,7 @@
 
   <div class="comments-section" *ngIf="showComments">
     <div *ngIf="isLoadingComments" class="loading-state">Updating...</div>
+
     <div *ngFor="let comment of comments" class="comment-item">
       <div class="c-avatar" (click)="openProfile(comment.userName || comment.userId)">
         <img *ngIf="comment.userPhotoBase64; else comInitials"
@@ -102,6 +111,7 @@
           <div class="initials">{{ getInitials(comment.userName || '?') }}</div>
         </ng-template>
       </div>
+
       <div class="c-body">
         <div class="c-header">
           <span class="c-user clickable-username" (click)="openProfile(comment.userName || comment.userId)">
@@ -112,9 +122,20 @@
         <div class="c-text">{{ comment.text }}</div>
       </div>
     </div>
+
     <div class="comment-input-wrapper">
       <input type="text" placeholder="Add a comment..." [(ngModel)]="newCommentText" (keydown.enter)="newCommentText.trim() && sendComment()">
       <button class="post-link-btn" [disabled]="!newCommentText.trim()" (click)="sendComment()">Post</button>
     </div>
   </div>
 </article>
+
+<app-share-to-chat-modal
+  *ngIf="isShareModalOpen"
+  [entityType]="'helpRequest'"
+  [entityId]="request.id"
+  [previewTitle]="request.title || null"
+  [previewContent]="request.content || null"
+  (closed)="closeShareModal()"
+  (shared)="onShared()">
+</app-share-to-chat-modal>

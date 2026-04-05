@@ -791,3 +791,18 @@
   }
   .comment-input-wrapper { display: flex; align-items: center; gap: 12px; margin-top: 12px; border-top: 1px solid var(--c-divider); padding-top: 12px; input { flex: 1; border: none; background: transparent; font-size: 14px; outline: none; } .post-link-btn { border: none; background: none; color: var(--c-accent); font-weight: 600; cursor: pointer; &:disabled { opacity: 0.5; } } }
 }
+
+.share-btn {
+  color: #475569;
+}
+
+.share-btn:hover {
+  color: #2563eb;
+}
+
+.share-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

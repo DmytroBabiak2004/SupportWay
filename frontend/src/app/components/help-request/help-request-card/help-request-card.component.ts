@@ -12,11 +12,12 @@ import { RelativeTimePipe } from '../../../pipes/relative-time.pipe';
 import { PostComment, CreatePostCommentDto } from '../../../models/post-comment.model';
 import { PostLikeService } from '../../../services/post-like.service';
 import { PostCommentService } from '../../../services/post-comment.service';
+import { ShareToChatModalComponent } from '../../chat/share-to-chat-modal/share-to-chat-modal.component';
 
 @Component({
   selector: 'app-help-request-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, ShareToChatModalComponent],
   templateUrl: './help-request-card.component.html',
   styleUrls: ['./help-request-card.component.scss']
 })
@@ -40,46 +41,35 @@ export class HelpRequestCardComponent implements OnInit {
   isLoadingComments = false;
   currentUserId = '';
 
+  isShareModalOpen = false;
+
   ngOnInit(): void {
-    // Надійна перевірка на null/undefined
     this.likesCount = this.request.likesCount || 0;
     this.commentsCount = this.request.commentsCount || 0;
-    this.isLiked = !!this.request.isLikedByCurrentUser; // Жорстке приведення до boolean
+    this.isLiked = !!this.request.isLikedByCurrentUser;
 
     this.authService.getUserInfo$()
       .pipe(filter(user => !!user))
       .subscribe(user => {
         this.currentUserId = user!.id;
 
-        // Якщо бекенд не повернув статус лайка при завантаженні стрічки,
-        // потрібно смикнути API щоб дізнатись, чи лайкав цей юзер пост.
         if (this.request.isLikedByCurrentUser === undefined || this.request.isLikedByCurrentUser === null) {
           this.checkIfUserLiked();
         }
       });
   }
 
-  // Оновлений метод checkIfUserLiked (дублікат видалено)
   private checkIfUserLiked(): void {
     if (!this.currentUserId) return;
 
-    // Оновлюємо кількість лайків
     this.likeService.getLikesCount(this.request.id).subscribe({
       next: count => this.likesCount = count ?? this.likesCount,
       error: () => {}
     });
-
-    // ТУТ ПОТРІБЕН ВИКЛИК: Перевіряємо чи лайкав саме цей юзер.
-    // Якщо в likeService немає методу hasUserLikedPost, його треба додати на бекенді та у сервісі.
-    // this.likeService.hasUserLikedPost(this.request.id, this.currentUserId).subscribe(isLiked => {
-    //    this.isLiked = isLiked;
-    // });
   }
 
-  // Виправлення багу з фото (дублікат видалено)
   getRequestImageSrc(image?: string | null): string | null {
     if (!image?.trim()) return null;
-    // Якщо база64 не має префіксу, додаємо його
     if (image.startsWith('data:image/')) return image;
     return `data:image/jpeg;base64,${image}`;
   }
@@ -203,5 +193,17 @@ export class HelpRequestCardComponent implements OnInit {
 
   trackByRequestItem(_: number, item: HelpRequestItem): string {
     return item.id;
+  }
+
+  openShareModal(): void {
+    this.isShareModalOpen = true;
+  }
+
+  closeShareModal(): void {
+    this.isShareModalOpen = false;
+  }
+
+  onShared(): void {
+    alert('Реквест надіслано в чат');
   }
 }

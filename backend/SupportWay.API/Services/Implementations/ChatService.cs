@@ -21,7 +21,9 @@ public class ChatService : IChatService
     public async Task<IEnumerable<ChatListItemDto>> GetChatsByUserIdAsync(string userId)
     {
         var chats = await _db.Chats
-            .Include(c => c.UserChats).ThenInclude(uc => uc.User).ThenInclude(u => u.Profile)
+            .Include(c => c.UserChats)
+                .ThenInclude(uc => uc.User)
+                    .ThenInclude(u => u.Profile)
             .Include(c => c.Messages)
             .Where(c => c.UserChats.Any(uc => uc.UserId == userId))
             .OrderByDescending(c => c.Messages.Max(m => (DateTime?)m.SentAt) ?? c.StartedAt)
@@ -35,9 +37,10 @@ public class ChatService : IChatService
 
     public async Task<ChatListItemDto> GetOrCreatePrivateChatAsync(string user1Id, string user2Id)
     {
-        // Look for existing private chat between exactly these two users
         var existing = await _db.Chats
-            .Include(c => c.UserChats).ThenInclude(uc => uc.User).ThenInclude(u => u.Profile)
+            .Include(c => c.UserChats)
+                .ThenInclude(uc => uc.User)
+                    .ThenInclude(u => u.Profile)
             .Include(c => c.Messages)
             .Where(c =>
                 c.IsPrivate &&
@@ -49,7 +52,6 @@ public class ChatService : IChatService
         if (existing != null)
             return BuildListItem(existing, user1Id);
 
-        // Create new
         var user1 = await _userManager.FindByIdAsync(user1Id)
             ?? throw new Exception("User not found");
         var user2 = await _userManager.FindByIdAsync(user2Id)
@@ -70,9 +72,10 @@ public class ChatService : IChatService
 
         await _repo.AddAsync(chat);
 
-        // Reload with includes
         var created = await _db.Chats
-            .Include(c => c.UserChats).ThenInclude(uc => uc.User).ThenInclude(u => u.Profile)
+            .Include(c => c.UserChats)
+                .ThenInclude(uc => uc.User)
+                    .ThenInclude(u => u.Profile)
             .Include(c => c.Messages)
             .FirstAsync(c => c.Id == chat.Id);
 
@@ -83,13 +86,12 @@ public class ChatService : IChatService
     {
         var chat = await _repo.GetByIdAsync(chatId);
         if (chat == null) return;
+
         await _repo.DeleteAsync(chat);
     }
 
     public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
         => await _repo.IsUserInChatAsync(chatId, userId);
-
-    // ── Private ──────────────────────────────────────────────────────────────
 
     private static ChatListItemDto BuildListItem(Chat chat, string currentUserId)
     {
@@ -97,10 +99,12 @@ public class ChatService : IChatService
         var other = otherUC?.User;
         var profile = other?.Profile;
 
-        var lastMsg = chat.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
+        var lastMsg = chat.Messages
+            .OrderByDescending(m => m.SentAt)
+            .FirstOrDefault();
+
         var unreadCount = chat.Messages.Count(m => !m.IsRead && m.SenderId != currentUserId);
 
-        // ЗМІНА ТУТ: Пріоритет віддаємо іншому користувачу (UserName)
         string displayName = chat.IsPrivate
             ? (other?.UserName ?? profile?.Name ?? chat.Name)
             : chat.Name;
@@ -108,15 +112,35 @@ public class ChatService : IChatService
         return new ChatListItemDto
         {
             Id = chat.Id,
-            DisplayName = displayName, // Тепер тут буде username співрозмовника
+            DisplayName = displayName,
             OtherUserId = other?.Id,
             OtherUserPhotoBase64 = profile?.Photo != null
-                                   ? Convert.ToBase64String(profile.Photo)
-                                   : null,
-            LastMessage = lastMsg?.Content,
+                ? Convert.ToBase64String(profile.Photo)
+                : null,
+            LastMessage = DescribeLastMessage(lastMsg),
             LastMessageAt = lastMsg?.SentAt,
             UnreadCount = unreadCount,
             IsPrivate = chat.IsPrivate
+        };
+    }
+
+    private static string? DescribeLastMessage(Message? message)
+    {
+        if (message == null) return null;
+
+        return message.MessageType switch
+        {
+            MessageType.SharedPost => string.IsNullOrWhiteSpace(message.Content)
+                ? "Поділився постом"
+                : $"Поділився постом: {message.Content}",
+
+            MessageType.SharedHelpRequest => string.IsNullOrWhiteSpace(message.Content)
+                ? "Поділився запитом допомоги"
+                : $"Поділився запитом допомоги: {message.Content}",
+
+            _ => string.IsNullOrWhiteSpace(message.Content)
+                ? "Повідомлення"
+                : message.Content
         };
     }
 }
