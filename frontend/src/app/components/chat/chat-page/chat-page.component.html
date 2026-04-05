@@ -12,9 +12,9 @@
     <ng-container *ngIf="selectedChat; else emptyState">
 
       <app-chat-header
-        [chatName]="selectedChat.userName || selectedChat.displayName"
-        [profileKey]="(selectedChat.userName ?? selectedChat.userId) ?? null"
-        [otherUserPhotoBase64]="selectedChat.otherUserPhotoBase64 ?? null"
+        [chatName]="selectedChat.displayName"
+        [profileKey]="selectedChat.displayName"
+        [otherUserPhotoBase64]="selectedChat.otherUserPhotoBase64 || null"
         [typingText]="typingText"
         (backClicked)="closeChat()"
         (deleteClicked)="onDeleteChat()">

@@ -106,6 +106,8 @@ export class ChatPageComponent implements OnInit, OnDestroy {
   }
 
   openChat(chat: ChatListItem): void {
+    console.log('Дані обраного чату:', chat); // <-- Додайте це для перевірки полів
+
     this.selectedChat  = chat;
     this.messages      = [];
     this.isSidebarOpen = false;

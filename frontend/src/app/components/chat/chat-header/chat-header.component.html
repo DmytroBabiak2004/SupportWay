@@ -5,7 +5,7 @@
     </svg>
   </button>
 
-  <div class="head-avatar">
+  <div class="head-avatar profile-link" (click)="openProfile()">
     <img *ngIf="otherUserPhotoBase64"
          [src]="profileService.getAvatarSrc(otherUserPhotoBase64)"
          [alt]="chatName">
@@ -13,7 +13,7 @@
   </div>
 
   <div class="head-info">
-    <span class="head-name">{{ chatName }}</span>
+    <span class="head-name profile-link" (click)="openProfile()">{{ chatName }}</span>
     <span class="head-typing" *ngIf="typingText">{{ typingText }}</span>
   </div>
 

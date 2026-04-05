@@ -1,5 +1,6 @@
 import { Component, input, output, computed, inject } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe, SlicePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { HelpRequestDetails } from '../../../models/help-request.model';
 import { MapMarkerDto, getTypeStyle } from '../../../models/map.models';
 import { HelpRequestService } from '../../../services/help-request.service';
@@ -12,17 +13,33 @@ import { HelpRequestService } from '../../../services/help-request.service';
   styleUrls:   ['./map-details-panel.component.scss']
 })
 export class MapDetailsPanelComponent {
+  private readonly router = inject(Router);
+  private readonly helpRequestService = inject(HelpRequestService);
+
+  // --- Existing Inputs ---
   readonly visible   = input.required<boolean>();
   readonly isLoading = input<boolean>(false);
   readonly error     = input<string | null>(null);
   readonly details   = input<HelpRequestDetails | null>(null);
+
+  // --- Missing Input (Fixes NG8002) ---
   readonly marker    = input<MapMarkerDto | null>(null);
 
+  // --- Missing Outputs (Fixes NG9 Errors) ---
   readonly closed = output<void>();
   readonly retry  = output<void>();
   readonly donate = output<void>();
 
-  // ─── Computed helpers ──────────────────────────────────────────────────────
+  openProfile(): void {
+    const name = this.details()?.userName;
+    if (name) {
+      this.router.navigate(['/profile', name]);
+    }
+  }
+
+  readonly firstChar = computed<string>(() =>
+    (this.details()?.userName ?? '?').charAt(0).toUpperCase()
+  );
 
   readonly accentColor = computed<string>(() => {
     const d = this.details();
@@ -36,23 +53,12 @@ export class MapDetailsPanelComponent {
     return Math.min(100, Math.round((d.collectedAmount / d.targetAmount) * 100));
   });
 
-  readonly firstChar = computed<string>(() =>
-    (this.details()?.userName ?? '?').charAt(0).toUpperCase()
-  );
-
-  private readonly helpRequestService = inject(HelpRequestService);
-
   getTypeStyle = getTypeStyle;
 
   imageSrc(base64?: string | null): string | null {
     return this.helpRequestService.getImageSrc(base64);
   }
 
-  // Tag color helpers
-  tagBg(typeName: string): string {
-    return getTypeStyle(typeName).colorLight;
-  }
-  tagColor(typeName: string): string {
-    return getTypeStyle(typeName).colorText;
-  }
+  tagBg(typeName: string): string { return getTypeStyle(typeName).colorLight; }
+  tagColor(typeName: string): string { return getTypeStyle(typeName).colorText; }
 }

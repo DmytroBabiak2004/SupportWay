@@ -100,14 +100,15 @@ public class ChatService : IChatService
         var lastMsg = chat.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault();
         var unreadCount = chat.Messages.Count(m => !m.IsRead && m.SenderId != currentUserId);
 
+        // ЗМІНА ТУТ: Пріоритет віддаємо іншому користувачу (UserName)
         string displayName = chat.IsPrivate
-            ? (profile?.Name ?? other?.UserName ?? chat.Name)
+            ? (other?.UserName ?? profile?.Name ?? chat.Name)
             : chat.Name;
 
         return new ChatListItemDto
         {
             Id = chat.Id,
-            DisplayName = displayName,
+            DisplayName = displayName, // Тепер тут буде username співрозмовника
             OtherUserId = other?.Id,
             OtherUserPhotoBase64 = profile?.Photo != null
                                    ? Convert.ToBase64String(profile.Photo)

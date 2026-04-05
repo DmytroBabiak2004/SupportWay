@@ -104,3 +104,15 @@
     color: #ef4444;
   }
 }
+
+.profile-link {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8; // Легкий ефект при наведенні
+  }
+}
+
+// Якщо у тебе вже є стилі для .head-avatar та .head-name,
+// ти можеш просто додати туди cursor: pointer;

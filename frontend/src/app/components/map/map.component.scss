@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&display=swap');
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+:host {
+  --sw-accent:      #2563eb;
+  --sw-glass:       rgba(255, 255, 255, 0.82);
+  --sw-glass-b:     rgba(255, 255, 255, 0.72);
+  --sw-glass-sh:    0 4px 20px rgba(10, 20, 60, 0.10), 0 1px 0 rgba(255,255,255,0.88) inset;
+  --sw-text:        #0f172a;
+  --sw-muted:       #475569;
+  --sw-radius-pill: 999px;
+  --sw-spring:      cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  --sw-ease:        cubic-bezier(0.4, 0, 0.2, 1);
+
+  font-family: 'Onest', system-ui, sans-serif;
+  display: block;
+  height: 100%;
+}
+
+// ─── Page shell ───────────────────────────────────────────────────────────────
+.sw-map-page {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+.sw-map-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #dde8f0;
+}
+
+// ─── Status pill ──────────────────────────────────────────────────────────────
+.sw-status-pill {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px;
+  background: var(--sw-glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--sw-glass-b);
+  border-radius: var(--sw-radius-pill);
+  box-shadow: var(--sw-glass-sh);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sw-text);
+  letter-spacing: 0.01em;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: pillReveal 0.5s var(--sw-spring) both;
+
+  &--loading { color: #94a3b8; }
+}
+
+.sw-pill-icon { width: 14px; height: 14px; color: var(--sw-accent); flex-shrink: 0; }
+
+.sw-pill-spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(37,99,235,0.18);
+  border-top-color: var(--sw-accent);
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+// ─── Filter float ─────────────────────────────────────────────────────────────
+.sw-map-filter-float {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 400;
+}
+
+// ─── Leaflet global overrides ─────────────────────────────────────────────────
+:global {
+
+  .leaflet-control-attribution {
+    font-size: 10px !important;
+    background: rgba(255,255,255,0.72) !important;
+    backdrop-filter: blur(8px);
+    border-radius: 8px 0 0 0;
+    padding: 3px 8px !important;
+    color: #64748b !important;
+    a { color: #2563eb !important; }
+  }
+
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(10,20,60,0.13) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+    margin-right: 18px !important;
+    margin-bottom: 24px !important;
+
+    a {
+      background: rgba(255,255,255,0.90) !important;
+      backdrop-filter: blur(16px);
+      color: #334155 !important;
+      border: none !important;
+      width: 36px !important;
+      height: 36px !important;
+      line-height: 36px !important;
+      font-size: 18px !important;
+      transition: background 0.15s ease;
+      &:hover   { background: #fff !important; color: #0f172a !important; }
+      &.leaflet-disabled { opacity: 0.38; }
+    }
+  }
+
+  // ── Tooltip ─────────────────────────────────────────────────────────────────
+  .sw-tooltip-wrap {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    &::before { display: none !important; }
+
+    .sw-tooltip {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(15,23,42,0.90);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 10px;
+      padding: 8px 12px;
+      max-width: 210px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.22);
+    }
+
+    .sw-tooltip-title {
+      font-family: 'Onest', sans-serif;
+      font-size: 0.77rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.4;
+    }
+
+    .sw-tooltip-sub {
+      font-family: 'Onest', sans-serif;
+      font-size: 0.69rem;
+      color: rgba(241,245,249,0.55);
+    }
+  }
+
+  // ── Cluster ──────────────────────────────────────────────────────────────────
+  .sw-cluster {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    border: 2px solid rgba(37,99,235,0.45);
+    box-shadow: 0 4px 14px rgba(37,99,235,0.18), 0 0 0 4px rgba(37,99,235,0.07);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s cubic-bezier(0.175,0.885,0.32,1.2), box-shadow 0.18s ease;
+
+    span {
+      font-family: 'Onest', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #2563eb;
+    }
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.26), 0 0 0 6px rgba(37,99,235,0.09);
+    }
+  }
+
+  // ── Pin wrapper ──────────────────────────────────────────────────────────────
+  //
+  // Тінь на wrapper, а НЕ на svg — щоб CSS filter ніколи не конфліктував
+  // з inline style="" або defs всередині SVG.
+  //
+  .sw-pin-wrapper {
+    cursor: pointer;
+    line-height: 0;
+    display: block;
+    // Базова тінь
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.28));
+    transition:
+            filter    0.2s ease,
+            transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+
+    svg.sw-pin-svg {
+      display: block;
+      overflow: visible;
+      // Жодного filter тут — він перезаписав би drop-shadow на wrapper
+    }
+
+    &:hover {
+      filter:    drop-shadow(0 6px 14px rgba(0,0,0,0.34));
+      transform: translateY(-5px) scale(1.08);
+    }
+  }
+
+  // Вибраний пін — яскравіша тінь, трохи більший
+  .sw-pin-wrapper--selected {
+    filter:    drop-shadow(0 8px 18px rgba(0,0,0,0.38));
+    transform: translateY(-6px) scale(1.14);
+
+    &:hover {
+      filter:    drop-shadow(0 10px 22px rgba(0,0,0,0.40));
+      transform: translateY(-7px) scale(1.16);
+    }
+  }
+}
+
+// ─── Keyframes ────────────────────────────────────────────────────────────────
+@keyframes pillReveal {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.94); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

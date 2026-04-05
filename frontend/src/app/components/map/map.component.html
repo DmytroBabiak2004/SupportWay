@@ -1,42 +1,42 @@
 <div class="sw-map-page">
 
-  <!-- Leaflet map — fills the whole viewport -->
-  <div id="map" class="sw-map-container"></div>
+    <div id="map" class="sw-map-container"></div>
 
-  <!-- Floating pill: marker count + loading indicator -->
-  <div class="sw-status-pill" [class.sw-status-pill--loading]="isLoading()">
-    <ng-container *ngIf="isLoading(); else countTpl">
-      <span class="sw-pill-spinner"></span>
-      <span class="sw-pill-text">Завантаження…</span>
-    </ng-container>
-    <ng-template #countTpl>
-      <svg class="sw-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="10" r="4"/><path d="M12 14c-5 0-8 2.5-8 4v1h16v-1c0-1.5-3-4-8-4z" stroke-linecap="round"/>
-      </svg>
-      <span class="sw-pill-text">{{ totalCount() | number }} запит{{ totalCount() === 1 ? '' : (totalCount() < 5 ? 'и' : 'ів') }}</span>
-    </ng-template>
-  </div>
+    <!-- Status pill -->
+    <div class="sw-status-pill" [class.sw-status-pill--loading]="isLoading()">
+        <ng-container *ngIf="isLoading(); else countTpl">
+            <span class="sw-pill-spinner"></span>
+            <span>Завантаження…</span>
+        </ng-container>
+        <ng-template #countTpl>
+            <svg class="sw-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="10" r="4"/>
+                <path d="M12 14c-5 0-8 2.5-8 4v1h16v-1c0-1.5-3-4-8-4z" stroke-linecap="round"/>
+            </svg>
+            <span>{{ totalCount() | number }} запит{{ totalCount() === 1 ? '' : (totalCount() < 5 ? 'и' : 'ів') }}</span>
+        </ng-template>
+    </div>
 
-  <!-- Floating filter -->
-  <app-map-filter
-    class="sw-map-filter-float"
-    (filtersChanged)="onFiltersChanged($event)"/>
+    <!-- Filter -->
+    <app-map-filter
+            class="sw-map-filter-float"
+            (filtersChanged)="onFiltersChanged($event)"/>
 
-  <!-- Details panel — integrated glass overlay -->
-  <app-map-details-panel
-    [visible]="!!selectedMarker()"
-    [isLoading]="isDetailLoading()"
-    [error]="detailsError()"
-    [details]="selectedDetails()"
-    [marker]="selectedMarker()"
-    (closed)="closePanel()"
-    (retry)="retryDetails()"
-    (donate)="openDonateFromPanel()"/>
+    <!-- Details panel -->
+    <app-map-details-panel
+            [visible]="!!selectedMarker()"
+            [isLoading]="isDetailLoading()"
+            [error]="detailsError()"
+            [details]="selectedDetails()"
+            [marker]="selectedMarker()"
+            (closed)="closePanel()"
+            (retry)="retryDetails()"
+            (donate)="openDonateFromPanel()"/>
 
-  <!-- Donate modal -->
-  <app-donate-modal
-    *ngIf="showDonate()"
-    [request]="selectedMarker()"
-    (closed)="closeDonate()"/>
+    <!-- Donate modal -->
+    <app-donate-modal
+            *ngIf="showDonate()"
+            [request]="selectedMarker()"
+            (closed)="closeDonate()"/>
 
 </div>

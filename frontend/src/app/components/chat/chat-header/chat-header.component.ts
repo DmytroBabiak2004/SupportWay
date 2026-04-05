@@ -15,7 +15,8 @@ export class ChatHeaderComponent {
   private router = inject(Router);
 
   @Input() chatName: string = '';
-  @Input() profileKey: string | null = null;
+  // Переконайся, що батьківський компонент передає сюди ID або Username
+  @Input() profileKey: string | undefined | null = null;
   @Input() otherUserPhotoBase64: string | null = null;
   @Input() typingText: string | null = null;
 
@@ -23,11 +24,10 @@ export class ChatHeaderComponent {
   @Output() deleteClicked = new EventEmitter<void>();
 
   getInitials(name: string): string {
-    return name ? name[0].toUpperCase() : '?';
+    return name ? name.charAt(0).toUpperCase() : '?';
   }
 
   openProfile(): void {
-    if (!this.profileKey) return;
-    this.router.navigate(['/profile', this.profileKey]);
+    this.router.navigate(['/profile', this.profileKey])
   }
 }
