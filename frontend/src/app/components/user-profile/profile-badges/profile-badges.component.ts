@@ -18,6 +18,7 @@ export interface BadgeGroup {
 })
 export class ProfileBadgesComponent implements OnChanges {
   @Input({ required: true }) profileId!: string;
+  @Input() isOwnProfile = false;
 
   badges: ProfileBadgeViewModel[] = [];
   unlockedBadges: ProfileBadgeViewModel[] = [];
@@ -79,6 +80,25 @@ export class ProfileBadgesComponent implements OnChanges {
     }));
   }
 
+  removeBadge(badge: ProfileBadgeViewModel, event: MouseEvent): void {
+    event.stopPropagation();
+    if (!confirm(`Прибрати нагороду «${badge.name}» з профілю?`)) return;
+
+    this.badgeService.removeFromProfile(this.profileId, badge.id).subscribe({
+      next: () => {
+        this.badges = this.badges.map(b =>
+          b.id === badge.id ? { ...b, unlocked: false } : b
+        );
+        this.unlockedBadges = this.badges.filter(b => b.unlocked);
+        this.groupBadges();
+      },
+      error: (err) => {
+        console.error('Помилка при видаленні нагороди', err);
+        this.error = 'Не вдалося прибрати нагороду.';
+      }
+    });
+  }
+
   getCleanImageSrc(base64: string | null | undefined): string {
     if (!base64) return this.badgeService.getBadgeImageSrc(null);
     return this.badgeService.getBadgeImageSrc(base64.replace(/\s+/g, ''));
@@ -114,3 +134,4 @@ export class ProfileBadgesComponent implements OnChanges {
     return Math.round((this.unlockedCount / this.badges.length) * 100);
   }
 }
+

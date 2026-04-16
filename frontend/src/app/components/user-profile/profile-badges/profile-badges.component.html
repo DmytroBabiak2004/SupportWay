@@ -85,6 +85,13 @@
                 <span class="threshold-tag" *ngIf="badge.threshold">{{ badge.threshold }}</span>
               </div>
               <p>{{ badge.description || 'Деталі нагороди приховані.' }}</p>
+              <button
+                *ngIf="badge.unlocked && isOwnProfile"
+                class="btn-remove-badge"
+                (click)="removeBadge(badge, $event)"
+                title="Прибрати нагороду з профілю">
+                Прибрати
+              </button>
             </div>
           </div>
         </div>

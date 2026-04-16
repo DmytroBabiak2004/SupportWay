@@ -68,6 +68,7 @@ builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
 builder.Services.AddScoped<IBadgeTypeRepository, BadgeTypeRepository>();
 builder.Services.AddScoped<IBadgeRepository, BadgeRepository>();
+builder.Services.AddScoped<IProfileBadgeRepository, ProfileBadgeRepository>();
 builder.Services.AddScoped<IPostAnalyticsRepository, PostAnalyticsRepository>();
 builder.Services.AddScoped<IHelpRequestAnalyticsRepository, HelpRequestAnalyticsRepository>();
 builder.Services.AddScoped<IRequestItemAnalyticsRepository, RequestItemAnalyticsRepository>();
@@ -87,6 +88,7 @@ builder.Services.AddScoped<IProfileRatingService, ProfileRatingService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IBadgeTypeService, BadgeTypeService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
+builder.Services.AddScoped<IProfileBadgeService, ProfileBadgeService>();
 builder.Services.AddScoped<IProfileAnalyticsService, ProfileAnalyticsService>();
 builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
@@ -105,7 +107,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:4200") 
+                .WithOrigins("http://localhost:4200")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();

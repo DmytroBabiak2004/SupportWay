@@ -9,6 +9,7 @@ import { Badge } from '../models/profile-badge.model';
 })
 export class BadgeService {
   private apiUrl = `${environment.apiUrl}/Badges`;
+  private profileBadgesUrl = `${environment.apiUrl}/ProfileBadges`;
 
   constructor(private http: HttpClient) {}
 
@@ -22,6 +23,16 @@ export class BadgeService {
 
   getById(id: string): Observable<Badge> {
     return this.http.get<Badge>(`${this.apiUrl}/${id}`);
+  }
+
+  removeFromProfile(profileId: string, badgeId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.profileBadgesUrl}/profile/${profileId}/badge/${badgeId}`
+    );
+  }
+
+  awardToProfile(profileId: string, badgeId: string): Observable<void> {
+    return this.http.post<void>(this.profileBadgesUrl, { profileId, badgeId });
   }
 
   getBadgeImageSrc(imageBase64?: string | null): string {

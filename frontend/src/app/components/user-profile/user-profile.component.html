@@ -32,7 +32,7 @@
           <app-profile-heatmap [profileId]="profile.profileId"></app-profile-heatmap>
         </div>
         <div class="analytics-card badges-card">
-          <app-profile-badges [profileId]="profile.profileId"></app-profile-badges>
+          <app-profile-badges [profileId]="profile.profileId" [isOwnProfile]="isOwnProfile"></app-profile-badges>
         </div>
         <div class="analytics-card radar-card full-width">
           <app-profile-radar-chart [profileId]="profile.profileId"></app-profile-radar-chart>
