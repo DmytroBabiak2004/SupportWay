@@ -200,4 +200,10 @@ public class HelpRequestsRepository : IHelpRequestsRepository
 
         return (items, total);
     }
+
+    public async Task<int> CountByUserIdAsync(string userId)
+    {
+        return await _context.HelpRequests
+            .CountAsync(h => h.UserId == userId);
+    }
 }

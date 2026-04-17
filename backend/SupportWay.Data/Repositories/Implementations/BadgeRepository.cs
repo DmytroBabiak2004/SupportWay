@@ -37,6 +37,15 @@ namespace SupportWay.API.Repositories
                 .Select(x => x.Badge)
                 .ToListAsync();
         }
+
+        public async Task<List<Badge>> GetByTypeNameAsync(string typeName)
+        {
+            return await _context.Set<Badge>()
+                .Include(x => x.BadgeType)
+                .Where(x => x.BadgeType.Name == typeName)
+                .OrderBy(x => x.Threshold)
+                .ToListAsync();
+        }
         public async Task<bool> BadgeTypeExistsAsync(Guid badgeTypeId)
         {
             return await _context.Set<BadgeType>()

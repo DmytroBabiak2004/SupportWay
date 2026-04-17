@@ -89,6 +89,7 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IBadgeTypeService, BadgeTypeService>();
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IProfileBadgeService, ProfileBadgeService>();
+builder.Services.AddScoped<IBadgeAwardService, BadgeAwardService>();
 builder.Services.AddScoped<IProfileAnalyticsService, ProfileAnalyticsService>();
 builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();

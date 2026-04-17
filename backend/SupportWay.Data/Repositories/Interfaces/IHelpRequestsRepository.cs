@@ -15,5 +15,6 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task<(IEnumerable<MapMarkerDto> Items, int Total)> GetMapMarkersAsync(
             MapFilterParams filter,
             CancellationToken ct = default);
+        Task<int> CountByUserIdAsync(string userId);
     }
 }

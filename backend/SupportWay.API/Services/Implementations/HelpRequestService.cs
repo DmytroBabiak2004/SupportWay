@@ -1,4 +1,5 @@
 ﻿using SupportWay.API.DTOs;
+using SupportWay.API.Services.Interfaces;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
 using ApiRequestItemDto = SupportWay.API.DTOs.RequestItemDto;
@@ -7,13 +8,16 @@ public class HelpRequestService : IHelpRequestService
 {
     private readonly IHelpRequestsRepository _helpRepo;
     private readonly ILocationsRepository _locationRepo;
+    private readonly IBadgeAwardService _badgeAwardService;
 
     public HelpRequestService(
         IHelpRequestsRepository helpRepo,
-        ILocationsRepository locationRepo)
+        ILocationsRepository locationRepo,
+        IBadgeAwardService badgeAwardService)
     {
         _helpRepo = helpRepo;
         _locationRepo = locationRepo;
+        _badgeAwardService = badgeAwardService;
     }
 
     public async Task<IEnumerable<HelpRequestDto>> GetFeedAsync(string currentUserId, int page, int size)
@@ -130,6 +134,10 @@ public class HelpRequestService : IHelpRequestService
         };
 
         await _helpRepo.AddHelpRequestAsync(helpRequest);
+
+        // Автоматична перевірка і видача нагород типу "HelpRequest"
+        await _badgeAwardService.CheckAndAwardHelpRequestBadgesAsync(userId);
+
         return helpRequest.Id;
     }
 

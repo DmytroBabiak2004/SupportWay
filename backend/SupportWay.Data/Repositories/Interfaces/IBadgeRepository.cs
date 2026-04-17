@@ -7,6 +7,7 @@ namespace SupportWay.API.Repositories.Interfaces
         Task<List<Badge>> GetAllAsync();
         Task<Badge?> GetByIdAsync(Guid id);
         Task<List<Badge>> GetByProfileIdAsync(Guid profileId);
+        Task<List<Badge>> GetByTypeNameAsync(string typeName);
         Task<bool> BadgeTypeExistsAsync(Guid badgeTypeId);
         Task AddAsync(Badge badge);
         void Delete(Badge badge);
