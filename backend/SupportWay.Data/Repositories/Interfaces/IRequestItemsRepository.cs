@@ -1,4 +1,4 @@
-﻿using SupportWay.Data.Models;
+using SupportWay.Data.Models;
 
 namespace SupportWay.Data.Repositories.Interfaces
 {
@@ -9,5 +9,6 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task AddAsync(RequestItem item);
         Task UpdateAsync(RequestItem item);
         Task DeleteAsync(Guid id);
+        Task<int> CountByUserIdAndSupportTypeAsync(string userId, Guid supportTypeId);
     }
 }

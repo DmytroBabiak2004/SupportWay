@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SupportWay.Data.Models;
 
@@ -8,13 +8,11 @@ namespace SupportWay.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<HelpRequest> builder)
         {
-            // Існуючий зв'язок з локацією — залишаємо
             builder.HasOne(r => r.Location)
                    .WithMany()
                    .HasForeignKey(r => r.LocationId)
                    .OnDelete(DeleteBehavior.SetNull);
 
-            // Нові поля
             builder.Property(r => r.TargetAmount)
                    .HasColumnType("numeric(18,2)")
                    .HasDefaultValue(0m);
@@ -26,7 +24,24 @@ namespace SupportWay.Data.Configurations
             builder.Property(r => r.IsActive)
                    .HasDefaultValue(true);
 
-            // Складений індекс для швидкої фільтрації на карті
+            builder.Property(r => r.PreferredDonationMethod)
+                   .HasMaxLength(64);
+
+            builder.Property(r => r.DonationRecipientName)
+                   .HasMaxLength(200);
+
+            builder.Property(r => r.DonationRecipientCardNumber)
+                   .HasMaxLength(32);
+
+            builder.Property(r => r.DonationRecipientIban)
+                   .HasMaxLength(64);
+
+            builder.Property(r => r.DonationPaymentLink)
+                   .HasMaxLength(500);
+
+            builder.Property(r => r.DonationNotes)
+                   .HasMaxLength(1000);
+
             builder.HasIndex(r => new { r.IsActive, r.CreatedAt });
         }
     }

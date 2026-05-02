@@ -2,7 +2,6 @@
 
     <div id="map" class="sw-map-container"></div>
 
-    <!-- Status pill -->
     <div class="sw-status-pill" [class.sw-status-pill--loading]="isLoading()">
         <ng-container *ngIf="isLoading(); else countTpl">
             <span class="sw-pill-spinner"></span>
@@ -17,12 +16,22 @@
         </ng-template>
     </div>
 
-    <!-- Filter -->
+    <button class="sw-my-location-btn" type="button" (click)="detectMyLocation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="4"/>
+        </svg>
+        <span>Моя позиція</span>
+    </button>
+
+    <div class="sw-location-error" *ngIf="locationError()">
+        {{ locationError() }}
+    </div>
+
     <app-map-filter
             class="sw-map-filter-float"
             (filtersChanged)="onFiltersChanged($event)"/>
 
-    <!-- Details panel -->
     <app-map-details-panel
             [visible]="!!selectedMarker()"
             [isLoading]="isDetailLoading()"
@@ -33,7 +42,6 @@
             (retry)="retryDetails()"
             (donate)="openDonateFromPanel()"/>
 
-    <!-- Donate modal -->
     <app-donate-modal
             *ngIf="showDonate()"
             [request]="selectedMarker()"

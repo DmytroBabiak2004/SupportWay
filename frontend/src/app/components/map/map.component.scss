@@ -80,6 +80,51 @@
   z-index: 400;
 }
 
+
+.sw-my-location-btn {
+  position: absolute;
+  right: 18px;
+  bottom: 24px;
+  z-index: 450;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14);
+  color: var(--sw-text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s var(--sw-spring), box-shadow 0.18s ease, background 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  }
+}
+
+.sw-location-error {
+  position: absolute;
+  left: 18px;
+  bottom: 24px;
+  z-index: 420;
+  max-width: min(440px, calc(100vw - 36px));
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #f8fafc;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+}
+
 // ─── Leaflet global overrides ─────────────────────────────────────────────────
 :global {
 

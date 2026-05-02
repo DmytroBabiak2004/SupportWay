@@ -1,13 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SupportWay.API.Services.Interfaces;
 using SupportWay.Data.Context;
 using SupportWay.Data.DTOs;
 using SupportWay.Data.Models;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
+using System.Security.Claims;
 
 namespace SupportWay.API.Controllers
 {
@@ -15,216 +12,218 @@ namespace SupportWay.API.Controllers
     [Route("api/[controller]")]
     public class PaymentsController : ControllerBase
     {
-        private readonly IPaymentService _paymentService;
+        private const string AwaitingManualTransferStatus = "AwaitingManualTransfer";
+        private const string ManualProvider = "ManualTransfer";
+
         private readonly SupportWayContext _db;
         private readonly IConfiguration _config;
-        private readonly ILogger<PaymentsController> _logger;
 
-        public PaymentsController(
-            IPaymentService paymentService,
-            SupportWayContext db,
-            IConfiguration config,
-            ILogger<PaymentsController> logger)
+        public PaymentsController(SupportWayContext db, IConfiguration config)
         {
-            _paymentService = paymentService;
             _db = db;
             _config = config;
-            _logger = logger;
         }
 
-        /// <summary>
-        /// POST /api/payments/donate
-        /// Ініціює платіж і повертає checkoutUrl для редиректу на сторінку Monobank.
-        /// </summary>
         [HttpPost("donate")]
-        [Authorize] // Донатити можуть лише авторизовані користувачі
-        public async Task<IActionResult> Donate(
-            [FromBody] DonateRequestDto dto,
-            CancellationToken ct)
+        [Authorize]
+        public async Task<IActionResult> Donate([FromBody] DonateRequestDto dto, CancellationToken ct)
         {
             if (dto.Amount <= 0)
-                return BadRequest("Сума донату має бути більше 0");
+                return BadRequest("Сума донату має бути більше 0.");
 
-            var helpRequest = await _db.HelpRequests.FindAsync(new object[] { dto.HelpRequestId }, ct);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var helpRequest = await _db.HelpRequests
+                .FirstOrDefaultAsync(h => h.Id == dto.HelpRequestId, ct);
+
             if (helpRequest == null)
-                return NotFound("Запит не знайдено");
+                return NotFound("Запит не знайдено.");
 
             if (!helpRequest.IsActive)
-                return BadRequest("Збір вже завершено");
+                return BadRequest("Збір вже завершено.");
 
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
-            var response = await _paymentService.CreateInvoiceAsync(dto, baseUrl, ct);
-            return Ok(response);
+            var destination = ResolveDonationDestination(helpRequest, dto.Amount);
+            if (destination == null)
+            {
+                return BadRequest("Для цього збору не налаштовано реквізити для донату. Додайте картку, IBAN або платіжне посилання в реквесті або в appsettings як дефолтні реквізити.");
+            }
+
+            var payment = new Payment
+            {
+                Id = Guid.NewGuid(),
+                Amount = decimal.Round(dto.Amount, 2, MidpointRounding.AwayFromZero),
+                CreatedAt = DateTime.UtcNow,
+                TransactionId = BuildTransactionReference(dto.HelpRequestId),
+                Comment = BuildPaymentComment(dto.Comment, destination),
+                UserId = userId,
+                HelpRequestId = helpRequest.Id,
+                PaymentStatusId = await EnsurePaymentStatusAsync(AwaitingManualTransferStatus, ct),
+                PaymentProviderId = await EnsurePaymentProviderAsync(ManualProvider, ct)
+            };
+
+            _db.Payments.Add(payment);
+            await _db.SaveChangesAsync(ct);
+
+            return Ok(new DonateResponseDto
+            {
+                PaymentId = payment.Id,
+                Status = AwaitingManualTransferStatus,
+                PaymentMethod = destination.PaymentMethod,
+                RecipientName = destination.RecipientName,
+                CardNumber = destination.CardNumber,
+                Iban = destination.Iban,
+                PaymentLink = destination.PaymentLink,
+                Instructions = destination.Instructions,
+                IsManualTransfer = true,
+                OrderReference = payment.TransactionId
+            });
         }
 
-        /// <summary>
-        /// POST /api/payments/webhook/monobank
-        /// Monobank надсилає підписаний POST після успішної оплати.
-        /// Ендпоінт публічний — перевіряємо підпис самостійно.
-        /// </summary>
-        [HttpPost("webhook/monobank")]
-        [AllowAnonymous]
-        public async Task<IActionResult> MonobankWebhook(CancellationToken ct)
+        [HttpGet("{paymentId:guid}")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentStatus(Guid paymentId, CancellationToken ct)
         {
-            // 1. Читаємо тіло запиту для перевірки підпису і парсингу
-            Request.EnableBuffering();
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8, leaveOpen: true);
-            var rawBody = await reader.ReadToEndAsync(ct);
-            Request.Body.Position = 0;
-
-            // 2. Перевірка ECDSA-підпису (публічний ключ Monobank)
-            //    Захист від підроблених колбеків — обов'язково!
-            if (!await VerifySignatureAsync(rawBody, ct))
-            {
-                _logger.LogWarning("Monobank webhook: невалідний підпис");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
                 return Unauthorized();
-            }
 
-            // 3. Парсимо payload
-            using var doc = JsonDocument.Parse(rawBody);
-            var root = doc.RootElement;
-            var status = root.GetProperty("status").GetString();
-            var orderRef = root.GetProperty("reference").GetString();
-            var amountKopecks = root.GetProperty("amount").GetInt64();
+            var payment = await _db.Payments
+                .Include(p => p.PaymentStatus)
+                .Include(p => p.PaymentProvider)
+                .FirstOrDefaultAsync(p => p.Id == paymentId && p.UserId == userId, ct);
 
-            // Обробляємо тільки успішні транзакції
-            if (status != "success" || string.IsNullOrEmpty(orderRef))
-                return Ok(); // Повертаємо 200 — Monobank більше не повторюватиме
+            if (payment == null)
+                return NotFound();
 
-            // 4. Витягуємо HelpRequestId з orderRef (формат: sw_<guid32>_<timestamp>)
-            if (!TryParseHelpRequestId(orderRef, out var helpRequestId))
+            return Ok(new PaymentStatusDto
             {
-                _logger.LogWarning("Не вдалося розпарсити HelpRequestId з reference: {Ref}", orderRef);
-                return BadRequest();
-            }
-
-            var amount = amountKopecks / 100m;
-
-            // 5. Транзакційне оновлення БД
-            await using var tx = await _db.Database.BeginTransactionAsync(ct);
-            try
-            {
-                // Ідемпотентність: якщо транзакція вже є — ігноруємо (Monobank може надіслати двічі)
-                var alreadyProcessed = await _db.Payments
-                    .AnyAsync(p => p.TransactionId == orderRef, ct);
-
-                if (!alreadyProcessed)
-                {
-                    // Знаходимо або створюємо PaymentStatus "Completed"
-                    var statusId = await EnsurePaymentStatusAsync("Completed", ct);
-                    var providerId = await EnsurePaymentProviderAsync("Monobank", ct);
-
-                    _db.Payments.Add(new Payment
-                    {
-                        Id = Guid.NewGuid(),
-                        Amount = amount,
-                        TransactionId = orderRef,
-                        CreatedAt = DateTime.UtcNow,
-                        HelpRequestId = helpRequestId,
-                        Comment = "Monobank webhook",
-                        UserId = "system", // Гостьові платежі без акаунту
-                        PaymentStatusId = statusId,
-                        PaymentProviderId = providerId
-                    });
-
-                    // Оновлюємо CollectedAmount через ExecuteUpdate — один UPDATE без завантаження сутності
-                    await _db.HelpRequests
-                        .Where(h => h.Id == helpRequestId)
-                        .ExecuteUpdateAsync(s =>
-                            s.SetProperty(h => h.CollectedAmount,
-                                          h => h.CollectedAmount + amount), ct);
-                }
-
-                await _db.SaveChangesAsync(ct);
-                await tx.CommitAsync(ct);
-
-                _logger.LogInformation(
-                    "Webhook оброблено: {Ref}, сума {Amount} UAH, HelpRequest {Id}",
-                    orderRef, amount, helpRequestId);
-            }
-            catch (Exception ex)
-            {
-                await tx.RollbackAsync(ct);
-                _logger.LogError(ex, "Помилка обробки webhook {Ref}", orderRef);
-                return StatusCode(500);
-            }
-
-            return Ok();
+                PaymentId = payment.Id,
+                Status = payment.PaymentStatus?.NameOfStatus ?? string.Empty,
+                Provider = payment.PaymentProvider?.NameOfProvider,
+                Amount = payment.Amount,
+                HelpRequestId = payment.HelpRequestId,
+                CreatedAt = payment.CreatedAt,
+                Comment = payment.Comment,
+                CheckoutUrl = null
+            });
         }
 
-        // ── Приватні допоміжні методи ────────────────────────────────────────
-
-        /// <summary>
-        /// Перевіряє ECDSA-підпис Monobank.
-        /// Monobank підписує тіло запиту своїм приватним ключем,
-        /// ми перевіряємо публічним ключем з /api/merchant/pubkey.
-        /// </summary>
-        private async Task<bool> VerifySignatureAsync(string rawBody, CancellationToken ct)
+        private DonationDestination? ResolveDonationDestination(HelpRequest helpRequest, decimal donationAmount)
         {
-            try
+            var recipientName = FirstNonEmpty(
+                Normalize(helpRequest.DonationRecipientName),
+                Normalize(_config["App:DefaultDonationRecipientName"]),
+                "Отримувач збору");
+
+            var card = FirstNonEmpty(
+                NormalizeCard(helpRequest.DonationRecipientCardNumber),
+                NormalizeCard(_config["App:DefaultDonationRecipientCardNumber"]));
+
+            var iban = FirstNonEmpty(
+                Normalize(helpRequest.DonationRecipientIban)?.ToUpperInvariant(),
+                Normalize(_config["App:DefaultDonationRecipientIban"])?.ToUpperInvariant());
+
+            var link = FirstNonEmpty(
+                Normalize(helpRequest.DonationPaymentLink),
+                Normalize(_config["App:DefaultDonationLink"]));
+
+            var preferredMethod = Normalize(helpRequest.PreferredDonationMethod)?.ToLowerInvariant();
+            var effectiveMethod = preferredMethod switch
             {
-                var signatureHeader = Request.Headers["X-Sign"].FirstOrDefault();
-                if (string.IsNullOrEmpty(signatureHeader)) return false;
+                "bank_card" when !string.IsNullOrWhiteSpace(card) => "bank_card",
+                "iban" when !string.IsNullOrWhiteSpace(iban) => "iban",
+                "payment_link" when !string.IsNullOrWhiteSpace(link) => "payment_link",
+                _ when !string.IsNullOrWhiteSpace(card) => "bank_card",
+                _ when !string.IsNullOrWhiteSpace(link) => "payment_link",
+                _ when !string.IsNullOrWhiteSpace(iban) => "iban",
+                _ => null
+            };
 
-                // Отримуємо публічний ключ Monobank
-                // УВАГА: у продакшні кешуйте цей ключ (IMemoryCache) — він не змінюється часто
-                using var http = new HttpClient();
-                http.DefaultRequestHeaders.Add("X-Token", _config["Monobank:Token"]);
-                var pubKeyJson = await http.GetStringAsync(
-                    "https://api.monobank.ua/api/merchant/pubkey", ct);
+            if (effectiveMethod == null)
+                return null;
 
-                using var doc = JsonDocument.Parse(pubKeyJson);
-                var pubKeyBase64 = doc.RootElement.GetProperty("key").GetString()!;
-                var pubKeyBytes = Convert.FromBase64String(pubKeyBase64);
-                var signatureBytes = Convert.FromBase64String(signatureHeader);
-                var bodyBytes = Encoding.UTF8.GetBytes(rawBody);
-
-                using var ecdsa = ECDsa.Create();
-                ecdsa.ImportSubjectPublicKeyInfo(pubKeyBytes, out _);
-
-                // Monobank використовує SHA256withECDSA
-                return ecdsa.VerifyData(bodyBytes, signatureBytes, HashAlgorithmName.SHA256);
-            }
-            catch (Exception ex)
+            var coreInstruction = effectiveMethod switch
             {
-                _logger.LogError(ex, "Помилка верифікації підпису Monobank");
-                return false;
-            }
-        }
+                "bank_card" => "Скопіюйте номер картки, виконайте переказ у своєму банківському застосунку та за потреби вкажіть коментар до платежу.",
+                "iban" => "Скопіюйте IBAN, виконайте переказ у своєму банківському застосунку та за потреби вкажіть коментар до платежу.",
+                _ => "Відкрийте платіжне посилання та завершіть переказ у своєму банківському застосунку."
+            };
 
-        /// <summary>Парсить HelpRequestId із рядка формату sw_guid32_timestamp.</summary>
-        private static bool TryParseHelpRequestId(string reference, out Guid id)
-        {
-            // sw_ → частини: ["sw", "<guid>", "<ts>"]
-            var parts = reference.Split('_');
-            if (parts.Length >= 3 && Guid.TryParseExact(parts[1], "N", out id))
-                return true;
-            id = Guid.Empty;
-            return false;
+            var notes = Normalize(helpRequest.DonationNotes);
+            var instructions = $"{coreInstruction} Рекомендована сума цього донату: {decimal.Round(donationAmount, 2, MidpointRounding.AwayFromZero):0.##} ₴. Реквізити прив’язані до цього запиту.";
+            if (!string.IsNullOrWhiteSpace(notes))
+                instructions += $" Додатково: {notes}.";
+
+            return new DonationDestination
+            {
+                PaymentMethod = effectiveMethod,
+                RecipientName = recipientName!,
+                CardNumber = card,
+                Iban = iban,
+                PaymentLink = link,
+                Instructions = instructions
+            };
         }
 
         private async Task<Guid> EnsurePaymentStatusAsync(string name, CancellationToken ct)
         {
-            var existing = await _db.PaymentStatuses
-                .FirstOrDefaultAsync(s => s.NameOfStatus == name, ct);
+            var existing = await _db.PaymentStatuses.FirstOrDefaultAsync(s => s.NameOfStatus == name, ct);
             if (existing != null) return existing.Id;
 
-            var newStatus = new PaymentStatus { Id = Guid.NewGuid(), NameOfStatus = name };
-            _db.PaymentStatuses.Add(newStatus);
+            var status = new PaymentStatus { Id = Guid.NewGuid(), NameOfStatus = name };
+            _db.PaymentStatuses.Add(status);
             await _db.SaveChangesAsync(ct);
-            return newStatus.Id;
+            return status.Id;
         }
 
         private async Task<Guid> EnsurePaymentProviderAsync(string name, CancellationToken ct)
         {
-            var existing = await _db.PaymentProviders
-                .FirstOrDefaultAsync(p => p.NameOfProvider == name, ct);
+            var existing = await _db.PaymentProviders.FirstOrDefaultAsync(p => p.NameOfProvider == name, ct);
             if (existing != null) return existing.Id;
 
-            var newProvider = new PaymentProvider { Id = Guid.NewGuid(), NameOfProvider = name };
-            _db.PaymentProviders.Add(newProvider);
+            var provider = new PaymentProvider { Id = Guid.NewGuid(), NameOfProvider = name };
+            _db.PaymentProviders.Add(provider);
             await _db.SaveChangesAsync(ct);
-            return newProvider.Id;
+            return provider.Id;
+        }
+
+        private static string BuildTransactionReference(Guid helpRequestId)
+            => $"sw_manual_{helpRequestId:N}_{Guid.NewGuid():N}";
+
+        private static string BuildPaymentComment(string? userComment, DonationDestination destination)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(userComment)) parts.Add(userComment.Trim());
+            parts.Add($"method={destination.PaymentMethod}");
+            if (!string.IsNullOrWhiteSpace(destination.CardNumber)) parts.Add($"card={destination.CardNumber}");
+            if (!string.IsNullOrWhiteSpace(destination.Iban)) parts.Add($"iban={destination.Iban}");
+            if (!string.IsNullOrWhiteSpace(destination.PaymentLink)) parts.Add($"paymentLink={destination.PaymentLink}");
+            return string.Join(" | ", parts);
+        }
+
+        private static string? Normalize(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+        private static string? NormalizeCard(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            var digits = new string(value.Where(char.IsDigit).ToArray());
+            return string.IsNullOrWhiteSpace(digits) ? null : digits;
+        }
+
+        private static string? FirstNonEmpty(params string?[] values)
+            => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
+
+        private sealed class DonationDestination
+        {
+            public string PaymentMethod { get; init; } = string.Empty;
+            public string RecipientName { get; init; } = string.Empty;
+            public string? CardNumber { get; init; }
+            public string? Iban { get; init; }
+            public string? PaymentLink { get; init; }
+            public string Instructions { get; init; } = string.Empty;
         }
     }
 }

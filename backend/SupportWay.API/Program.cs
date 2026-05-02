@@ -96,9 +96,6 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IMapService, MapService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
-builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
-
-
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

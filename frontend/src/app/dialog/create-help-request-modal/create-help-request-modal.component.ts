@@ -77,6 +77,13 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
   itemUnitPrice: number = 0;
   itemFormError = '';
 
+  preferredDonationMethod: 'bank_card' | 'iban' | 'payment_link' = 'bank_card';
+  donationRecipientName = '';
+  donationRecipientCardNumber = '';
+  donationRecipientIban = '';
+  donationPaymentLink = '';
+  donationNotes = '';
+
   private destroy$ = new Subject<void>();
   private searchSubject = new Subject<string>();
 
@@ -333,7 +340,13 @@ export class CreateHelpRequestModalComponent implements OnInit, OnDestroy, After
       longitude: this.selectedLocation ? Number(this.selectedLocation.longitude) : undefined,
       address: this.selectedLocation?.address,
       districtName: this.selectedLocation?.districtName,
-      file: this.selectedFile ?? undefined
+      file: this.selectedFile ?? undefined,
+      preferredDonationMethod: this.preferredDonationMethod,
+      donationRecipientName: this.donationRecipientName.trim() || undefined,
+      donationRecipientCardNumber: this.donationRecipientCardNumber.trim() || undefined,
+      donationRecipientIban: this.donationRecipientIban.trim() || undefined,
+      donationPaymentLink: this.donationPaymentLink.trim() || undefined,
+      donationNotes: this.donationNotes.trim() || undefined
     };
 
     this.helpService.createHelpRequestDirect(payload).subscribe({

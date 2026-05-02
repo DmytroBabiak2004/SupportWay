@@ -91,6 +91,14 @@
               {{ d.locationName }}<ng-container *ngIf="d.locationAddress">, {{ d.locationAddress }}</ng-container>
             </span>
           </div>
+
+          <div class="dp-location" *ngIf="formattedDistance() as distance">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke-linecap="round"/>
+              <circle cx="12" cy="12" r="4"/>
+            </svg>
+            <span>Від вас: {{ distance }}</span>
+          </div>
         </div>
 
         <p class="dp-desc" *ngIf="d.content">

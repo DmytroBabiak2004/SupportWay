@@ -1,15 +1,15 @@
 namespace SupportWay.API.Services.Interfaces
 {
     /// <summary>
-    /// Автоматично перевіряє і видає нагороди профілю на основі метрик.
-    /// Викликається після дій користувача (створення запиту, поста тощо).
+    /// Перевіряє та видає нагороди після створення/оновлення RequestItem.
+    /// Логіка прив'язана до SupportType RequestItem і BadgeType з відповідною назвою.
     /// </summary>
     public interface IBadgeAwardService
     {
         /// <summary>
-        /// Перевіряє нагороди типу "HelpRequest" після створення запиту на допомогу.
-        /// Порівнює поточну кількість запитів користувача із Threshold кожного Badge.
+        /// Завантажує RequestItem з пов'язаними даними, визначає відповідний BadgeType
+        /// і видає всі нагороди, для яких користувач уже виконав поріг Threshold.
         /// </summary>
-        Task CheckAndAwardHelpRequestBadgesAsync(string userId);
+        Task CheckAndAwardRequestItemBadgesAsync(Guid requestItemId);
     }
 }

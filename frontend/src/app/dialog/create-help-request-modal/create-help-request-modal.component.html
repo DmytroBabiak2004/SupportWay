@@ -188,6 +188,51 @@
         </p>
       </div>
 
+
+      <div class="field-group donation-settings">
+        <div class="items-header">
+          <label class="field-label">
+            <span class="label-with-icon">Реквізити для донатів</span>
+            <span class="optional-badge">необов'язково</span>
+          </label>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Основний спосіб донату</label>
+          <select [(ngModel)]="preferredDonationMethod" [ngModelOptions]="{standalone: true}" class="select-input">
+            <option value="bank_card">Картка отримувача</option>
+            <option value="iban">IBAN отримувача</option>
+            <option value="payment_link">Платіжне посилання / mono-банка</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Ім'я отримувача</label>
+          <input type="text" [(ngModel)]="donationRecipientName" [ngModelOptions]="{standalone: true}" class="text-input" placeholder="Наприклад: БФ SupportWay / Іван Петренко">
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label">Картка отримувача</label>
+            <input type="text" [(ngModel)]="donationRecipientCardNumber" [ngModelOptions]="{standalone: true}" class="text-input" placeholder="4441 1111 2222 3333 або залиште порожнім для дефолтної картки">
+          </div>
+          <div class="field-group">
+            <label class="field-label">IBAN</label>
+            <input type="text" [(ngModel)]="donationRecipientIban" [ngModelOptions]="{standalone: true}" class="text-input" placeholder="UA123456789012345678901234567">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Платіжне посилання</label>
+          <input type="text" [(ngModel)]="donationPaymentLink" [ngModelOptions]="{standalone: true}" class="text-input" placeholder="https://send.monobank.ua/jar/... (необов’язково)">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Примітка для донора</label>
+          <textarea [(ngModel)]="donationNotes" [ngModelOptions]="{standalone: true}" class="text-input" rows="3" placeholder="Наприклад: вкажіть у коментарі номер запиту"></textarea>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <div class="attachment-actions">
           <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)">

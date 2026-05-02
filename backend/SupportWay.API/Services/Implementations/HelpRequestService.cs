@@ -1,4 +1,4 @@
-﻿using SupportWay.API.DTOs;
+using SupportWay.API.DTOs;
 using SupportWay.API.Services.Interfaces;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
@@ -8,16 +8,13 @@ public class HelpRequestService : IHelpRequestService
 {
     private readonly IHelpRequestsRepository _helpRepo;
     private readonly ILocationsRepository _locationRepo;
-    private readonly IBadgeAwardService _badgeAwardService;
 
     public HelpRequestService(
         IHelpRequestsRepository helpRepo,
-        ILocationsRepository locationRepo,
-        IBadgeAwardService badgeAwardService)
+        ILocationsRepository locationRepo)
     {
         _helpRepo = helpRepo;
         _locationRepo = locationRepo;
-        _badgeAwardService = badgeAwardService;
     }
 
     public async Task<IEnumerable<HelpRequestDto>> GetFeedAsync(string currentUserId, int page, int size)
@@ -89,6 +86,12 @@ public class HelpRequestService : IHelpRequestService
             TotalPayments = r.Payments?.Sum(p => p.Amount) ?? 0,
             IsActive = r.IsActive,
             ProgressPercent = progress,
+            PreferredDonationMethod = r.PreferredDonationMethod,
+            DonationRecipientName = r.DonationRecipientName,
+            DonationRecipientCardNumber = r.DonationRecipientCardNumber,
+            DonationRecipientIban = r.DonationRecipientIban,
+            DonationPaymentLink = r.DonationPaymentLink,
+            DonationNotes = r.DonationNotes,
             RequestItems = r.RequestItems?.Select(ri => new RequestItemDetailsDto
             {
                 Id = ri.Id,
@@ -123,6 +126,10 @@ public class HelpRequestService : IHelpRequestService
             resolvedLocationId = newLocation.LocationId;
         }
 
+        var preferredMethod = string.IsNullOrWhiteSpace(dto.PreferredDonationMethod)
+            ? ResolvePreferredDonationMethod(dto)
+            : dto.PreferredDonationMethod!.Trim();
+
         var helpRequest = new HelpRequest
         {
             Id = Guid.NewGuid(),
@@ -130,19 +137,41 @@ public class HelpRequestService : IHelpRequestService
             Image = dto.Image,
             CreatedAt = DateTime.UtcNow,
             UserId = userId,
-            LocationId = resolvedLocationId
+            LocationId = resolvedLocationId,
+            Latitude = dto.Latitude,
+            Longitude = dto.Longitude,
+            PreferredDonationMethod = preferredMethod,
+            DonationRecipientName = Normalize(dto.DonationRecipientName),
+            DonationRecipientCardNumber = NormalizeCard(dto.DonationRecipientCardNumber),
+            DonationRecipientIban = Normalize(dto.DonationRecipientIban)?.ToUpperInvariant(),
+            DonationPaymentLink = Normalize(dto.DonationPaymentLink),
+            DonationNotes = Normalize(dto.DonationNotes)
         };
 
         await _helpRepo.AddHelpRequestAsync(helpRequest);
-
-        // Автоматична перевірка і видача нагород типу "HelpRequest"
-        await _badgeAwardService.CheckAndAwardHelpRequestBadgesAsync(userId);
-
         return helpRequest.Id;
     }
 
     public async Task DeleteHelpRequestAsync(Guid id)
         => await _helpRepo.DeleteHelpRequestAsync(id);
+
+    private static string? Normalize(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? NormalizeCard(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var digits = new string(value.Where(char.IsDigit).ToArray());
+        return string.IsNullOrWhiteSpace(digits) ? null : digits;
+    }
+
+    private static string? ResolvePreferredDonationMethod(HelpRequestCreateDto dto)
+    {
+        if (!string.IsNullOrWhiteSpace(dto.DonationPaymentLink)) return "payment_link";
+        if (!string.IsNullOrWhiteSpace(dto.DonationRecipientIban)) return "iban";
+        if (!string.IsNullOrWhiteSpace(dto.DonationRecipientCardNumber)) return "bank_card";
+        return "bank_card";
+    }
 
     private static HelpRequestDto MapToDto(HelpRequest r) => new()
     {
@@ -163,6 +192,12 @@ public class HelpRequestService : IHelpRequestService
         TargetAmount = r.TargetAmount,
         CollectedAmount = r.CollectedAmount,
         IsActive = r.IsActive,
+        PreferredDonationMethod = r.PreferredDonationMethod,
+        DonationRecipientName = r.DonationRecipientName,
+        DonationRecipientCardNumber = r.DonationRecipientCardNumber,
+        DonationRecipientIban = r.DonationRecipientIban,
+        DonationPaymentLink = r.DonationPaymentLink,
+        DonationNotes = r.DonationNotes,
         RequestItems = r.RequestItems?.Select(MapItemToDto).ToList() ?? new List<ApiRequestItemDto>()
     };
 

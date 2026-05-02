@@ -1,13 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SupportWay.API.DTOs
 {
-
     public class HelpRequestDetailsDto
     {
         public Guid Id { get; set; }
-
-        // Location
         public Guid? LocationId { get; set; }
         public string LocationName { get; set; } = string.Empty;
         public string LocationAddress { get; set; } = string.Empty;
@@ -15,26 +12,27 @@ namespace SupportWay.API.DTOs
         public double? Longitude { get; set; }
         public string Content { get; set; } = string.Empty;
         public string? ImageBase64 { get; set; }
-
         public DateTime CreatedAt { get; set; }
 
-        // Author
         public string UserId { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public string? AuthorPhotoBase64 { get; set; }
 
-        // Stats
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
 
-        // Funding
         public decimal TargetAmount { get; set; }
         public decimal CollectedAmount { get; set; }
         public decimal TotalPayments { get; set; }
         public bool IsActive { get; set; }
-
-        /// <summary>Відсоток виконання: CollectedAmount / TargetAmount * 100</summary>
         public int ProgressPercent { get; set; }
+
+        public string? PreferredDonationMethod { get; set; }
+        public string? DonationRecipientName { get; set; }
+        public string? DonationRecipientCardNumber { get; set; }
+        public string? DonationRecipientIban { get; set; }
+        public string? DonationPaymentLink { get; set; }
+        public string? DonationNotes { get; set; }
 
         public List<RequestItemDetailsDto> RequestItems { get; set; } = new();
     }
@@ -50,7 +48,6 @@ namespace SupportWay.API.DTOs
         public string SupportTypeName { get; set; } = string.Empty;
     }
 
-    // Залишаємо старий HelpRequestDto для feed/list endpoints (без breaking change)
     public class HelpRequestDto
     {
         public Guid Id { get; set; }
@@ -73,6 +70,13 @@ namespace SupportWay.API.DTOs
         public decimal TargetAmount { get; set; }
         public decimal CollectedAmount { get; set; }
         public bool IsActive { get; set; }
+
+        public string? PreferredDonationMethod { get; set; }
+        public string? DonationRecipientName { get; set; }
+        public string? DonationRecipientCardNumber { get; set; }
+        public string? DonationRecipientIban { get; set; }
+        public string? DonationPaymentLink { get; set; }
+        public string? DonationNotes { get; set; }
 
         public List<RequestItemDto> RequestItems { get; set; } = new();
     }
@@ -98,12 +102,18 @@ namespace SupportWay.API.DTOs
         public string Content { get; set; } = string.Empty;
 
         public byte[]? Image { get; set; }
-
         public Guid? LocationId { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public string? Address { get; set; }
         public string? DistrictName { get; set; }
+
+        public string? PreferredDonationMethod { get; set; }
+        public string? DonationRecipientName { get; set; }
+        public string? DonationRecipientCardNumber { get; set; }
+        public string? DonationRecipientIban { get; set; }
+        public string? DonationPaymentLink { get; set; }
+        public string? DonationNotes { get; set; }
     }
 
     public class SupportTypeDto

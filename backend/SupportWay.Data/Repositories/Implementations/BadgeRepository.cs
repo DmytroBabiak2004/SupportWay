@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SupportWay.API.Repositories.Interfaces;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
@@ -28,6 +28,7 @@ namespace SupportWay.API.Repositories
                 .Include(x => x.BadgeType)
                 .FirstOrDefaultAsync(x => x.Id == id);
         }
+
         public async Task<List<Badge>> GetByProfileIdAsync(Guid profileId)
         {
             return await _context.ProfileBadges
@@ -40,12 +41,15 @@ namespace SupportWay.API.Repositories
 
         public async Task<List<Badge>> GetByTypeNameAsync(string typeName)
         {
+            var normalizedTypeName = typeName.Trim().ToLower();
+
             return await _context.Set<Badge>()
                 .Include(x => x.BadgeType)
-                .Where(x => x.BadgeType.Name == typeName)
+                .Where(x => x.BadgeType.Name.ToLower() == normalizedTypeName)
                 .OrderBy(x => x.Threshold)
                 .ToListAsync();
         }
+
         public async Task<bool> BadgeTypeExistsAsync(Guid badgeTypeId)
         {
             return await _context.Set<BadgeType>()

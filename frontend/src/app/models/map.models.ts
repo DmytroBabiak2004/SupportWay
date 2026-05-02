@@ -1,4 +1,6 @@
-// ─── Support type styling ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Support type styling
+// ─────────────────────────────────────────────────────────────────────────────
 //
 // Типи з бази даних (NameOfType):
 //   1. Медична допомога
@@ -7,11 +9,11 @@
 //   4. Дрони та БПЛА
 //   5. Евакуація
 //
-// Правила палітри:
-//   - Без червоного (#ef4444 і подібних) — він асоціюється з тривогою/негайністю
-//   - Кольори мають добре читатися на Voyager basemap
-//   - Достатній контраст між типами при відображенні поруч
-//   - Єдина дизайн-система: насичені але не кислотні відтінки
+// Вимоги до палітри:
+//   - без червоного
+//   - хороша читабельність на Voyager basemap
+//   - достатній контраст між типами
+//   - єдина спокійна, насичена дизайн-система
 
 export interface SupportTypeDto {
   id: string;
@@ -19,137 +21,166 @@ export interface SupportTypeDto {
 }
 
 export interface SupportTypeStyle {
-  color: string;       // основний колір — fill піну, stroke прогрес-арки
-  colorLight: string;  // напівпрозорий варіант — для тегів/чіпів у деталях
-  colorText: string;   // колір тексту всередині чіпа
+  color: string;
+  colorLight: string;
+  colorText: string;
 }
 
 export const SUPPORT_TYPE_STYLES: Record<string, SupportTypeStyle> = {
-  // Медична допомога — синьо-зелений (лазур медицини, без червоного)
   'Медична допомога': {
-    color:      '#0891b2',   // cyan-600
+    color: '#0891b2',
     colorLight: 'rgba(8,145,178,0.13)',
-    colorText:  '#0e7490',
+    colorText: '#0e7490',
   },
 
-  // Гуманітарна допомога — тепло-янтарний (тепло, людяність, надія)
   'Гуманітарна допомога': {
-    color:      '#d97706',   // amber-600
+    color: '#d97706',
     colorLight: 'rgba(217,119,6,0.13)',
-    colorText:  '#b45309',
+    colorText: '#b45309',
   },
 
-  // Логістика — сталево-синій (рух, доставка, структура)
   'Логістика': {
-    color:      '#2563eb',   // blue-600
+    color: '#2563eb',
     colorLight: 'rgba(37,99,235,0.13)',
-    colorText:  '#1d4ed8',
+    colorText: '#1d4ed8',
   },
 
-  // Дрони та БПЛА — індиго (технологічність, авіація)
   'Дрони та БПЛА': {
-    color:      '#7c3aed',   // violet-600
+    color: '#7c3aed',
     colorLight: 'rgba(124,58,237,0.13)',
-    colorText:  '#6d28d9',
+    colorText: '#6d28d9',
   },
 
-  // Евакуація — смарагдово-зелений (безпека, шлях, вихід)
   'Евакуація': {
-    color:      '#059669',   // emerald-600
+    color: '#059669',
     colorLight: 'rgba(5,150,105,0.13)',
-    colorText:  '#047857',
+    colorText: '#047857',
   },
 
-  // Fallback для нових типів, яких ще нема в цьому маппінгу
-  'default': {
-    color:      '#64748b',   // slate-500
+  default: {
+    color: '#64748b',
     colorLight: 'rgba(100,116,139,0.13)',
-    colorText:  '#475569',
+    colorText: '#475569',
   },
 };
 
-export function getTypeStyle(supportTypeName: string): SupportTypeStyle {
-  if (!supportTypeName) return SUPPORT_TYPE_STYLES['default'];
+export function getTypeStyle(supportTypeName?: string | null): SupportTypeStyle {
+  if (!supportTypeName?.trim()) {
+    return SUPPORT_TYPE_STYLES['default'];
+  }
 
-  // 1) Точний збіг
-  if (SUPPORT_TYPE_STYLES[supportTypeName]) return SUPPORT_TYPE_STYLES[supportTypeName];
+  const normalized = supportTypeName.trim();
+  const normalizedLower = normalized.toLowerCase();
 
-  // 2) Case-insensitive + trim (захист від зайвих пробілів із бекенду)
-  const trimmed = supportTypeName.trim();
-  const lower   = trimmed.toLowerCase();
+  const exactMatch = SUPPORT_TYPE_STYLES[normalized];
+  if (exactMatch) {
+    return exactMatch;
+  }
 
-  const exactCi = Object.keys(SUPPORT_TYPE_STYLES).find(
-    k => k.toLowerCase() === lower
+  const caseInsensitiveKey = Object.keys(SUPPORT_TYPE_STYLES).find(
+    (key) => key.toLowerCase() === normalizedLower
   );
-  if (exactCi) return SUPPORT_TYPE_STYLES[exactCi];
+  if (caseInsensitiveKey) {
+    return SUPPORT_TYPE_STYLES[caseInsensitiveKey];
+  }
 
-  // 3) Partial match (підрядок) — на випадок незначних розходжень
-  const partial = Object.entries(SUPPORT_TYPE_STYLES).find(
-    ([k]) => k !== 'default' && (
-      k.toLowerCase().includes(lower) || lower.includes(k.toLowerCase())
-    )
+  const partialMatch = Object.entries(SUPPORT_TYPE_STYLES).find(
+    ([key]) =>
+      key !== 'default' &&
+      (key.toLowerCase().includes(normalizedLower) ||
+        normalizedLower.includes(key.toLowerCase()))
   );
-  if (partial) return partial[1];
+  if (partialMatch) {
+    return partialMatch[1];
+  }
 
   return SUPPORT_TYPE_STYLES['default'];
 }
 
-// ─── Map marker DTO ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Map marker DTO
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface MapMarkerDto {
   requestItemId: string;
   helpRequestId: string;
 
   requestItemName: string;
-  quantity:        number;
-  unitPrice:       number;
-  supportTypeId:   string;
+  quantity: number;
+  unitPrice: number;
+  supportTypeId: string;
   supportTypeName: string;
 
-  latitude:        number;
-  longitude:       number;
-  locationName:    string;
+  latitude: number;
+  longitude: number;
+  locationName: string;
   locationAddress: string;
 
-  title:           string;
-  shortContent:    string;
-  targetAmount:    number;
+  title: string;
+  shortContent: string;
+  targetAmount: number;
   collectedAmount: number;
-  isActive:        boolean;
-  createdAt:       string;
+  isActive: boolean;
+  createdAt: string;
 
-  userId:   string;
+  userId: string;
   userName: string;
 
-  likesCount:    number;
+  likesCount: number;
   commentsCount: number;
+
+  distanceKm?: number;
 }
 
-// ─── Filter params ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Filter params
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface MapFilterParams {
-  supportTypeId?:       string;
-  isActive?:            boolean;
-  region?:              string;
-  minCollectedAmount?:  number;
-  maxTargetAmount?:     number;
-  search?:              string;
-  page?:                number;
-  size?:                number;
+  supportTypeId?: string;
+  isActive?: boolean;
+  region?: string;
+  minCollectedAmount?: number;
+  maxTargetAmount?: number;
+  search?: string;
+  page?: number;
+  size?: number;
 }
 
-// ─── Paged result ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Paged result
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface PagedResult<T> {
   items: T[];
   total: number;
-  page:  number;
-  size:  number;
+  page: number;
+  size: number;
 }
 
-// ─── Donate ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Donate
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type DonatePaymentMethod =
+  | 'monobank_checkout'
+  | 'bank_card'
+  | 'iban'
+  | 'payment_link';
 
 export interface DonateResponseDto {
-  checkoutUrl:     string;
-  orderReference:  string;
+  paymentId: string;
+  status: string;
+  paymentMethod: DonatePaymentMethod | string;
+
+  checkoutUrl?: string | null;
+  orderReference?: string | null;
+
+  recipientName?: string | null;
+  cardNumber?: string | null;
+  iban?: string | null;
+  paymentLink?: string | null;
+  instructions?: string | null;
+
+  isManualTransfer: boolean;
 }

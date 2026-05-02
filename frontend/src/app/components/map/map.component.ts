@@ -1,72 +1,59 @@
 import {
-  Component, OnInit, OnDestroy, inject, signal, ChangeDetectorRef
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  signal,
+  ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, switchMap, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
-import { MapDataService }       from '../../services/map-data.service';
-import { HelpRequestService }   from '../../services/help-request.service';
-import { MapFilterComponent }   from './map-filter/map-filter.component';
+import { MapDataService } from '../../services/map-data.service';
+import { HelpRequestService } from '../../services/help-request.service';
+import { MapFilterComponent } from './map-filter/map-filter.component';
 import { DonateModalComponent } from '../../dialog/donate-modal/donate-modal.component';
 import { MapDetailsPanelComponent } from './map-details-panel/map-details-panel.component';
 
 import {
-  MapFilterParams, MapMarkerDto, PagedResult, getTypeStyle
+  MapFilterParams,
+  MapMarkerDto,
+  PagedResult,
+  getTypeStyle
 } from '../../models/map.models';
 import { HelpRequestDetails } from '../../models/help-request.model';
 
 declare const L: any;
 
-// ─── Pin size calculation ─────────────────────────────────────────────────────
-//
-// Розмір піну залежить від targetAmount збору.
-// Логарифмічна шкала: різниця відчутна, але великі суми не роблять велетенський пін.
-//
-// Межі:
-//   PIN_MIN_SIZE  — мінімум (маленький збір або targetAmount = 0)
-//   PIN_MAX_SIZE  — максимум (будь-яка сума вище AMOUNT_MAX не збільшує пін далі)
-//   AMOUNT_MIN    — суми нижче цієї = мінімальний пін
-//   AMOUNT_MAX    — суми вище цієї = максимальний пін
-
-const PIN_MIN_SIZE  = 28;   // px (ширина viewBox-юніт-base)
-const PIN_MAX_SIZE  = 52;   // px
-const AMOUNT_MIN    = 1_000;
-const AMOUNT_MAX    = 200_000;
+const PIN_MIN_SIZE = 28;
+const PIN_MAX_SIZE = 52;
+const AMOUNT_MIN = 1_000;
+const AMOUNT_MAX = 200_000;
 
 function calcPinSize(targetAmount: number): number {
   if (!targetAmount || targetAmount <= 0) return PIN_MIN_SIZE;
-  if (targetAmount <= AMOUNT_MIN)         return PIN_MIN_SIZE;
-  if (targetAmount >= AMOUNT_MAX)         return PIN_MAX_SIZE;
+  if (targetAmount <= AMOUNT_MIN) return PIN_MIN_SIZE;
+  if (targetAmount >= AMOUNT_MAX) return PIN_MAX_SIZE;
 
-  // Логарифмічна інтерполяція — сприйняття суми логарифмічне
   const logMin = Math.log(AMOUNT_MIN);
   const logMax = Math.log(AMOUNT_MAX);
   const logVal = Math.log(targetAmount);
+  const t = (logVal - logMin) / (logMax - logMin);
 
-  const t = (logVal - logMin) / (logMax - logMin); // 0..1
   return Math.round(PIN_MIN_SIZE + t * (PIN_MAX_SIZE - PIN_MIN_SIZE));
 }
 
-// ─── Build SVG pin ────────────────────────────────────────────────────────────
-//
-// ВАЖЛИВО: жодних <defs id="..."> — всі id глобальні в DOM,
-// тому кілька пінів з однаковим id ламають відображення.
-// Тінь винесена в CSS на .sw-pin-wrapper (drop-shadow на wrapper, не на SVG).
-
 function buildPinSvg(color: string, progress: number, size: number): string {
   const pct = Math.max(0, Math.min(100, progress));
-
-  // viewBox завжди 36×50, але rendered size задається через iconSize
-  // Радіус прогрес-арки масштабуємо разом із піном
-  const scale = size / 36;           // відношення rendered px до viewBox width
-  const r     = Math.round(8 * scale);
-  const circ  = 2 * Math.PI * r;
-  const dash  = (pct / 100) * circ;
+  const scale = size / 36;
+  const r = Math.round(8 * scale);
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
   const offset = (circ * 0.25).toFixed(2);
-  // cx/cy/r для inner circle і dot також масштабуємо
-  const cx = 18, cy = 16;
+  const cx = 18;
+  const cy = 16;
   const innerR = Math.round(9.5 * scale);
-  const dotR   = Math.round(3.5 * scale);
+  const dotR = Math.round(3.5 * scale);
 
   return `<svg class="sw-pin-svg" viewBox="0 0 36 50" xmlns="http://www.w3.org/2000/svg">
   <path d="M18 2C10.268 2 4 8.268 4 16C4 26 18 48 18 48C18 48 32 26 32 16C32 8.268 25.732 2 18 2Z" fill="${color}"/>
@@ -79,6 +66,31 @@ function buildPinSvg(color: string, progress: number, size: number): string {
 </svg>`.trim();
 }
 
+function toRadians(value: number): number {
+  return (value * Math.PI) / 180;
+}
+
+function calculateDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRadians(lat1)) *
+      Math.cos(toRadians(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Number((earthRadiusKm * c).toFixed(1));
+}
+
 @Component({
   selector: 'app-map',
   standalone: true,
@@ -89,166 +101,303 @@ function buildPinSvg(color: string, progress: number, size: number): string {
     MapDetailsPanelComponent,
   ],
   templateUrl: './map.component.html',
-  styleUrls:   ['./map.component.scss']
+  styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit, OnDestroy {
-
-  private readonly mapDataService     = inject(MapDataService);
+  private readonly mapDataService = inject(MapDataService);
   private readonly helpRequestService = inject(HelpRequestService);
-  private readonly cdr                = inject(ChangeDetectorRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private map!: any;
   private clusterGroup: any;
-  private activeLeafletMarker: any    = null;
-  private destroy$      = new Subject<void>();
+  private activeLeafletMarker: any = null;
+  private myLocationMarker: any = null;
+  private destroy$ = new Subject<void>();
   private filterChange$ = new Subject<MapFilterParams>();
   private lastMarker: MapMarkerDto | null = null;
-  private allMarkers: MapMarkerDto[]      = [];
+  private allMarkers: MapMarkerDto[] = [];
 
-  readonly isLoading       = signal(false);
+  readonly isLoading = signal(false);
   readonly isDetailLoading = signal(false);
-  readonly totalCount      = signal(0);
-
-  readonly selectedMarker  = signal<MapMarkerDto | null>(null);
+  readonly totalCount = signal(0);
+  readonly selectedMarker = signal<MapMarkerDto | null>(null);
   readonly selectedDetails = signal<HelpRequestDetails | null>(null);
-  readonly detailsError    = signal<string | null>(null);
-  readonly showDonate      = signal(false);
+  readonly detailsError = signal<string | null>(null);
+  readonly showDonate = signal(false);
+  readonly myLocation = signal<{ latitude: number; longitude: number } | null>(null);
+  readonly locationError = signal<string | null>(null);
 
-  // ─────────────────────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.initMap();
+    this.requestMyLocation();
     this.listenToGlobalDonateEvent();
     this.listenToFilterChanges();
     this.filterChange$.next({});
   }
 
-  // ─── Map init ────────────────────────────────────────────────────────────
   private initMap(): void {
     this.map = L.map('map', {
       center: [49.0, 31.5],
-      zoom:   6,
+      zoom: 6,
       attributionControl: true,
-      zoomControl:        false
+      zoomControl: false
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
 
-    // CartoDB Voyager — кольоровий, сучасний, без API-ключа
     L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-          subdomains:  'abcd',
-          maxZoom:     20
-        }
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }
     ).addTo(this.map);
 
     this.clusterGroup = L.markerClusterGroup({
-      chunkedLoading:      true,
-      maxClusterRadius:    55,
+      chunkedLoading: true,
+      maxClusterRadius: 55,
       showCoverageOnHover: false,
-      iconCreateFunction:  (cluster: any) => L.divIcon({
-        html:      `<div class="sw-cluster"><span>${cluster.getChildCount()}</span></div>`,
+      iconCreateFunction: (cluster: any) => L.divIcon({
+        html: `<div class="sw-cluster"><span>${cluster.getChildCount()}</span></div>`,
         className: '',
-        iconSize:  L.point(44, 44)
+        iconSize: L.point(44, 44)
       })
     });
 
     this.map.addLayer(this.clusterGroup);
   }
 
-  // ─── Global donate bridge ────────────────────────────────────────────────
+  private requestMyLocation(): void {
+    if (!navigator.geolocation) {
+      this.locationError.set('Ваш браузер не підтримує геолокацію.');
+      this.cdr.markForCheck();
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        this.myLocation.set({ latitude, longitude });
+        this.locationError.set(null);
+        this.renderMyLocationMarker(latitude, longitude);
+        this.refreshMarkersWithDistances();
+        this.cdr.markForCheck();
+      },
+      (error) => {
+        const message = error.code === error.PERMISSION_DENIED
+          ? 'Геолокацію вимкнено. Увімкніть доступ до місцезнаходження, щоб бачити свою позицію і відстань до запитів.'
+          : 'Не вдалося отримати вашу геопозицію.';
+
+        this.locationError.set(message);
+        this.clearMyLocationMarker();
+        this.refreshMarkersWithDistances();
+        this.cdr.markForCheck();
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  }
+
+  private renderMyLocationMarker(latitude: number, longitude: number): void {
+    this.clearMyLocationMarker();
+
+    const myIcon = L.divIcon({
+      html: `
+        <div style="
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          background: #2563eb;
+          border: 3px solid white;
+          box-shadow: 0 0 0 8px rgba(37,99,235,0.18);
+        "></div>
+      `,
+      className: '',
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
+    });
+
+    this.myLocationMarker = L.marker([latitude, longitude], { icon: myIcon })
+      .bindTooltip('Ваша позиція', {
+        permanent: false,
+        direction: 'top',
+        offset: [0, -10]
+      })
+      .addTo(this.map);
+  }
+
+  private clearMyLocationMarker(): void {
+    if (this.myLocationMarker) {
+      this.map.removeLayer(this.myLocationMarker);
+      this.myLocationMarker = null;
+    }
+  }
+
   private listenToGlobalDonateEvent(): void {
     const handler = (e: Event) => {
       const helpRequestId = (e as CustomEvent<string>).detail;
-      const marker = this.allMarkers.find(m => m.helpRequestId === helpRequestId);
-      if (marker) {
-        this.selectedMarker.set(marker);
-        this.showDonate.set(true);
-      }
+      const marker = this.allMarkers.find((item) => item.helpRequestId === helpRequestId) ?? null;
+
+      if (!marker) return;
+
+      this.selectedMarker.set(marker);
+      this.lastMarker = marker;
+      this.showDonate.set(true);
+      this.cdr.markForCheck();
     };
+
     window.addEventListener('sw:donate', handler);
     this.destroy$.subscribe(() => window.removeEventListener('sw:donate', handler));
   }
 
-  // ─── Filter → load markers ───────────────────────────────────────────────
   private listenToFilterChanges(): void {
     this.filterChange$.pipe(
-        debounceTime(300),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-        switchMap(filter => {
-          this.isLoading.set(true);
-          return this.mapDataService.getMarkers(filter);
-        }),
-        takeUntil(this.destroy$)
+      debounceTime(300),
+      distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+      switchMap((filter) => {
+        this.isLoading.set(true);
+        return this.mapDataService.getMarkers(filter);
+      }),
+      takeUntil(this.destroy$)
     ).subscribe({
       next: (result: PagedResult<MapMarkerDto>) => {
-        this.allMarkers = result.items;
-        this.renderMarkers(this.allMarkers);
         this.totalCount.set(result.total);
         this.isLoading.set(false);
+        this.allMarkers = this.enrichMarkersWithDistance(result.items);
+        this.renderMarkers(this.allMarkers);
+        this.syncSelectedMarkerWithCurrentCollection();
+        this.cdr.markForCheck();
       },
-      error: () => this.isLoading.set(false)
+      error: () => {
+        this.isLoading.set(false);
+        this.cdr.markForCheck();
+      }
     });
   }
 
-  // ─── Render pins ─────────────────────────────────────────────────────────
+  private enrichMarkersWithDistance(markers: MapMarkerDto[]): MapMarkerDto[] {
+    const location = this.myLocation();
+
+    return markers.map((marker) => {
+      const nextMarker: MapMarkerDto = { ...marker };
+
+      if (
+        location &&
+        nextMarker.latitude != null &&
+        nextMarker.longitude != null
+      ) {
+        nextMarker.distanceKm = calculateDistanceKm(
+          location.latitude,
+          location.longitude,
+          nextMarker.latitude,
+          nextMarker.longitude
+        );
+      } else {
+        nextMarker.distanceKm = undefined;
+      }
+
+      return nextMarker;
+    });
+  }
+
+  private refreshMarkersWithDistances(): void {
+    this.allMarkers = this.enrichMarkersWithDistance(this.allMarkers);
+    this.renderMarkers(this.allMarkers);
+    this.syncSelectedMarkerWithCurrentCollection();
+  }
+
+  private syncSelectedMarkerWithCurrentCollection(): void {
+    const currentSelected = this.selectedMarker();
+    if (!currentSelected) return;
+
+    const nextSelected = this.allMarkers.find(
+      (marker) =>
+        marker.helpRequestId === currentSelected.helpRequestId &&
+        marker.requestItemId === currentSelected.requestItemId
+    ) ?? null;
+
+    this.selectedMarker.set(nextSelected);
+    this.lastMarker = nextSelected;
+  }
+
   private renderMarkers(markers: MapMarkerDto[]): void {
     this.clusterGroup.clearLayers();
     this.activeLeafletMarker = null;
 
-    markers.forEach((m: MapMarkerDto) => {
-      if (!m.latitude || !m.longitude) return;
+    markers.forEach((marker) => {
+      if (marker.latitude == null || marker.longitude == null) return;
 
-      const style   = getTypeStyle(m.supportTypeName);
-      const percent = m.targetAmount > 0
-          ? Math.min(100, Math.round((m.collectedAmount / m.targetAmount) * 100))
-          : 0;
+      const style = getTypeStyle(marker.supportTypeName);
+      const percent = marker.targetAmount > 0
+        ? Math.min(100, Math.round((marker.collectedAmount / marker.targetAmount) * 100))
+        : 0;
 
-      // Розмір піну залежить від суми збору
-      const size   = calcPinSize(m.targetAmount);
-      // Висота = size * (50/36) — зберігаємо пропорцію viewBox 36×50
+      const size = calcPinSize(marker.targetAmount);
       const height = Math.round(size * (50 / 36));
 
       const icon = L.divIcon({
-        html:        `<div class="sw-pin-wrapper">${buildPinSvg(style.color, percent, size)}</div>`,
-        className:   '',
-        iconSize:    [size, height],
-        iconAnchor:  [size / 2, height],
+        html: `<div class="sw-pin-wrapper">${buildPinSvg(style.color, percent, size)}</div>`,
+        className: '',
+        iconSize: [size, height],
+        iconAnchor: [size / 2, height],
         popupAnchor: [0, -(height + 4)]
       });
 
-      const leafletMarker = L.marker([m.latitude, m.longitude], { icon });
+      const tooltipDistance = marker.distanceKm != null
+        ? `<span class="sw-tooltip-sub">Від вас: ${this.formatDistance(marker.distanceKm)}</span>`
+        : '';
 
+      const leafletMarker = L.marker([marker.latitude, marker.longitude], { icon });
       leafletMarker.bindTooltip(
-          `<div class="sw-tooltip">
-           <span class="sw-tooltip-title">${m.title}</span>
-           <span class="sw-tooltip-sub">${m.requestItemName} &middot; ${m.supportTypeName}</span>
+        `<div class="sw-tooltip">
+           <span class="sw-tooltip-title">${marker.title}</span>
+           <span class="sw-tooltip-sub">${marker.requestItemName} &middot; ${marker.supportTypeName}</span>
+           ${tooltipDistance}
          </div>`,
-          { permanent: false, direction: 'top', offset: [0, -(height + 4)], className: 'sw-tooltip-wrap' }
+        {
+          permanent: false,
+          direction: 'top',
+          offset: [0, -(height + 4)],
+          className: 'sw-tooltip-wrap'
+        }
       );
 
-      leafletMarker.on('click', () => this.onMarkerClick(m, leafletMarker));
+      leafletMarker.on('click', () => this.onMarkerClick(marker, leafletMarker));
       this.clusterGroup.addLayer(leafletMarker);
+
+      const isSelected = this.selectedMarker()?.helpRequestId === marker.helpRequestId
+        && this.selectedMarker()?.requestItemId === marker.requestItemId;
+
+      if (isSelected) {
+        this.activeLeafletMarker = leafletMarker;
+        leafletMarker.getElement()?.querySelector('.sw-pin-wrapper')?.classList.add('sw-pin-wrapper--selected');
+      }
     });
   }
 
-  // ─── Marker click ────────────────────────────────────────────────────────
   private onMarkerClick(marker: MapMarkerDto, leafletMarker: any): void {
     if (this.activeLeafletMarker) {
-      const el = this.activeLeafletMarker.getElement();
-      el?.querySelector('.sw-pin-wrapper')?.classList.remove('sw-pin-wrapper--selected');
+      this.activeLeafletMarker.getElement()
+        ?.querySelector('.sw-pin-wrapper')
+        ?.classList.remove('sw-pin-wrapper--selected');
     }
+
     this.activeLeafletMarker = leafletMarker;
     leafletMarker.getElement()
-        ?.querySelector('.sw-pin-wrapper')
-        ?.classList.add('sw-pin-wrapper--selected');
+      ?.querySelector('.sw-pin-wrapper')
+      ?.classList.add('sw-pin-wrapper--selected');
 
     this.lastMarker = marker;
+    this.selectedMarker.set(marker);
     this.selectedDetails.set(null);
     this.detailsError.set(null);
     this.isDetailLoading.set(true);
-    this.selectedMarker.set(marker);
     this.cdr.markForCheck();
     this.loadDetails(marker.helpRequestId);
   }
@@ -268,35 +417,61 @@ export class MapComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Public handlers ─────────────────────────────────────────────────────
-  onFiltersChanged(filters: MapFilterParams): void { this.filterChange$.next(filters); }
+  onFiltersChanged(filters: MapFilterParams): void {
+    this.filterChange$.next(filters);
+  }
 
   retryDetails(): void {
     if (!this.lastMarker) return;
+
     this.detailsError.set(null);
     this.isDetailLoading.set(true);
     this.loadDetails(this.lastMarker.helpRequestId);
   }
 
-  openDonateFromPanel(): void { if (this.selectedMarker()) this.showDonate.set(true); }
-  closeDonate(): void         { this.showDonate.set(false); }
+  detectMyLocation(): void {
+    this.requestMyLocation();
+  }
+
+  openDonateFromPanel(): void {
+    if (this.selectedMarker()) {
+      this.showDonate.set(true);
+    }
+  }
+
+  closeDonate(): void {
+    this.showDonate.set(false);
+  }
 
   closePanel(): void {
     if (this.activeLeafletMarker) {
       this.activeLeafletMarker.getElement()
-          ?.querySelector('.sw-pin-wrapper')
-          ?.classList.remove('sw-pin-wrapper--selected');
+        ?.querySelector('.sw-pin-wrapper')
+        ?.classList.remove('sw-pin-wrapper--selected');
       this.activeLeafletMarker = null;
     }
+
     this.selectedDetails.set(null);
     this.selectedMarker.set(null);
     this.detailsError.set(null);
     this.lastMarker = null;
+    this.cdr.markForCheck();
+  }
+
+  formatDistance(distanceKm: number): string {
+    if (distanceKm < 1) {
+      return `${Math.round(distanceKm * 1000)} м`;
+    }
+
+    return `${distanceKm.toFixed(1)} км`;
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.map) this.map.remove();
+
+    if (this.map) {
+      this.map.remove();
+    }
   }
 }

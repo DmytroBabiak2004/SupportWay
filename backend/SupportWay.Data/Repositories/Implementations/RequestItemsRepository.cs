@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
@@ -46,6 +46,13 @@ namespace SupportWay.Data.Repositories.Implementations
                 _context.RequestItems.Remove(item);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<int> CountByUserIdAndSupportTypeAsync(string userId, Guid supportTypeId)
+        {
+            return await _context.RequestItems
+                .AsNoTracking()
+                .CountAsync(i => i.SupportTypeId == supportTypeId && i.HelpRequest.UserId == userId);
         }
     }
 }

@@ -12,10 +12,14 @@ export interface DonateRequest {
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  private readonly http    = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/payments`;
 
   donate(payload: DonateRequest): Observable<DonateResponseDto> {
     return this.http.post<DonateResponseDto>(`${this.baseUrl}/donate`, payload);
+  }
+
+  getPaymentStatus(paymentId: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${paymentId}`);
   }
 }
