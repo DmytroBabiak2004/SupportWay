@@ -38,7 +38,8 @@ public class HelpRequestsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var result = await _service.GetHelpRequestByIdAsync(id);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _service.GetHelpRequestByIdAsync(id, userId);
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -71,7 +72,13 @@ public class HelpRequestsController : ControllerBase
             Latitude = latitude ?? request.Latitude,
             Longitude = longitude ?? request.Longitude,
             Address = request.Address,
-            DistrictName = request.DistrictName
+            DistrictName = request.DistrictName,
+            PreferredDonationMethod = request.PreferredDonationMethod,
+            DonationRecipientName = request.DonationRecipientName,
+            DonationRecipientCardNumber = request.DonationRecipientCardNumber,
+            DonationRecipientIban = request.DonationRecipientIban,
+            DonationPaymentLink = request.DonationPaymentLink,
+            DonationNotes = request.DonationNotes
         };
 
         if (request.Image != null)

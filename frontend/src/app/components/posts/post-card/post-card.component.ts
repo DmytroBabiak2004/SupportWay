@@ -12,7 +12,7 @@ import { PostCommentService } from '../../../services/post-comment.service';
 import { PostComment, CreatePostCommentDto } from '../../../models/post-comment.model';
 import { AuthService } from '../../../services/auth.service';
 import { RelativeTimePipe } from '../../../pipes/relative-time.pipe';
-import { ShareToChatModalComponent } from '../../chat/share-to-chat-modal/share-to-chat-modal.component';
+import { ShareToChatModalComponent } from '../../../dialog/share-to-chat-modal/share-to-chat-modal.component';
 
 @Component({
   selector: 'app-post-card',

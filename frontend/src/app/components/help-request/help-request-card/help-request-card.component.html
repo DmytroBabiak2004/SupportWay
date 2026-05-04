@@ -1,51 +1,119 @@
-<article class="post-card">
+<article class="request-card">
   <header class="post-header">
-    <div class="user-group" (click)="openRequestAuthorProfile()">
+    <button type="button" class="user-group" (click)="openRequestAuthorProfile()">
       <div class="avatar-container">
-        <img *ngIf="(request.authorPhotoBase64 || request.userPhotoBase64) as photoBase64; else initialFallback"
-             [src]="profileService.getAvatarSrc(photoBase64)"
-             alt="avatar">
+        <img *ngIf="authorAvatarBase64; else initialFallback"
+             [src]="profileService.getAvatarSrc(authorAvatarBase64)"
+             [alt]="authorName + ' avatar'">
         <ng-template #initialFallback>
-          <div class="initials">
-            {{ getInitials(request.authorUserName || request.userName || '?') }}
-          </div>
+          <div class="initials">{{ getInitials(authorName) }}</div>
         </ng-template>
       </div>
 
       <div class="meta-info">
-        <span class="username">
-          {{ request.authorUserName || request.userName || 'Unknown' }}
-        </span>
+        <span class="username">{{ authorName }}</span>
         <span class="date" [title]="request.createdAt | date:'medium'">
           {{ request.createdAt | relativeTime }}
         </span>
       </div>
-    </div>
+    </button>
+
+    <span class="status-pill" [class.closed]="request.isActive === false" [class.completed]="isCompleted">
+      <span class="status-dot"></span>
+      {{ statusLabel }}
+    </span>
   </header>
 
-  <div class="post-media" *ngIf="getRequestImageSrc(request.image) as imageSrc" (dblclick)="toggleLike()">
+  <div class="post-media" *ngIf="requestImageSrc as imageSrc" (dblclick)="toggleLike()">
     <div class="image-container">
-      <img [src]="imageSrc" [alt]="request.title || 'Help Request'">
+      <img [src]="imageSrc" [alt]="request.title || 'Help request image'">
     </div>
   </div>
 
+  <section class="request-body">
+    <div class="caption-block">
+      <button type="button" class="author-name-inline" (click)="openRequestAuthorProfile()">
+        {{ authorName }}
+      </button>
+      <span class="post-text">{{ request.content }}</span>
+    </div>
+
+    <div class="meta-row" *ngIf="locationLabel || request.requestItems?.length">
+      <span class="meta-chip" *ngIf="locationLabel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 1 1 18 0Z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        {{ locationLabel }}
+      </span>
+
+      <span class="meta-chip" *ngIf="request.requestItems?.length">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+          <path d="M3.27 6.96 12 12.01l8.73-5.05"></path>
+          <path d="M12 22.08V12"></path>
+        </svg>
+        {{ request.requestItems.length }} потреб{{ request.requestItems.length === 1 ? 'а' : 'и' }}
+      </span>
+    </div>
+  </section>
+
+  <section class="funding-panel" *ngIf="totalRequestedSum > 0">
+    <div class="funding-top">
+      <div>
+        <span class="funding-label">Зібрано</span>
+        <strong>{{ collectedAmount | number:'1.0-0' }} ₴</strong>
+      </div>
+      <div class="funding-target">
+        <span class="funding-label">Ціль</span>
+        <strong>{{ totalRequestedSum | number:'1.0-0' }} ₴</strong>
+      </div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="progressPercent"></div>
+    </div>
+
+    <div class="funding-bottom">
+      <span>{{ progressPercent }}% зібрано</span>
+      <span *ngIf="remainingAmount > 0">Залишилось {{ remainingAmount | number:'1.0-0' }} ₴</span>
+      <span *ngIf="remainingAmount === 0">Ціль досягнута</span>
+    </div>
+  </section>
+
+  <section class="needs-panel" *ngIf="request.requestItems?.length">
+    <div class="needs-head">
+      <span>Потреби</span>
+      <span>{{ request.requestItems.length }}</span>
+    </div>
+
+    <div class="needs-list">
+      <div class="need-row" *ngFor="let item of request.requestItems; trackBy: trackByRequestItem">
+        <div class="need-info">
+          <span class="need-name">{{ item.name }}</span>
+          <span class="need-type">{{ item.supportTypeName || 'Інше' }}</span>
+        </div>
+        <div class="need-money">
+          <span>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} ₴</span>
+          <strong>{{ getItemTotal(item) | number:'1.0-0' }} ₴</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <div class="post-actions-bar">
     <div class="actions-left">
-      <button class="action-btn like-btn" [class.active]="isLiked" (click)="toggleLike()">
-        <svg viewBox="0 0 24 24">
-          <path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.956-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938Z"></path>
-        </svg>
+      <button type="button" class="action-btn like-btn" [class.active]="isLiked" [disabled]="isLikePending" (click)="toggleLike()" aria-label="Лайк">
+        <svg viewBox="0 0 24 24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.956-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938Z"></path></svg>
         <span class="count-label" *ngIf="likesCount > 0">{{ likesCount }}</span>
       </button>
 
-      <button class="action-btn comment-btn" (click)="toggleComments()">
-        <svg viewBox="0 0 24 24">
-          <path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path>
-        </svg>
+      <button type="button" class="action-btn comment-btn" [class.active]="showComments" (click)="toggleComments()" aria-label="Коментарі">
+        <svg viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="2"></path></svg>
         <span class="count-label" *ngIf="commentsCount > 0">{{ commentsCount }}</span>
       </button>
 
-      <button class="action-btn share-btn" (click)="openShareModal()">
+      <button type="button" class="action-btn share-btn" (click)="openShareModal()" aria-label="Поділитись">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1">
           <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"></path>
           <path d="M12 16V4"></path>
@@ -53,70 +121,37 @@
         </svg>
       </button>
     </div>
+
+    <button type="button" class="donate-btn" *ngIf="request.isActive !== false" (click)="openDonateModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" fill="currentColor" stroke="none"></path>
+      </svg>
+      Задонатити
+    </button>
   </div>
 
-  <div class="post-content">
-    <div class="request-title" *ngIf="request.title">{{ request.title }}</div>
+  <button type="button" class="view-comments-link" *ngIf="!showComments && commentsCount > 0" (click)="toggleComments()">
+    Переглянути всі коментарі: {{ commentsCount }}
+  </button>
 
-    <div class="caption-block" *ngIf="request.content">
-      <span class="author-name-inline" (click)="openRequestAuthorProfile()">
-        {{ request.authorUserName || request.userName || 'Unknown' }}
-      </span>
-      <span class="post-text">{{ request.content }}</span>
-    </div>
+  <section class="comments-section" *ngIf="showComments">
+    <div *ngIf="isLoadingComments" class="loading-state">Оновлюємо коментарі...</div>
 
-    <div class="compact-finance-section" *ngIf="request.requestItems?.length">
-      <div class="finance-stats">
-        <div class="stat-group">
-          <span class="stat-label">Зібрано</span>
-          <span class="stat-value text-accent">{{ collectedAmount | number:'1.0-2' }} ₴</span>
-        </div>
-        <div class="stat-group right">
-          <span class="stat-label">Ціль</span>
-          <span class="stat-value">{{ totalRequestedSum | number:'1.0-2' }} ₴</span>
-        </div>
-      </div>
-
-      <div class="progress-bar-slim">
-        <div class="progress-fill" [style.width.%]="progressPercent"></div>
-      </div>
-
-      <div class="items-summary" *ngIf="request.requestItems?.length">
-        <details class="items-dropdown">
-          <summary>Показати потреби ({{ request.requestItems.length }})</summary>
-          <ul class="clean-items-list">
-            <li *ngFor="let item of request.requestItems; trackBy: trackByRequestItem">
-              <span class="item-name">{{ item.name }} <span class="item-qty">x{{ item.quantity }}</span></span>
-              <span class="item-price">{{ item.quantity * item.unitPrice | number:'1.0-2' }} ₴</span>
-            </li>
-          </ul>
-        </details>
-      </div>
-    </div>
-
-    <div class="view-comments-link" *ngIf="!showComments && commentsCount > 0" (click)="toggleComments()">
-      View all {{ commentsCount }} comments
-    </div>
-  </div>
-
-  <div class="comments-section" *ngIf="showComments">
-    <div *ngIf="isLoadingComments" class="loading-state">Updating...</div>
-
-    <div *ngFor="let comment of comments" class="comment-item">
-      <div class="c-avatar" (click)="openProfile(comment.userName || comment.userId)">
+    <div *ngFor="let comment of comments; trackBy: trackByComment" class="comment-item">
+      <button type="button" class="c-avatar" (click)="openProfile(comment.userName || comment.userId)">
         <img *ngIf="comment.userPhotoBase64; else comInitials"
              [src]="profileService.getAvatarSrc(comment.userPhotoBase64)"
-             alt="u">
+             alt="comment author avatar">
         <ng-template #comInitials>
           <div class="initials">{{ getInitials(comment.userName || '?') }}</div>
         </ng-template>
-      </div>
+      </button>
 
       <div class="c-body">
         <div class="c-header">
-          <span class="c-user clickable-username" (click)="openProfile(comment.userName || comment.userId)">
-            {{ comment.userName }}
-          </span>
+          <button type="button" class="c-user" (click)="openProfile(comment.userName || comment.userId)">
+            {{ comment.userName || 'Unknown' }}
+          </button>
           <span class="c-date">{{ comment.createdAt | relativeTime }}</span>
         </div>
         <div class="c-text">{{ comment.text }}</div>
@@ -124,10 +159,19 @@
     </div>
 
     <div class="comment-input-wrapper">
-      <input type="text" placeholder="Add a comment..." [(ngModel)]="newCommentText" (keydown.enter)="newCommentText.trim() && sendComment()">
-      <button class="post-link-btn" [disabled]="!newCommentText.trim()" (click)="sendComment()">Post</button>
+      <input type="text"
+             placeholder="Додати коментар..."
+             [(ngModel)]="newCommentText"
+             [disabled]="isSendingComment"
+             (keydown.enter)="newCommentText.trim() && sendComment()">
+      <button type="button"
+              class="post-link-btn"
+              [disabled]="!newCommentText.trim() || isSendingComment"
+              (click)="sendComment()">
+        {{ isSendingComment ? '...' : 'Опублікувати' }}
+      </button>
     </div>
-  </div>
+  </section>
 </article>
 
 <app-share-to-chat-modal
@@ -139,3 +183,9 @@
   (closed)="closeShareModal()"
   (shared)="onShared()">
 </app-share-to-chat-modal>
+
+<app-donate-modal
+  *ngIf="isDonateModalOpen"
+  [helpRequest]="request"
+  (closed)="closeDonateModal()">
+</app-donate-modal>

@@ -48,6 +48,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         return await _context.HelpRequests
             .AsNoTracking()
             .Include(h => h.User)
+                .ThenInclude(u => u.Profile)
             .Include(h => h.Location)
             .Include(h => h.Payments)
             .Include(h => h.Likes)
@@ -65,6 +66,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         return await _context.HelpRequests
             .AsNoTracking()
             .Include(h => h.User)
+                .ThenInclude(u => u.Profile)
             .Include(h => h.Location)
             .Include(h => h.Payments)
             .Include(h => h.Likes)
@@ -88,6 +90,7 @@ public class HelpRequestsRepository : IHelpRequestsRepository
         return await _context.HelpRequests
             .AsNoTracking()
             .Include(h => h.User)
+                .ThenInclude(u => u.Profile)
             .Include(h => h.Location)
             .Include(h => h.Payments)
             .Include(h => h.Likes)

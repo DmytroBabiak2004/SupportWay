@@ -2,24 +2,45 @@
   <div class="message-group">
     <div class="bubble" [class.has-share]="isShared()">
 
-      <div class="shared-card" *ngIf="msg.sharedPreview" (click)="openSharedEntity()">
-        <div class="shared-top">
-          <div class="shared-user">
-            <div class="shared-avatar">
-              <img
-                *ngIf="msg.sharedPreview.authorPhotoBase64; else avatarFallback"
-                [src]="profileService.getAvatarSrc(msg.sharedPreview.authorPhotoBase64)"
-                alt="author">
-              <ng-template #avatarFallback>
-                <span>{{ msg.sharedPreview.authorUserName?.charAt(0)?.toUpperCase() || '?' }}</span>
-              </ng-template>
-            </div>
+      <button
+        *ngIf="isMine"
+        class="delete-btn"
+        type="button"
+        title="Видалити повідомлення"
+        aria-label="Видалити повідомлення"
+        (click)="onDelete($event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </button>
 
-            <div class="shared-meta">
-              <span class="shared-badge">{{ getEntityLabel() }}</span>
-              <span class="shared-author">{{ msg.sharedPreview.authorUserName }}</span>
-            </div>
+      <button
+        class="shared-card"
+        *ngIf="msg.sharedPreview"
+        type="button"
+        (click)="openSharedEntity($event)">
+        <div class="shared-top">
+          <div class="shared-avatar">
+            <img
+              *ngIf="msg.sharedPreview.authorPhotoBase64; else avatarFallback"
+              [src]="profileService.getAvatarSrc(msg.sharedPreview.authorPhotoBase64)"
+              alt="author">
+
+            <ng-template #avatarFallback>
+              <span>{{ msg.sharedPreview.authorUserName?.charAt(0)?.toUpperCase() || '?' }}</span>
+            </ng-template>
           </div>
+
+          <div class="shared-meta">
+            <span class="shared-badge">{{ getEntityLabel() }}</span>
+            <span class="shared-author">{{ msg.sharedPreview.authorUserName }}</span>
+          </div>
+
+          <span class="shared-open-icon" aria-hidden="true">↗</span>
         </div>
 
         <div class="shared-title" *ngIf="msg.sharedPreview.title">
@@ -33,34 +54,36 @@
         <div class="shared-image" *ngIf="getPreviewImage() as imageSrc">
           <img [src]="imageSrc" alt="preview">
         </div>
-      </div>
+      </button>
 
       <div class="message-text" *ngIf="msg.content">
         {{ msg.content }}
       </div>
 
       <div class="meta">
-        <span class="time" *ngIf="msg.sentAt">
-          {{ msg.sentAt | date:'HH:mm' }}
+        <time class="time" *ngIf="msg.sentAt">{{ formatTime(msg.sentAt) }}</time>
+
+        <span
+          *ngIf="isMine"
+          class="status-icon"
+          [class.read]="msg.isRead"
+          [title]="getReadLabel()"
+          [attr.aria-label]="getReadLabel()">
+          <svg viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1.5 6.3L4.6 9.4L11.8 2.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+            <path class="second-check" d="M7.1 9.4L16.5 2.2" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </span>
-
-        <ng-container *ngIf="isMine">
-          <span class="status-icon" [class.read]="msg.isRead">
-            <svg viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10.9998 1L5.49988 6.5L3.99988 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <path class="second-check" d="M14.9998 1L9.49988 6.5M1.00012 5L2.50012 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-
-          <button class="delete-btn" (click)="onDelete()" title="Видалити">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
-        </ng-container>
       </div>
 
     </div>
   </div>
 </div>
+
+<app-shared-post-dialog
+  [isOpen]="isPostModalOpen"
+  [preview]="msg.sharedPreview"
+  [sharedPostId]="msg.sharedPostId"
+  [sharedHelpRequestId]="msg.sharedHelpRequestId"
+  (close)="closePostModal()">
+</app-shared-post-dialog>

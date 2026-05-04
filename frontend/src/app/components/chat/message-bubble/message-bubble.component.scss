@@ -1,16 +1,12 @@
-/* --- Palette --- */
-$primary-gradient: linear-gradient(135deg, #4ba6fa 0%, #2563eb 100%);
-$bg-bubble-theirs: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+$mine-bg: #2563eb;
+$their-bg: #ffffff;
 
-$text-main: #1f2937;
-$text-time-dark: rgba(100, 116, 139, 0.75);
-$text-time-light: rgba(255, 255, 255, 0.65);
+$text-dark: #0f172a;
+$text-muted: #64748b;
+$text-soft: #94a3b8;
 
-$border-theirs: rgba(148, 163, 184, 0.12);
-
-/* МЕНШІ ТІНІ */
-$shadow-soft: 0 2px 6px rgba(15, 23, 42, 0.04);
-$shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.18);
+$border: #e5e7eb;
+$border-soft: #f1f5f9;
 
 :host {
   display: block;
@@ -18,291 +14,373 @@ $shadow-primary: 0 4px 10px rgba(37, 99, 235, 0.18);
   min-width: 0;
   padding: 0 8px;
   box-sizing: border-box;
+
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-/* ===== MESSAGE CONTAINER ===== */
 .message-container {
   display: flex;
   width: 100%;
   min-width: 0;
   margin-bottom: 8px;
 
-  animation: messageEnter 0.2s ease forwards;
+  animation: messageEnter 0.16s ease forwards;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(4px);
 
   &.mine {
     justify-content: flex-end;
 
     .bubble {
-      background: $primary-gradient;
-      color: #ffffff;
-      border-radius: 18px 18px 4px 18px;
-      box-shadow: $shadow-primary;
-      border: none;
+      color: #fff;
+      background: $mine-bg;
+      border-color: transparent;
+      border-radius: 18px 18px 5px 18px;
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.16);
+    }
+
+    .message-text {
+      color: #fff;
     }
 
     .time {
-      color: $text-time-light;
+      color: rgba(255, 255, 255, 0.68);
     }
 
     .status-icon {
-      color: $text-time-light;
+      color: rgba(255, 255, 255, 0.66);
+
       &.read {
-        color: #ffffff;
+        color: #dbeafe;
       }
     }
 
-    .delete-btn {
-      color: $text-time-light;
-      &:hover {
-        color: #ffe0e0;
-      }
-    }
-
-    /* Стилі картки репосту для СВОЇХ повідомлень (на синьому фоні) */
     .shared-card {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.13);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
 
-      .shared-badge { color: rgba(255, 255, 255, 0.8); }
-      .shared-author { color: #ffffff; }
-      .shared-title { color: #ffffff; }
-      .shared-content { color: rgba(255, 255, 255, 0.9); }
-      .shared-avatar {
-        background: rgba(255, 255, 255, 0.2);
-        color: #ffffff;
+      &:hover {
+        background: rgba(255, 255, 255, 0.17);
       }
+    }
+
+    .shared-badge,
+    .shared-open-icon,
+    .shared-content {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .shared-avatar {
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
     }
   }
 }
 
-/* ===== GROUP ===== */
 .message-group {
   width: fit-content;
-  max-width: min(75%, 680px);
+  max-width: min(74%, 650px);
   min-width: 0;
 
   @media (min-width: 768px) {
-    max-width: min(60%, 680px);
+    max-width: min(56%, 650px);
   }
 
-  @media (max-width: 480px) {
-    max-width: 88%;
+  @media (max-width: 520px) {
+    max-width: 90%;
   }
 }
 
-/* ===== BUBBLE ===== */
 .bubble {
+  position: relative;
+
   display: flex;
   flex-direction: column;
   gap: 6px;
+
   max-width: 100%;
-  min-width: 70px;
+  min-width: 76px;
 
-  padding: 8px 12px 6px 14px;
-  border-radius: 18px 18px 18px 4px;
+  padding: 8px 11px 6px 12px;
 
-  background: $bg-bubble-theirs;
-  color: $text-main;
+  border: 1px solid $border;
+  border-radius: 18px 18px 18px 5px;
+  background: $their-bg;
+  color: $text-dark;
 
-  border: 1px solid $border-theirs;
-  box-shadow: $shadow-soft;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 6px 14px rgba(15, 23, 42, 0.045);
+
   box-sizing: border-box;
-}
 
-/* ===== SHARED CARD (Стилі для чужих повідомлень за замовчуванням) ===== */
-.shared-card {
-  border-radius: 10px;
-  background: rgba(248, 250, 252, 0.8);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  overflow: hidden;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-  margin-top: 2px;
-
-  &:hover {
-    opacity: 0.9;
-  }
-
-  .shared-top {
-    padding: 10px 10px 0;
-  }
-
-  .shared-user {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .shared-avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
-    background: rgba(148, 163, 184, 0.2);
-    display: grid;
-    place-items: center;
-    font-weight: 600;
-    font-size: 12px;
-    color: #0f172a;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
-
-  .shared-meta {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .shared-badge {
-    font-size: 10px;
-    font-weight: 700;
-    color: #2563eb;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .shared-author {
-    font-size: 13px;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .shared-title {
-    padding: 8px 10px 0;
-    font-size: 14px;
-    font-weight: 600;
-  }
-
-  .shared-content {
-    padding: 6px 10px 10px;
-    font-size: 13px;
-    line-height: 1.4;
-    word-break: break-word;
-    opacity: 0.85;
-  }
-
-  .shared-image {
-    padding: 0 10px 10px;
-
-    img {
-      width: 100%;
-      max-height: 200px;
-      object-fit: cover;
-      border-radius: 8px;
-      display: block;
-    }
+  &:hover .delete-btn,
+  &:focus-within .delete-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
   }
 }
 
-/* ===== TEXT ===== */
 .message-text {
-  font-size: 14.5px;
+  color: $text-dark;
+  font-size: 14.25px;
+  font-weight: 400;
   line-height: 1.45;
+
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
 
-/* ===== META (TIME + STATUS + DELETE) ===== */
+/* =====================
+   Shared card
+===================== */
+
+.shared-card {
+  width: 100%;
+  min-width: min(250px, 70vw);
+
+  display: block;
+  overflow: hidden;
+
+  border: 1px solid $border-soft;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: $text-dark;
+
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #dbe3ee;
+    transform: translateY(-1px);
+    box-shadow: 0 7px 16px rgba(15, 23, 42, 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.45);
+    outline-offset: 2px;
+  }
+}
+
+.shared-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 10px 10px 5px;
+}
+
+.shared-avatar {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+  background: #e0ecff;
+  color: #1d4ed8;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.shared-meta {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.shared-badge {
+  color: #2563eb;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.shared-author {
+  max-width: 210px;
+  overflow: hidden;
+
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.28;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shared-open-icon {
+  margin-left: auto;
+  color: $text-soft;
+  font-size: 14px;
+}
+
+.shared-title {
+  padding: 0 10px 4px;
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.shared-content {
+  padding: 0 10px 10px;
+
+  color: #475569;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.43;
+
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.shared-image {
+  padding: 0 10px 10px;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 210px;
+
+    object-fit: cover;
+    border-radius: 11px;
+  }
+}
+
+/* =====================
+   Meta
+===================== */
+
 .meta {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
-  margin-top: 2px;
+
+  min-height: 14px;
+  margin-top: -1px;
+
   white-space: nowrap;
 }
 
-/* ===== TIME ===== */
 .time {
-  font-size: 10px;
+  color: rgba(100, 116, 139, 0.76);
+
+  font-size: 10.5px;
   font-weight: 400;
-  color: $text-time-dark;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
+  line-height: 1;
 }
 
-/* ===== STATUS ===== */
 .status-icon {
   display: inline-flex;
-  width: 14px;
-  height: 14px;
-  color: rgba(148, 163, 184, 0.7);
+  width: 17px;
+  height: 13px;
+
+  color: rgba(100, 116, 139, 0.62);
 
   svg {
     width: 100%;
     height: 100%;
+  }
 
-    .second-check {
-      opacity: 0;
-      transform: translateX(-2px);
-      transition: all 0.25s ease;
-    }
+  .second-check {
+    opacity: 0;
+    transform: translateX(-3px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
   }
 
   &.read {
-    color: #3b82f6; /* Колір прочитаного для чужого/звичайного фону */
+    color: #38bdf8;
 
-    svg .second-check {
+    .second-check {
       opacity: 1;
       transform: translateX(0);
     }
   }
 }
 
-/* ===== DELETE BUTTON ===== */
+/* =====================
+   Delete button
+===================== */
+
 .delete-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 7px);
+  z-index: 2;
+
+  width: 29px;
+  height: 29px;
+
+  display: inline-grid;
+  place-items: center;
+
   padding: 0;
-  margin-left: 2px;
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  border-radius: 999px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: $text-time-dark;
+  background: rgba(255, 255, 255, 0.96);
+  color: #ef4444;
 
-  /* ХОВАЄМО ЗА ЗАМОВЧУВАННЯМ */
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+
+  cursor: pointer;
+
   opacity: 0;
-  transform: scale(0.9);
-  transition: all 0.18s ease;
+  pointer-events: none;
+  transform: translateY(-50%) scale(0.9);
+
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease,
+    background 0.14s ease,
+    color 0.14s ease;
 
   svg {
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
   }
 
   &:hover {
-    color: #ef4444;
-    transform: scale(1.1);
+    background: #ef4444;
+    color: #fff;
   }
 }
 
-/* ПОКАЗ ПРИ HOVER НА КОНТЕЙНЕР */
-.message-container:hover .delete-btn {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* MOBILE — без hover */
 @media (hover: none) {
   .delete-btn {
-    opacity: 0.5;
-    transform: scale(1);
+    opacity: 0.82;
+    pointer-events: auto;
+    transform: translateY(-50%) scale(1);
   }
 }
 
-/* ===== ANIMATION ===== */
 @keyframes messageEnter {
   to {
     opacity: 1;

@@ -13,6 +13,8 @@ export interface HelpRequest {
   locationId?: string | null;
   locationName?: string;
   locationAddress?: string;
+  districtName?: string;
+  address?: string;
   latitude?: number;
   longitude?: number;
   totalPayments: number;
@@ -20,18 +22,31 @@ export interface HelpRequest {
   title: string;
   content: string;
   image?: string | null;
+  imageBase64?: string | null;
   createdAt: string;
 
   userId: string;
   userName: string;
   authorUserName?: string;
+  authorName?: string;
+  authorFullName?: string;
   authorPhotoBase64?: string | null;
-  userPhotoBase64?: string | null; // Додай це, якщо бек шле таку назву
+  userPhotoBase64?: string | null;
+  profilePhotoBase64?: string | null;
+  photoBase64?: string | null;
+  photo?: string | null;
 
   likesCount: number;
   commentsCount: number;
 
   isLikedByCurrentUser?: boolean;
+
+  preferredDonationMethod?: string | null;
+  donationRecipientName?: string | null;
+  donationRecipientCardNumber?: string | null;
+  donationRecipientIban?: string | null;
+  donationPaymentLink?: string | null;
+  donationNotes?: string | null;
 
   // Funding
   targetAmount: number;
@@ -54,16 +69,19 @@ export interface HelpRequestDetails {
 
   title: string;
   content: string;
-  /** Base64-рядок зображення (без префіксу) */
   imageBase64?: string | null;
   createdAt: string;
 
   userId: string;
   userName: string;
+  authorUserName?: string;
   authorPhotoBase64?: string | null;
+  userPhotoBase64?: string | null;
+  profilePhotoBase64?: string | null;
 
   likesCount: number;
   commentsCount: number;
+  isLikedByCurrentUser?: boolean;
 
   targetAmount: number;
   collectedAmount: number;

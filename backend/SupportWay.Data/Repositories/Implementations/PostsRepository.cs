@@ -1,4 +1,4 @@
-﻿using SupportWay.Data.Context;
+using SupportWay.Data.Context;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,18 @@ namespace SupportWay.Data.Repositories.Implementations
 
         public async Task<Post?> GetPostByIdAsync(string postId)
         {
-            return await _context.Posts.FindAsync(postId);
+            if (!Guid.TryParse(postId, out var postGuid))
+                return null;
+
+            return await _context.Posts
+                .AsNoTracking()
+                .Include(p => p.User)
+                    .ThenInclude(u => u.Profile)
+                .Include(p => p.Likes)
+                .Include(p => p.Comments)
+                .FirstOrDefaultAsync(p =>
+                    p.Id == postGuid &&
+                    EF.Property<string>(p, "PostType") == "Post");
         }
 
 
@@ -41,8 +52,10 @@ namespace SupportWay.Data.Repositories.Implementations
             return await _context.Posts
                 .Include(p => p.User)
                     .ThenInclude(u => u.Profile)
-                .Include(p => p.Likes) 
-                .Where(p => p.UserId == userId)
+                .Include(p => p.Likes)
+                .Where(p =>
+                    p.UserId == userId &&
+                    EF.Property<string>(p, "PostType") == "Post")
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -61,8 +74,10 @@ namespace SupportWay.Data.Repositories.Implementations
             return await _context.Posts
                 .Include(p => p.User)
                     .ThenInclude(u => u.Profile)
-                .Include(p => p.Likes) 
-                .Where(p => followedUserIds.Contains(p.UserId))
+                .Include(p => p.Likes)
+                .Where(p =>
+                    followedUserIds.Contains(p.UserId) &&
+                    EF.Property<string>(p, "PostType") == "Post")
                 .OrderByDescending(p => p.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)

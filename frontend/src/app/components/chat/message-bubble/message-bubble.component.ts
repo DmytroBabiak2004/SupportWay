@@ -1,19 +1,18 @@
 import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 
 import { Message, ChatService } from '../../../services/chat.service';
 import { ProfileService } from '../../../services/profile.service';
+import { SharedPostDialogComponent } from '../../../dialog/shared-post-modal/shared-post-dialog.component';
 
 @Component({
   selector: 'app-message-bubble',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, SharedPostDialogComponent],
   templateUrl: './message-bubble.component.html',
   styleUrls: ['./message-bubble.component.scss']
 })
 export class MessageBubbleComponent {
-  private router = inject(Router);
   public chatService = inject(ChatService);
   public profileService = inject(ProfileService);
 
@@ -22,7 +21,10 @@ export class MessageBubbleComponent {
 
   @Output() deleteRequest = new EventEmitter<string>();
 
-  onDelete(): void {
+  isPostModalOpen = false;
+
+  onDelete(event?: MouseEvent): void {
+    event?.stopPropagation();
     this.deleteRequest.emit(this.msg.id);
   }
 
@@ -30,30 +32,46 @@ export class MessageBubbleComponent {
     return !!this.msg.sharedPreview;
   }
 
-  openSharedEntity(): void {
-    const preview = this.msg.sharedPreview;
-    if (!preview) return;
+  openSharedEntity(event?: MouseEvent): void {
+    event?.stopPropagation();
 
-    if (preview.entityType === 'helpRequest') {
-      this.router.navigate(['/requests']);
-    } else {
-      this.router.navigate(['/posts']);
+    if (!this.msg.sharedPreview) {
+      return;
     }
+
+    this.isPostModalOpen = true;
+  }
+
+  closePostModal(): void {
+    this.isPostModalOpen = false;
   }
 
   getPreviewImage(): string | null {
     return this.chatService.getPreviewImageSrc(this.msg.sharedPreview?.imageBase64);
   }
 
-  getPreviewText(text?: string | null): string {
+  getPreviewText(text?: string | null, max = 150): string {
     const value = text?.trim() ?? '';
     if (!value) return '';
-    return value.length > 180 ? `${value.slice(0, 180)}…` : value;
+    return value.length > max ? `${value.slice(0, max)}…` : value;
   }
 
   getEntityLabel(): string {
-    const type = this.msg.sharedPreview?.entityType;
-    if (type === 'helpRequest') return 'Запит допомоги';
-    return 'Пост';
+    return this.msg.sharedPreview?.entityType === 'helpRequest'
+      ? 'Запит допомоги'
+      : 'Пост';
+  }
+
+  formatTime(value?: string | Date | null): string {
+    if (!value) return '';
+
+    return new Intl.DateTimeFormat('uk-UA', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(value));
+  }
+
+  getReadLabel(): string {
+    return this.msg.isRead ? 'Прочитано' : 'Надіслано';
   }
 }

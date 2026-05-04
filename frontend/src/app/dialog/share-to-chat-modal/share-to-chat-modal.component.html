@@ -50,10 +50,15 @@
           <div class="card-glow-bg"></div>
 
           <div class="chat-avatar-stage">
-            <img *ngIf="getAvatar(chat)" [src]="getAvatar(chat)" alt="Avatar" class="avatar-img" />
-            <div *ngIf="!getAvatar(chat)" class="avatar-fallback">
-              {{ getInitials(chat.displayName) }}
-            </div>
+            <ng-container *ngIf="getAvatar(chat) as avatarSrc; else chatAvatarFallback">
+              <img [src]="avatarSrc" alt="Avatar" class="avatar-img" />
+            </ng-container>
+
+            <ng-template #chatAvatarFallback>
+              <div class="avatar-fallback">
+                {{ getInitials(chat.displayName || chat.userName) }}
+              </div>
+            </ng-template>
           </div>
 
           <div class="text-box">

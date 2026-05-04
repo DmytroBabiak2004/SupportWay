@@ -10,16 +10,20 @@ namespace SupportWay.API.DTOs
         public string LocationAddress { get; set; } = string.Empty;
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
+        public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public string? ImageBase64 { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public string UserId { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public string? AuthorUserName { get; set; }
+        public string? AuthorFullName { get; set; }
         public string? AuthorPhotoBase64 { get; set; }
 
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
+        public bool IsLikedByCurrentUser { get; set; }
 
         public decimal TargetAmount { get; set; }
         public decimal CollectedAmount { get; set; }
@@ -57,15 +61,20 @@ namespace SupportWay.API.DTOs
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public decimal TotalPayments { get; set; }
+        public string Title { get; set; } = string.Empty;
         public string Content { get; set; } = string.Empty;
         public byte[]? Image { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public string UserId { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public string? AuthorUserName { get; set; }
+        public string? AuthorFullName { get; set; }
+        public string? AuthorPhotoBase64 { get; set; }
 
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
+        public bool IsLikedByCurrentUser { get; set; }
 
         public decimal TargetAmount { get; set; }
         public decimal CollectedAmount { get; set; }

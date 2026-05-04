@@ -4,7 +4,7 @@ public interface IHelpRequestService
 {
     Task<IEnumerable<HelpRequestDto>> GetUserHelpRequestsAsync(string userId, int page, int size);
     Task<IEnumerable<HelpRequestDto>> GetFeedAsync(string currentUserId, int page, int size);
-    Task<HelpRequestDto?> GetHelpRequestByIdAsync(Guid id);
+    Task<HelpRequestDto?> GetHelpRequestByIdAsync(Guid id, string? currentUserId = null);
 
     /// <summary>Повна картка для side panel карти</summary>
     Task<HelpRequestDetailsDto?> GetHelpRequestDetailsAsync(Guid id);
