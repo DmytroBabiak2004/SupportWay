@@ -1,0 +1,109 @@
+<div class="faq-assistant" [class.open]="isOpen">
+  <button
+    class="assistant-launcher"
+    type="button"
+    (click)="toggleAssistant()"
+    [attr.aria-label]="isOpen ? 'Закрити помічника' : 'Відкрити помічника'">
+    <span class="launcher-glow"></span>
+    <svg *ngIf="!isOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+      <path d="M8 9h8"></path>
+      <path d="M8 13h5"></path>
+    </svg>
+    <svg *ngIf="isOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 6 6 18"></path>
+      <path d="m6 6 12 12"></path>
+    </svg>
+  </button>
+
+  <section class="assistant-window" *ngIf="isOpen">
+    <header class="assistant-header">
+      <div class="assistant-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2 4 6v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-4Z"></path>
+          <path d="M9 12.2 11 14l4-4.5"></path>
+        </svg>
+      </div>
+
+      <div class="assistant-title">
+        <strong>SupportWay Assistant</strong>
+        <span>F.A.Q помічник платформи</span>
+      </div>
+
+      <button class="header-close" type="button" (click)="closeAssistant()" aria-label="Закрити">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="assistant-suggestions" *ngIf="suggestions.length > 0">
+      <button
+        type="button"
+        class="suggestion-chip"
+        *ngFor="let suggestion of suggestions.slice(0, 4); trackBy: trackBySuggestion"
+        (click)="askFromSuggestion(suggestion.text)">
+        {{ suggestion.text }}
+      </button>
+    </div>
+
+    <main class="assistant-messages" #messagesPanel>
+      <article
+        class="message-row"
+        *ngFor="let message of messages; trackBy: trackByMessageId"
+        [class.user]="message.sender === 'user'"
+        [class.bot]="message.sender === 'bot'">
+
+        <div class="message-bubble" [class.loading]="message.isLoading">
+          <div class="message-category" *ngIf="message.category">
+            {{ message.category }}
+          </div>
+
+          <p>{{ message.text }}</p>
+
+          <div class="typing-dots" *ngIf="message.isLoading">
+            <span></span><span></span><span></span>
+          </div>
+
+          <div class="message-actions" *ngIf="message.actions && message.actions.length > 0">
+            <button
+              type="button"
+              *ngFor="let action of message.actions"
+              (click)="goTo(action.route)">
+              {{ action.label }}
+            </button>
+          </div>
+
+          <div class="message-followups" *ngIf="message.suggestions && message.suggestions.length > 0">
+            <button
+              type="button"
+              *ngFor="let item of message.suggestions.slice(0, 3)"
+              (click)="askFromSuggestion(item)">
+              {{ item }}
+            </button>
+          </div>
+        </div>
+      </article>
+    </main>
+
+    <footer class="assistant-input-area">
+      <form class="assistant-form" (ngSubmit)="sendQuestion()">
+        <input
+          type="text"
+          name="question"
+          [(ngModel)]="question"
+          [disabled]="isLoading"
+          autocomplete="off"
+          placeholder="Напишіть питання...">
+
+        <button type="submit" [disabled]="!question.trim() || isLoading" aria-label="Надіслати">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2 11 13"></path>
+            <path d="m22 2-7 20-4-9-9-4 20-7Z"></path>
+          </svg>
+        </button>
+      </form>
+    </footer>
+  </section>
+</div>
