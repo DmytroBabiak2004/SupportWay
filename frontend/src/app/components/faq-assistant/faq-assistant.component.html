@@ -1,15 +1,27 @@
-<div class="faq-assistant" [class.open]="isOpen">
+<div
+  class="faq-assistant"
+  [class.open]="isOpen"
+  [class.dock-right]="horizontalDock === 'right'"
+  [class.dock-left]="horizontalDock === 'left'"
+  [class.dock-top]="verticalDock === 'top'"
+  [class.dock-bottom]="verticalDock === 'bottom'"
+  [style.left.px]="position.x"
+  [style.top.px]="position.y">
+
   <button
     class="assistant-launcher"
     type="button"
-    (click)="toggleAssistant()"
+    (click)="onLauncherClick($event)"
+    (pointerdown)="onLauncherPointerDown($event)"
     [attr.aria-label]="isOpen ? 'Закрити помічника' : 'Відкрити помічника'">
     <span class="launcher-glow"></span>
+
     <svg *ngIf="!isOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
       <path d="M8 9h8"></path>
       <path d="M8 13h5"></path>
     </svg>
+
     <svg *ngIf="isOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
       <path d="M18 6 6 18"></path>
       <path d="m6 6 12 12"></path>

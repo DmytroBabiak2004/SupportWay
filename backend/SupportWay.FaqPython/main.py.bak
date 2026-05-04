@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+import logging
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from db_tools import DormitoryDataTools, build_engine
+from faq import answer as faq_answer
+from forecaster import forecast as run_forecast
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Dormitory Analytics", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+engine = build_engine()
+data_tools = DormitoryDataTools(engine)
+
+
+class ForecastItem(BaseModel):
+    month: str
+    predicted: int
+
+
+class FaqRequest(BaseModel):
+    question: str
+
+
+class FaqResponse(BaseModel):
+    answer: str
+
+
+@app.get("/forecast", response_model=list[ForecastItem])
+def get_forecast(months: int = Query(default=6, ge=1, le=24)):
+    try:
+        points = run_forecast(data_tools, months_ahead=months)
+        return [ForecastItem(month=p.month, predicted=p.predicted) for p in points]
+    except Exception as exc:
+        logger.exception("Forecast error")
+        raise HTTPException(status_code=500, detail="Failed to build forecast") from exc
+
+
+@app.post("/faq", response_model=FaqResponse)
+def ask_faq(body: FaqRequest):
+    try:
+        return FaqResponse(answer=faq_answer(body.question))
+    except Exception as exc:
+        logger.exception("FAQ error")
+        raise HTTPException(status_code=500, detail="Failed to answer FAQ") from exc
+
+
+@app.get("/health")
+def health():
+    try:
+        db_health = data_tools.health()
+        if db_health["status"] != "ok":
+            raise HTTPException(status_code=500, detail=db_health)
+        return {"status": "ok", "database": db_health}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Health error")
+        raise HTTPException(status_code=500, detail="Health check failed") from exc
