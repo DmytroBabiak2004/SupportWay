@@ -50,4 +50,27 @@ public class ChatsRepository : IChatsRepository
         return await _context.UserChats
             .AnyAsync(uc => uc.ChatId == chatId && uc.UserId == userId);
     }
+
+    public async Task<Chat?> GetPrivateChatByParticipantsAsync(string user1Id, string user2Id)
+    {
+        return await _context.Chats
+            .Include(c => c.UserChats)
+                .ThenInclude(uc => uc.User)
+                    .ThenInclude(u => u.Profile)
+            .Include(c => c.Messages)
+            .Where(c =>
+                c.IsPrivate &&
+                c.UserChats.Any(uc => uc.UserId == user1Id) &&
+                c.UserChats.Any(uc => uc.UserId == user2Id) &&
+                c.UserChats.Count == 2)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<IReadOnlyList<string>> GetParticipantUserIdsAsync(Guid chatId)
+    {
+        return await _context.UserChats
+            .Where(uc => uc.ChatId == chatId)
+            .Select(uc => uc.UserId)
+            .ToListAsync();
+    }
 }

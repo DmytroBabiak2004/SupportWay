@@ -20,16 +20,19 @@ public class ChatService : IChatService
 
     public async Task<IEnumerable<ChatListItemDto>> GetChatsByUserIdAsync(string userId)
     {
-        var chats = await _db.Chats
-            .Include(c => c.UserChats)
-                .ThenInclude(uc => uc.User)
-                    .ThenInclude(u => u.Profile)
-            .Include(c => c.Messages)
-            .Where(c => c.UserChats.Any(uc => uc.UserId == userId))
-            .OrderByDescending(c => c.Messages.Max(m => (DateTime?)m.SentAt) ?? c.StartedAt)
-            .ToListAsync();
+        var chats = (await _repo.GetChatsByUserIdAsync(userId)).ToList();
+        var userIds = chats
+            .SelectMany(c => c.UserChats.Select(uc => uc.UserId))
+            .Distinct()
+            .ToList();
 
-        return chats.Select(c => BuildListItem(c, userId));
+        var users = await _db.Users
+            .AsNoTracking()
+            .Include(u => u.Profile)
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id);
+
+        return chats.Select(c => BuildListItem(c, userId, users));
     }
 
     public async Task<Chat?> GetByIdAsync(Guid id)
@@ -37,20 +40,12 @@ public class ChatService : IChatService
 
     public async Task<ChatListItemDto> GetOrCreatePrivateChatAsync(string user1Id, string user2Id)
     {
-        var existing = await _db.Chats
-            .Include(c => c.UserChats)
-                .ThenInclude(uc => uc.User)
-                    .ThenInclude(u => u.Profile)
-            .Include(c => c.Messages)
-            .Where(c =>
-                c.IsPrivate &&
-                c.UserChats.Any(uc => uc.UserId == user1Id) &&
-                c.UserChats.Any(uc => uc.UserId == user2Id) &&
-                c.UserChats.Count == 2)
-            .FirstOrDefaultAsync();
-
+        var existing = await _repo.GetPrivateChatByParticipantsAsync(user1Id, user2Id);
         if (existing != null)
-            return BuildListItem(existing, user1Id);
+        {
+            var existingUsers = await LoadUsersAsync(existing.UserChats.Select(uc => uc.UserId));
+            return BuildListItem(existing, user1Id, existingUsers);
+        }
 
         var user1 = await _userManager.FindByIdAsync(user1Id)
             ?? throw new Exception("User not found");
@@ -72,14 +67,8 @@ public class ChatService : IChatService
 
         await _repo.AddAsync(chat);
 
-        var created = await _db.Chats
-            .Include(c => c.UserChats)
-                .ThenInclude(uc => uc.User)
-                    .ThenInclude(u => u.Profile)
-            .Include(c => c.Messages)
-            .FirstAsync(c => c.Id == chat.Id);
-
-        return BuildListItem(created, user1Id);
+        var users = await LoadUsersAsync(new[] { user1.Id, user2.Id });
+        return BuildListItem(chat, user1Id, users);
     }
 
     public async Task DeleteChatAsync(Guid chatId)
@@ -93,10 +82,23 @@ public class ChatService : IChatService
     public async Task<bool> IsUserInChatAsync(Guid chatId, string userId)
         => await _repo.IsUserInChatAsync(chatId, userId);
 
-    private static ChatListItemDto BuildListItem(Chat chat, string currentUserId)
+    public Task<IReadOnlyList<string>> GetParticipantUserIdsAsync(Guid chatId)
+        => _repo.GetParticipantUserIdsAsync(chatId);
+
+    private async Task<Dictionary<string, User>> LoadUsersAsync(IEnumerable<string> ids)
     {
-        var otherUC = chat.UserChats.FirstOrDefault(uc => uc.UserId != currentUserId);
-        var other = otherUC?.User;
+        var distinctIds = ids.Distinct().ToList();
+        return await _db.Users
+            .AsNoTracking()
+            .Include(u => u.Profile)
+            .Where(u => distinctIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id);
+    }
+
+    private static ChatListItemDto BuildListItem(Chat chat, string currentUserId, IReadOnlyDictionary<string, User> users)
+    {
+        var otherUserId = chat.UserChats.FirstOrDefault(uc => uc.UserId != currentUserId)?.UserId;
+        users.TryGetValue(otherUserId ?? string.Empty, out var other);
         var profile = other?.Profile;
 
         var lastMsg = chat.Messages

@@ -7,6 +7,7 @@ public interface IMessageService
     Task<MessageDto?> UpdateAsync(Guid messageId, string userId, string newContent);
 
     Task<bool> DeleteAsync(Guid messageId, string userId);
+    Task<MessageDto?> DeleteAndReturnAsync(Guid messageId, string userId);
 
     Task<bool> MarkChatAsReadAsync(Guid chatId, string userId, Guid lastReadMessageId);
 

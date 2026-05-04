@@ -9,6 +9,8 @@ namespace SupportWay.Data.Repositories.Interfaces
         Task AddAsync(Chat chat);
         Task DeleteAsync(Chat chat);
         Task<bool> IsUserInChatAsync(Guid chatId, string userId);
-    }
 
+        Task<Chat?> GetPrivateChatByParticipantsAsync(string user1Id, string user2Id);
+        Task<IReadOnlyList<string>> GetParticipantUserIdsAsync(Guid chatId);
+    }
 }

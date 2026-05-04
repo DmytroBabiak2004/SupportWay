@@ -8,4 +8,5 @@ public interface IChatService
     Task<ChatListItemDto> GetOrCreatePrivateChatAsync(string user1Id, string user2Id);
     Task DeleteChatAsync(Guid chatId);
     Task<bool> IsUserInChatAsync(Guid chatId, string userId);
+    Task<IReadOnlyList<string>> GetParticipantUserIdsAsync(Guid chatId);
 }

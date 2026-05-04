@@ -1,20 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using SupportWay.API.DTOs;
-using SupportWay.Data.Context;
 
 [Authorize]
 public class ChatHub : Hub
 {
-    private readonly SupportWayContext _context;
+    private readonly IChatService _chatService;
     private readonly IMessageService _messageService;
 
     public ChatHub(
-        SupportWayContext context,
+        IChatService chatService,
         IMessageService messageService)
     {
-        _context = context;
+        _chatService = chatService;
         _messageService = messageService;
     }
 
@@ -76,14 +74,15 @@ public class ChatHub : Hub
     public async Task Typing(string chatId)
     {
         var fromUserId = Context.UserIdentifier;
-        if (fromUserId is null) return;
+        if (string.IsNullOrEmpty(fromUserId))
+            return;
 
-        var users = await _context.UserChats
-            .Where(x => x.ChatId == Guid.Parse(chatId) && x.UserId != fromUserId)
-            .Select(x => x.UserId)
-            .ToListAsync();
+        if (!Guid.TryParse(chatId, out var chatGuid))
+            throw new HubException("Invalid chatId");
 
-        foreach (var userId in users)
+        var users = await _chatService.GetParticipantUserIdsAsync(chatGuid);
+
+        foreach (var userId in users.Where(x => x != fromUserId))
         {
             await Clients.User(userId)
                 .SendAsync("typing", fromUserId, chatId);
@@ -93,32 +92,19 @@ public class ChatHub : Hub
     public async Task Seen(string chatId, Guid lastReadMessageId)
     {
         var userId = Context.UserIdentifier;
-        if (string.IsNullOrEmpty(userId)) return;
+        if (string.IsNullOrEmpty(userId))
+            throw new HubException("Unauthorized");
 
-        var chatGuid = Guid.Parse(chatId);
+        if (!Guid.TryParse(chatId, out var chatGuid))
+            throw new HubException("Invalid chatId");
 
-        var isMember = await _context.UserChats
-            .AnyAsync(x => x.ChatId == chatGuid && x.UserId == userId);
-        if (!isMember) throw new HubException("Access denied");
+        var success = await _messageService.MarkChatAsReadAsync(chatGuid, userId, lastReadMessageId);
+        if (!success)
+            throw new HubException("Access denied");
 
-        var last = await _context.Messages.FirstOrDefaultAsync(m => m.Id == lastReadMessageId);
-        if (last == null || last.ChatId != chatGuid) return;
+        var users = await _chatService.GetParticipantUserIdsAsync(chatGuid);
 
-        await _context.Messages
-            .Where(m =>
-                m.ChatId == chatGuid &&
-                !m.IsRead &&
-                m.SentAt <= last.SentAt &&
-                m.SenderId != userId
-            )
-            .ExecuteUpdateAsync(s => s.SetProperty(m => m.IsRead, true));
-
-        var users = await _context.UserChats
-            .Where(x => x.ChatId == chatGuid && x.UserId != userId)
-            .Select(x => x.UserId)
-            .ToListAsync();
-
-        foreach (var u in users)
+        foreach (var u in users.Where(x => x != userId))
         {
             await Clients.User(u).SendAsync("chatSeen", new
             {
@@ -135,43 +121,25 @@ public class ChatHub : Hub
         if (string.IsNullOrEmpty(userId))
             throw new HubException("Unauthorized");
 
-        var message = await _context.Messages.FirstOrDefaultAsync(m => m.Id == messageId);
-        if (message is null)
-            throw new HubException("Message not found");
-
-        if (message.SenderId != userId)
+        var deletedMessage = await _messageService.DeleteAndReturnAsync(messageId, userId);
+        if (deletedMessage is null)
             throw new HubException("Forbidden");
 
-        var isMember = await _context.UserChats
-            .AnyAsync(x => x.ChatId == message.ChatId && x.UserId == userId);
-        if (!isMember)
-            throw new HubException("Access denied");
-
-        _context.Messages.Remove(message);
-        await _context.SaveChangesAsync();
-
-        var users = await _context.UserChats
-            .Where(x => x.ChatId == message.ChatId)
-            .Select(x => x.UserId)
-            .ToListAsync();
+        var users = await _chatService.GetParticipantUserIdsAsync(deletedMessage.ChatId);
 
         foreach (var u in users)
         {
             await Clients.User(u).SendAsync("messageDeleted", new
             {
-                chatId = message.ChatId.ToString(),
+                chatId = deletedMessage.ChatId.ToString(),
                 messageId,
                 deletedBy = userId
             });
         }
     }
-
     private async Task BroadcastMessageToChatUsers(Guid chatId, MessageDto dto)
     {
-        var users = await _context.UserChats
-            .Where(x => x.ChatId == chatId)
-            .Select(x => x.UserId)
-            .ToListAsync();
+        var users = await _chatService.GetParticipantUserIdsAsync(chatId);
 
         foreach (var userId in users)
         {

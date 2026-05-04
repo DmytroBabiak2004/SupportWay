@@ -2,75 +2,88 @@
 using SupportWay.API.DTOs;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
+using SupportWay.Data.Mongo.Documents;
 using SupportWay.Data.Repositories.Interfaces;
 
 public class MessageService : IMessageService
 {
-    private readonly IMessagesRepository _repo;
+    private readonly IMongoMessagesRepository _messagesRepository;
+    private readonly IMongoChatsRepository _chatsRepository;
     private readonly SupportWayContext _db;
 
-    public MessageService(IMessagesRepository repo, SupportWayContext db)
+    public MessageService(
+        IMongoMessagesRepository messagesRepository,
+        IMongoChatsRepository chatsRepository,
+        SupportWayContext db)
     {
-        _repo = repo;
+        _messagesRepository = messagesRepository;
+        _chatsRepository = chatsRepository;
         _db = db;
     }
 
     public async Task<IEnumerable<MessageDto>> GetHistoryAsync(Guid chatId, string currentUserId)
     {
-        var isUserInChat = await _repo.IsUserInChatAsync(chatId, currentUserId);
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(chatId, currentUserId);
         if (!isUserInChat)
             return Enumerable.Empty<MessageDto>();
 
-        var messages = (await _repo.GetMessagesByChatIdAsync(chatId)).ToList();
+        var messages = await _messagesRepository.GetChatMessagesAsync(chatId);
+
         return await BuildDtosAsync(messages);
     }
 
     public async Task<MessageDto?> UpdateAsync(Guid messageId, string userId, string newContent)
     {
-        var message = await _repo.GetByIdAsync(messageId);
+        var message = await _messagesRepository.GetByIdAsync(messageId);
 
         if (message == null || message.SenderId != userId)
             return null;
 
         message.Content = newContent.Trim();
+        message.EditedAt = DateTime.UtcNow;
 
-        await _repo.UpdateAsync(message);
+        await _messagesRepository.UpdateAsync(message);
 
         return (await BuildDtosAsync(new[] { message })).FirstOrDefault();
     }
 
     public async Task<bool> DeleteAsync(Guid messageId, string userId)
     {
-        var message = await _repo.GetByIdAsync(messageId);
+        var message = await _messagesRepository.GetByIdAsync(messageId);
 
         if (message == null || message.SenderId != userId)
             return false;
 
-        await _repo.DeleteAsync(message);
+        await _messagesRepository.DeleteMessageAsync(message.Id);
         return true;
     }
 
     public async Task<bool> MarkChatAsReadAsync(Guid chatId, string userId, Guid lastReadMessageId)
     {
-        var lastMessage = await _repo.GetByIdAsync(lastReadMessageId);
+        var lastMessage = await _messagesRepository.GetByIdAsync(lastReadMessageId);
+
         if (lastMessage == null || lastMessage.ChatId != chatId)
             return false;
 
-        var isUserInChat = await _repo.IsUserInChatAsync(chatId, userId);
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(chatId, userId);
         if (!isUserInChat)
             return false;
 
-        await _repo.MarkChatAsReadUpToAsync(chatId, userId, lastMessage.SentAt);
+        await _messagesRepository.MarkChatAsReadUpToAsync(
+            chatId,
+            userId,
+            lastMessage.SentAt);
+
         return true;
     }
 
     public async Task<MessageDto> CreateTextMessageAsync(Guid chatId, string senderId, string text)
     {
-        var isUserInChat = await _repo.IsUserInChatAsync(chatId, senderId);
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(chatId, senderId);
         if (!isUserInChat)
             throw new InvalidOperationException("Access denied");
 
-        var message = new Message
+        var message = new MessageDocument
         {
             Id = Guid.NewGuid(),
             ChatId = chatId,
@@ -78,17 +91,19 @@ public class MessageService : IMessageService
             Content = text.Trim(),
             SentAt = DateTime.UtcNow,
             IsRead = false,
+            IsDeleted = false,
             MessageType = MessageType.Text
         };
 
-        await _repo.AddAsync(message);
+        await _messagesRepository.CreateMessageAsync(message);
+        await _chatsRepository.UpdateLastMessageAsync(chatId, message.Id);
 
         return (await BuildDtosAsync(new[] { message })).First();
     }
 
     public async Task<MessageDto> SharePostAsync(Guid chatId, string senderId, Guid postId, string? caption)
     {
-        var isUserInChat = await _repo.IsUserInChatAsync(chatId, senderId);
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(chatId, senderId);
         if (!isUserInChat)
             throw new InvalidOperationException("Access denied");
 
@@ -122,7 +137,7 @@ public class MessageService : IMessageService
         if (post == null)
             throw new InvalidOperationException($"Post not found. Id={postId}");
 
-        var message = new Message
+        var message = new MessageDocument
         {
             Id = Guid.NewGuid(),
             ChatId = chatId,
@@ -130,19 +145,21 @@ public class MessageService : IMessageService
             Content = caption?.Trim() ?? string.Empty,
             SentAt = DateTime.UtcNow,
             IsRead = false,
+            IsDeleted = false,
             MessageType = MessageType.SharedPost,
             SharedPostId = postId,
             SharedHelpRequestId = null
         };
 
-        await _repo.AddAsync(message);
+        await _messagesRepository.CreateMessageAsync(message);
+        await _chatsRepository.UpdateLastMessageAsync(chatId, message.Id);
 
         return (await BuildDtosAsync(new[] { message })).First();
     }
 
     public async Task<MessageDto> ShareHelpRequestAsync(Guid chatId, string senderId, Guid helpRequestId, string? caption)
     {
-        var isUserInChat = await _repo.IsUserInChatAsync(chatId, senderId);
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(chatId, senderId);
         if (!isUserInChat)
             throw new InvalidOperationException("Access denied");
 
@@ -155,7 +172,7 @@ public class MessageService : IMessageService
         if (request == null)
             throw new InvalidOperationException("Help request not found");
 
-        var message = new Message
+        var message = new MessageDocument
         {
             Id = Guid.NewGuid(),
             ChatId = chatId,
@@ -163,19 +180,44 @@ public class MessageService : IMessageService
             Content = caption?.Trim() ?? string.Empty,
             SentAt = DateTime.UtcNow,
             IsRead = false,
+            IsDeleted = false,
             MessageType = MessageType.SharedHelpRequest,
             SharedHelpRequestId = helpRequestId,
             SharedPostId = null
         };
 
-        await _repo.AddAsync(message);
+        await _messagesRepository.CreateMessageAsync(message);
+        await _chatsRepository.UpdateLastMessageAsync(chatId, message.Id);
 
         return (await BuildDtosAsync(new[] { message })).First();
     }
-
-    private async Task<List<MessageDto>> BuildDtosAsync(IEnumerable<Message> messages)
+    public async Task<MessageDto?> DeleteAndReturnAsync(Guid messageId, string userId)
     {
-        var messageList = messages.OrderBy(m => m.SentAt).ToList();
+        var message = await _messagesRepository.GetByIdAsync(messageId);
+
+        if (message == null || message.IsDeleted)
+            return null;
+
+        if (message.SenderId != userId)
+            return null;
+
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(message.ChatId, userId);
+        if (!isUserInChat)
+            return null;
+
+        var dto = (await BuildDtosAsync(new List<MessageDocument> { message }))
+            .FirstOrDefault();
+
+        await _messagesRepository.DeleteMessageAsync(message.Id);
+
+        return dto;
+    }
+    private async Task<List<MessageDto>> BuildDtosAsync(IEnumerable<MessageDocument> messages)
+    {
+        var messageList = messages
+            .Where(m => !m.IsDeleted)
+            .OrderBy(m => m.SentAt)
+            .ToList();
 
         var postIds = messageList
             .Where(m => m.MessageType == MessageType.SharedPost && m.SharedPostId.HasValue)

@@ -12,6 +12,7 @@ using SupportWay.API.Services.Interfaces;
 using SupportWay.Core.Services;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
+using SupportWay.Data.Mongo;
 using SupportWay.Data.Repositories;
 using SupportWay.Data.Repositories.Implementations;
 using SupportWay.Data.Repositories.Interfaces;
@@ -23,6 +24,7 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "SupportWay API", Version = "v1" });
@@ -54,7 +56,29 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
+builder.Services.AddDbContext<SupportWayContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDb"));
+});
+
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection("MongoDb"));
+
+builder.Services.AddSingleton<MongoChatContext>();
+
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 1;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+.AddEntityFrameworkStores<SupportWayContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.ConfigAuthentication(builder.Configuration);
+
 builder.Services.AddScoped<IFollowRepository, FollowsRepository>();
 builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
@@ -63,7 +87,6 @@ builder.Services.AddScoped<IPostLikesRepoository, PostLikesRepository>();
 builder.Services.AddScoped<IPostRepository, PostsRepository>();
 builder.Services.AddScoped<IRequestItemsRepository, RequestItemsRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
-builder.Services.AddScoped<IMessagesRepository, ChatMessageRepository>();
 builder.Services.AddScoped<IProfileRatingRepository, ProfileRatingRepository>();
 builder.Services.AddScoped<IProfilesRepository, ProfilesRepository>();
 builder.Services.AddScoped<IBadgeTypeRepository, BadgeTypeRepository>();
@@ -73,6 +96,13 @@ builder.Services.AddScoped<IPostAnalyticsRepository, PostAnalyticsRepository>();
 builder.Services.AddScoped<IHelpRequestAnalyticsRepository, HelpRequestAnalyticsRepository>();
 builder.Services.AddScoped<IRequestItemAnalyticsRepository, RequestItemAnalyticsRepository>();
 builder.Services.AddScoped<ISupportTypesRepository, SupportTypesRepository>();
+
+// Старий SQL chat repository потрібен, бо ChatService ще його використовує
+builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
+
+// MongoDB repositories для повідомлень і Mongo-чату
+builder.Services.AddScoped<IMongoMessagesRepository, MongoMessagesRepository>();
+builder.Services.AddScoped<IMongoChatsRepository, MongoChatsRepository>();
 
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
@@ -96,22 +126,21 @@ builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IMapService, MapService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
+builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular",
-        policy =>
-        {
-            policy
-                .WithOrigins("http://localhost:4200")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-        });
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
 });
-
 
 builder.Services.AddSignalR();
 
@@ -120,25 +149,6 @@ builder.Services.AddControllers()
     {
         o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
-
-
-builder.Services.AddDbContext<SupportWayContext>(options =>
-{
-    options.UseNpgsql(builder.Configuration.GetConnectionString("SupportWayDb"));
-});
-
-builder.Services.AddIdentity<User, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 1;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireLowercase = false;
-})
-    .AddEntityFrameworkStores<SupportWayContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.ConfigAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -155,8 +165,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapControllers();
+
 app.MapHub<ChatHub>("/chatHub")
    .RequireCors("AllowAngular");
-
 
 app.Run();
