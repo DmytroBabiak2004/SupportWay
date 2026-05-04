@@ -7,9 +7,10 @@ namespace SupportWay.Data.Mongo.Documents;
 public class MessageDocument
 {
     [BsonId]
-    [BsonRepresentation(BsonType.String)]
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid Id { get; set; }
 
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid ChatId { get; set; }
 
     public string SenderId { get; set; } = string.Empty;
@@ -20,13 +21,15 @@ public class MessageDocument
 
     public bool IsRead { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public MessageType MessageType { get; set; } = MessageType.Text;
 
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid? SharedPostId { get; set; }
 
+    [BsonGuidRepresentation(GuidRepresentation.Standard)]
     public Guid? SharedHelpRequestId { get; set; }
-
-    public bool IsDeleted { get; set; }
 
     public DateTime? EditedAt { get; set; }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SupportWay.API.DTOs;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
@@ -8,12 +8,12 @@ using SupportWay.Data.Repositories.Interfaces;
 public class MessageService : IMessageService
 {
     private readonly IMongoMessagesRepository _messagesRepository;
-    private readonly IMongoChatsRepository _chatsRepository;
+    private readonly IChatsRepository _chatsRepository;
     private readonly SupportWayContext _db;
 
     public MessageService(
         IMongoMessagesRepository messagesRepository,
-        IMongoChatsRepository chatsRepository,
+        IChatsRepository chatsRepository,
         SupportWayContext db)
     {
         _messagesRepository = messagesRepository;
@@ -27,8 +27,7 @@ public class MessageService : IMessageService
         if (!isUserInChat)
             return Enumerable.Empty<MessageDto>();
 
-        var messages = await _messagesRepository.GetChatMessagesAsync(chatId);
-
+        var messages = await _messagesRepository.GetChatMessagesAsync(chatId, limit: 200);
         return await BuildDtosAsync(messages);
     }
 
@@ -36,7 +35,11 @@ public class MessageService : IMessageService
     {
         var message = await _messagesRepository.GetByIdAsync(messageId);
 
-        if (message == null || message.SenderId != userId)
+        if (message == null || message.IsDeleted || message.SenderId != userId)
+            return null;
+
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(message.ChatId, userId);
+        if (!isUserInChat)
             return null;
 
         message.Content = newContent.Trim();
@@ -44,18 +47,31 @@ public class MessageService : IMessageService
 
         await _messagesRepository.UpdateAsync(message);
 
-        return (await BuildDtosAsync(new[] { message })).FirstOrDefault();
+        return (await BuildDtosAsync(new List<MessageDocument> { message })).FirstOrDefault();
     }
 
     public async Task<bool> DeleteAsync(Guid messageId, string userId)
     {
+        var deleted = await DeleteAndReturnAsync(messageId, userId);
+        return deleted != null;
+    }
+
+    public async Task<MessageDto?> DeleteAndReturnAsync(Guid messageId, string userId)
+    {
         var message = await _messagesRepository.GetByIdAsync(messageId);
 
-        if (message == null || message.SenderId != userId)
-            return false;
+        if (message == null || message.IsDeleted || message.SenderId != userId)
+            return null;
+
+        var isUserInChat = await _chatsRepository.IsUserInChatAsync(message.ChatId, userId);
+        if (!isUserInChat)
+            return null;
+
+        var dto = (await BuildDtosAsync(new List<MessageDocument> { message })).FirstOrDefault();
 
         await _messagesRepository.DeleteMessageAsync(message.Id);
-        return true;
+
+        return dto;
     }
 
     public async Task<bool> MarkChatAsReadAsync(Guid chatId, string userId, Guid lastReadMessageId)
@@ -69,11 +85,7 @@ public class MessageService : IMessageService
         if (!isUserInChat)
             return false;
 
-        await _messagesRepository.MarkChatAsReadUpToAsync(
-            chatId,
-            userId,
-            lastMessage.SentAt);
-
+        await _messagesRepository.MarkChatAsReadUpToAsync(chatId, userId, lastMessage.SentAt);
         return true;
     }
 
@@ -96,9 +108,7 @@ public class MessageService : IMessageService
         };
 
         await _messagesRepository.CreateMessageAsync(message);
-        await _chatsRepository.UpdateLastMessageAsync(chatId, message.Id);
-
-        return (await BuildDtosAsync(new[] { message })).First();
+        return (await BuildDtosAsync(new List<MessageDocument> { message })).First();
     }
 
     public async Task<MessageDto> SharePostAsync(Guid chatId, string senderId, Guid postId, string? caption)
@@ -152,9 +162,7 @@ public class MessageService : IMessageService
         };
 
         await _messagesRepository.CreateMessageAsync(message);
-        await _chatsRepository.UpdateLastMessageAsync(chatId, message.Id);
-
-        return (await BuildDtosAsync(new[] { message })).First();
+        return (await BuildDtosAsync(new List<MessageDocument> { message })).First();
     }
 
     public async Task<MessageDto> ShareHelpRequestAsync(Guid chatId, string senderId, Guid helpRequestId, string? caption)
@@ -187,31 +195,9 @@ public class MessageService : IMessageService
         };
 
         await _messagesRepository.CreateMessageAsync(message);
-        await _chatsRepository.UpdateLastMessageAsync(chatId, message.Id);
-
-        return (await BuildDtosAsync(new[] { message })).First();
+        return (await BuildDtosAsync(new List<MessageDocument> { message })).First();
     }
-    public async Task<MessageDto?> DeleteAndReturnAsync(Guid messageId, string userId)
-    {
-        var message = await _messagesRepository.GetByIdAsync(messageId);
 
-        if (message == null || message.IsDeleted)
-            return null;
-
-        if (message.SenderId != userId)
-            return null;
-
-        var isUserInChat = await _chatsRepository.IsUserInChatAsync(message.ChatId, userId);
-        if (!isUserInChat)
-            return null;
-
-        var dto = (await BuildDtosAsync(new List<MessageDocument> { message }))
-            .FirstOrDefault();
-
-        await _messagesRepository.DeleteMessageAsync(message.Id);
-
-        return dto;
-    }
     private async Task<List<MessageDto>> BuildDtosAsync(IEnumerable<MessageDocument> messages)
     {
         var messageList = messages
@@ -231,21 +217,25 @@ public class MessageService : IMessageService
             .Distinct()
             .ToList();
 
-        var posts = await _db.Posts
-            .AsNoTracking()
-            .Include(p => p.User)
-                .ThenInclude(u => u.Profile)
-            .Where(p =>
-                postIds.Contains(p.Id) &&
-                EF.Property<string>(p, "PostType") == "Post")
-            .ToDictionaryAsync(p => p.Id);
+        var posts = postIds.Count == 0
+            ? new Dictionary<Guid, Post>()
+            : await _db.Posts
+                .AsNoTracking()
+                .Include(p => p.User)
+                    .ThenInclude(u => u.Profile)
+                .Where(p =>
+                    postIds.Contains(p.Id) &&
+                    EF.Property<string>(p, "PostType") == "Post")
+                .ToDictionaryAsync(p => p.Id);
 
-        var requests = await _db.HelpRequests
-            .AsNoTracking()
-            .Include(r => r.User)
-                .ThenInclude(u => u.Profile)
-            .Where(r => helpRequestIds.Contains(r.Id))
-            .ToDictionaryAsync(r => r.Id);
+        var requests = helpRequestIds.Count == 0
+            ? new Dictionary<Guid, HelpRequest>()
+            : await _db.HelpRequests
+                .AsNoTracking()
+                .Include(r => r.User)
+                    .ThenInclude(u => u.Profile)
+                .Where(r => helpRequestIds.Contains(r.Id))
+                .ToDictionaryAsync(r => r.Id);
 
         var result = new List<MessageDto>(messageList.Count);
 
@@ -258,7 +248,7 @@ public class MessageService : IMessageService
                 SenderId = message.SenderId,
                 Content = message.Content,
                 SentAt = message.SentAt,
-                IsRead = message.IsRead,
+                IsRead = message.IsRead || message.ReadByUserIds.Count > 0,
                 MessageType = message.MessageType,
                 SharedPostId = message.SharedPostId,
                 SharedHelpRequestId = message.SharedHelpRequestId
