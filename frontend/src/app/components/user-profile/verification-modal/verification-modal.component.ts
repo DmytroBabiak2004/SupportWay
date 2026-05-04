@@ -42,11 +42,6 @@ export class VerificationModalComponent implements OnInit {
       value: VERIFICATION_TYPES.Military,
       label: VERIFICATION_LABELS[VERIFICATION_TYPES.Military],
       desc: 'Для військовослужбовців або ветеранів'
-    },
-    {
-      value: VERIFICATION_TYPES.User,
-      label: VERIFICATION_LABELS[VERIFICATION_TYPES.User],
-      desc: 'Базова верифікація особистості'
     }
   ];
 

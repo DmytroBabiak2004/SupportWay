@@ -8,11 +8,12 @@ import { debounceTime, distinctUntilChanged, switchMap, catchError, tap, takeUnt
 import { UserSearchService } from '../../../services/user-search.service';
 import { ProfileService } from '../../../services/profile.service';
 import { UserSearch } from '../../../models/user-search.model';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-user-search',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
   templateUrl: './user-search.component.html',
   styleUrls: ['./user-search.component.scss']
 })

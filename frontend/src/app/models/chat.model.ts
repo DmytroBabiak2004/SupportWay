@@ -7,6 +7,8 @@ export interface ChatListItem {
 
   otherUserId?: string;
   otherUserPhotoBase64?: string | null;
+  otherUserIsVerified?: boolean;
+  otherUserVerifiedAs?: number | null;
   lastMessage?: string;
   lastMessageAt?: string;
   unreadCount: number;

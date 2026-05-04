@@ -31,8 +31,10 @@
         <li class="nav-item">
           <a (click)="handleNavClick()" routerLink="/posts" routerLinkActive="active">Публікації</a>
         </li>
-        <li class="nav-item dropdown" [class.open]="isDropdownOpen">
-          <a (click)="handleNavClick()" routerLink="/admin">Верифікація</a></li>
+
+        <li class="nav-item dropdown" [class.open]="isDropdownOpen" *ngIf="isAdmin">
+          <a (click)="handleNavClick()" routerLink="/admin" routerLinkActive="active">Верифікація</a>
+        </li>
       </ul>
 
       <div class="mini-profile" *ngIf="currentUser && userProfile">

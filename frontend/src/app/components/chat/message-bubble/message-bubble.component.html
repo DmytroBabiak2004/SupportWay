@@ -37,7 +37,7 @@
 
           <div class="shared-meta">
             <span class="shared-badge">{{ getEntityLabel() }}</span>
-            <span class="shared-author">{{ msg.sharedPreview.authorUserName }}</span>
+            <span class="shared-author">{{ msg.sharedPreview.authorUserName }}<app-role-badge [isVerified]="isSharedAuthorVerified()" [verifiedAs]="getSharedAuthorVerifiedAs()" size="xs"></app-role-badge></span>
           </div>
 
           <span class="shared-open-icon" aria-hidden="true">↗</span>

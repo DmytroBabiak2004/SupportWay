@@ -13,7 +13,7 @@
   </div>
 
   <div class="head-info">
-    <span class="head-name profile-link" (click)="openProfile()">{{ chatName }}</span>
+    <span class="head-name profile-link" (click)="openProfile()">{{ chatName }}<app-role-badge [isVerified]="otherUserIsVerified" [verifiedAs]="otherUserVerifiedAs"></app-role-badge></span>
     <span class="head-typing" *ngIf="typingText">{{ typingText }}</span>
   </div>
 

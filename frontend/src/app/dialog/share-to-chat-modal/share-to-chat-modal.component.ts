@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 
 import { ChatService } from '../../services/chat.service';
 import { ChatListItem } from '../../models/chat.model';
+import { RoleBadgeComponent } from '../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-share-to-chat-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
   templateUrl: './share-to-chat-modal.component.html',
   styleUrls: ['./share-to-chat-modal.component.scss']
 })
@@ -77,12 +78,7 @@ export class ShareToChatModalComponent implements OnInit {
       ]).toLowerCase();
 
       const lastMessage = this.getLastMessage(chat).toLowerCase();
-
-      return (
-        displayName.includes(q) ||
-        userName.includes(q) ||
-        lastMessage.includes(q)
-      );
+      return displayName.includes(q) || userName.includes(q) || lastMessage.includes(q);
     });
   }
 
@@ -91,9 +87,7 @@ export class ShareToChatModalComponent implements OnInit {
   }
 
   async submit(): Promise<void> {
-    if (!this.selectedChatId || this.isSubmitting) {
-      return;
-    }
+    if (!this.selectedChatId || this.isSubmitting) return;
 
     this.isSubmitting = true;
     this.error = '';
@@ -122,18 +116,13 @@ export class ShareToChatModalComponent implements OnInit {
   }
 
   getEntityLabel(): string {
-    return this.entityType === 'post'
-      ? 'Публікація'
-      : 'Запит допомоги';
+    return this.entityType === 'post' ? 'Публікація' : 'Запит допомоги';
   }
 
   getShortContent(text?: string | null): string {
     const value = text?.trim() ?? '';
     if (!value) return '';
-
-    return value.length > 130
-      ? `${value.slice(0, 130)}…`
-      : value;
+    return value.length > 130 ? `${value.slice(0, 130)}…` : value;
   }
 
   getChatDisplayName(chat: ChatListItem): string {
@@ -170,22 +159,14 @@ export class ShareToChatModalComponent implements OnInit {
   }
 
   getInitials(name?: string | null): string {
-    if (!name?.trim()) {
-      return '?';
-    }
-
-    const parts = name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2);
-
-    return parts
-      .map(part => part.charAt(0).toUpperCase())
-      .join('') || '?';
+    if (!name?.trim()) return '?';
+    const parts = name.trim().split(/\s+/).slice(0, 2);
+    return parts.map(part => part.charAt(0).toUpperCase()).join('') || '?';
   }
 
   getAvatar(chat: ChatListItem): string | null {
     const raw = this.getStringField(chat, [
+      'otherUserPhotoBase64',
       'avatarUrl',
       'avatar',
       'photoUrl',
@@ -211,23 +192,58 @@ export class ShareToChatModalComponent implements OnInit {
     return this.toImageSrc(raw);
   }
 
+  isChatUserVerified(chat: ChatListItem): boolean {
+    return this.getBooleanField(chat, [
+      'otherUserIsVerified',
+      'isVerified',
+      'userIsVerified',
+      'authorIsVerified',
+      'interlocutorIsVerified',
+      'receiverIsVerified',
+      'participantIsVerified'
+    ]);
+  }
+
+  getChatVerifiedAs(chat: ChatListItem): number | null {
+    return this.getNumberField(chat, [
+      'otherUserVerifiedAs',
+      'verifiedAs',
+      'userVerifiedAs',
+      'authorVerifiedAs',
+      'interlocutorVerifiedAs',
+      'receiverVerifiedAs',
+      'participantVerifiedAs'
+    ]);
+  }
+
   trackByChatId(_: number, chat: ChatListItem): string {
     return chat.id;
   }
 
   private getStringField(source: unknown, keys: string[]): string {
-    if (!source || typeof source !== 'object') {
-      return '';
-    }
+    const value = this.getField(source, keys);
+    return typeof value === 'string' && value.trim() ? value.trim() : '';
+  }
+
+  private getBooleanField(source: unknown, keys: string[]): boolean {
+    const value = this.getField(source, keys);
+    return value === true;
+  }
+
+  private getNumberField(source: unknown, keys: string[]): number | null {
+    const value = this.getField(source, keys);
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string' && value.trim() && !Number.isNaN(Number(value))) return Number(value);
+    return null;
+  }
+
+  private getField(source: unknown, keys: string[]): unknown {
+    if (!source || typeof source !== 'object') return null;
 
     const direct = source as Record<string, unknown>;
-
     for (const key of keys) {
       const value = direct[key];
-
-      if (typeof value === 'string' && value.trim()) {
-        return value.trim();
-      }
+      if (value !== undefined && value !== null && value !== '') return value;
     }
 
     const nestedSources = [
@@ -241,44 +257,24 @@ export class ShareToChatModalComponent implements OnInit {
     ];
 
     for (const nested of nestedSources) {
-      if (!nested || typeof nested !== 'object') {
-        continue;
-      }
-
+      if (!nested || typeof nested !== 'object') continue;
       const nestedRecord = nested as Record<string, unknown>;
-
       for (const key of keys) {
         const value = nestedRecord[key];
-
-        if (typeof value === 'string' && value.trim()) {
-          return value.trim();
-        }
+        if (value !== undefined && value !== null && value !== '') return value;
       }
     }
 
-    return '';
+    return null;
   }
 
   private toImageSrc(raw?: string | null): string | null {
-    if (!raw || typeof raw !== 'string') {
-      return null;
-    }
-
+    if (!raw || typeof raw !== 'string') return null;
     const value = raw.trim();
-
-    if (!value) {
-      return null;
-    }
-
-    if (
-      value.startsWith('data:image/') ||
-      value.startsWith('http://') ||
-      value.startsWith('https://') ||
-      value.startsWith('blob:')
-    ) {
+    if (!value) return null;
+    if (value.startsWith('data:image/') || value.startsWith('http://') || value.startsWith('https://') || value.startsWith('blob:')) {
       return value;
     }
-
     return `data:image/jpeg;base64,${value}`;
   }
 }

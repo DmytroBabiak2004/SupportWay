@@ -8,5 +8,7 @@
         public string? Name { get; set; }
         public string? FullName { get; set; }
         public byte[]? PhotoBase64 { get; set; }
+        public bool IsVerified { get; set; }
+        public int? VerifiedAs { get; set; }
     }
 }

@@ -13,11 +13,12 @@ import { PostComment, CreatePostCommentDto } from '../../../models/post-comment.
 import { AuthService } from '../../../services/auth.service';
 import { RelativeTimePipe } from '../../../pipes/relative-time.pipe';
 import { ShareToChatModalComponent } from '../../../dialog/share-to-chat-modal/share-to-chat-modal.component';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe, ShareToChatModalComponent],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, ShareToChatModalComponent, RoleBadgeComponent],
   templateUrl: './post-card.component.html',
   styleUrls: ['./post-card.component.scss']
 })

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SupportWay.API.DTOs;
 using SupportWay.Data.Context;
@@ -148,6 +148,8 @@ public class ChatService : IChatService
             OtherUserPhotoBase64 = profile?.Photo != null
                 ? Convert.ToBase64String(profile.Photo)
                 : null,
+            OtherUserIsVerified = profile?.IsVerified ?? false,
+            OtherUserVerifiedAs = profile?.VerifiedAs.HasValue == true ? (int?)profile.VerifiedAs.Value : null,
             LastMessage = DescribeLastMessage(lastMsg),
             LastMessageAt = lastMsg?.SentAt,
             UnreadCount = unreadCount,

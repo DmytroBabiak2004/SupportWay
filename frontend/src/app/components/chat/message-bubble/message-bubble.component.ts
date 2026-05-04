@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { Message, ChatService } from '../../../services/chat.service';
 import { ProfileService } from '../../../services/profile.service';
 import { SharedPostDialogComponent } from '../../../dialog/shared-post-modal/shared-post-dialog.component';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-message-bubble',
   standalone: true,
-  imports: [CommonModule, SharedPostDialogComponent],
+  imports: [CommonModule, SharedPostDialogComponent, RoleBadgeComponent],
   templateUrl: './message-bubble.component.html',
   styleUrls: ['./message-bubble.component.scss']
 })
@@ -60,6 +61,15 @@ export class MessageBubbleComponent {
     return this.msg.sharedPreview?.entityType === 'helpRequest'
       ? 'Запит допомоги'
       : 'Пост';
+  }
+
+  isSharedAuthorVerified(): boolean {
+    return !!((this.msg.sharedPreview as any)?.authorIsVerified || (this.msg.sharedPreview as any)?.isVerified);
+  }
+
+  getSharedAuthorVerifiedAs(): number | null {
+    const value = (this.msg.sharedPreview as any)?.authorVerifiedAs ?? (this.msg.sharedPreview as any)?.verifiedAs;
+    return typeof value === 'number' ? value : value ? Number(value) : null;
   }
 
   formatTime(value?: string | Date | null): string {

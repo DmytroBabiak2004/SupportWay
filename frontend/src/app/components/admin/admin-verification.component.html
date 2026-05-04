@@ -1,112 +1,270 @@
 <div class="admin-page">
-  <div class="admin-header">
-    <div>
+  <section class="admin-hero">
+    <div class="hero-copy">
+      <span class="hero-kicker">Панель адміністратора</span>
       <h1>Заявки на верифікацію</h1>
-      <p>Управління профілями волонтерів, військових та користувачів</p>
+      <p>Керуйте підтвердженням профілів волонтерів та військових у зручному сучасному інтерфейсі.</p>
     </div>
+
+    <div class="hero-stats">
+      <div class="stat-card">
+        <span class="stat-value">{{ requests.length }}</span>
+        <span class="stat-label">Усього заявок</span>
+      </div>
+
+      <div class="stat-card pending">
+        <span class="stat-value">{{ pendingCount }}</span>
+        <span class="stat-label">Очікують</span>
+      </div>
+
+      <div class="stat-card approved">
+        <span class="stat-value">{{ approvedCount }}</span>
+        <span class="stat-label">Схвалено</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-toolbar">
+    <div class="toolbar-group">
+      <label class="toolbar-label">Статус</label>
+
+      <select
+        class="admin-select"
+        [(ngModel)]="statusFilter"
+        (ngModelChange)="filterByStatus()">
+        <option value="">Всі заявки</option>
+        <option value="0">Очікують</option>
+        <option value="1">Схвалені</option>
+        <option value="2">Відхилені</option>
+      </select>
+    </div>
+
+    <button class="admin-refresh-btn" type="button" (click)="load()">
+      <span class="refresh-icon">↻</span>
+      <span>Оновити</span>
+    </button>
+  </section>
+
+  <div class="admin-success" *ngIf="successMsg">
+    {{ successMsg }}
   </div>
 
-  <!-- Filter bar -->
-  <div class="admin-toolbar">
-    <select class="admin-select" [(ngModel)]="statusFilter" (ngModelChange)="filterByStatus()">
-      <option value="">Всі заявки</option>
-      <option [value]="0">Очікують</option>
-      <option [value]="1">Схвалені</option>
-      <option [value]="2">Відхилені</option>
-    </select>
-    <button class="admin-refresh-btn" (click)="load()">↻ Оновити</button>
+  <div class="admin-error" *ngIf="error">
+    {{ error }}
   </div>
 
-  <div class="admin-success" *ngIf="successMsg">{{ successMsg }}</div>
-  <div class="admin-error" *ngIf="error">{{ error }}</div>
+  <div class="admin-loading" *ngIf="loading">
+    <span class="admin-spinner"></span>
+  </div>
 
-  <!-- Loading -->
-  <div class="admin-loading" *ngIf="loading"><span class="admin-spinner"></span></div>
+  <section class="admin-content" *ngIf="!loading">
+    <div class="admin-table-card" *ngIf="filtered.length > 0; else emptyState">
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+          <tr>
+            <th>Користувач</th>
+            <th>Тип</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Дії</th>
+          </tr>
+          </thead>
 
-  <!-- Table -->
-  <div class="admin-table-wrap" *ngIf="!loading">
-    <table class="admin-table" *ngIf="filtered.length > 0">
-      <thead>
-        <tr>
-          <th>Користувач</th>
-          <th>Тип</th>
-          <th>Статус</th>
-          <th>Дата</th>
-          <th>Дії</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let r of filtered" [class.row-pending]="r.status === 0">
-          <td class="td-user">
-            <div class="user-cell">
-              <div class="user-av">
-                <img *ngIf="r.photoBase64" [src]="profileService.getAvatarSrc(r.photoBase64)" [alt]="r.username">
-                <span *ngIf="!r.photoBase64">{{ r.username?.[0]?.toUpperCase() }}</span>
+          <tbody>
+          <tr
+            *ngFor="let r of filtered; trackBy: trackByRequestId"
+            [class.row-pending]="r.status === 0">
+
+            <td class="td-user">
+              <div class="user-cell">
+                <div class="user-av">
+                  <ng-container *ngIf="getAvatar(r) as avatarSrc; else userInitialTpl">
+                    <img [src]="avatarSrc" [alt]="r.username">
+                  </ng-container>
+
+                  <ng-template #userInitialTpl>
+                    <span>{{ getInitial(r.username) }}</span>
+                  </ng-template>
+                </div>
+
+                <div class="user-meta">
+                  <button
+                    class="user-link"
+                    type="button"
+                    (click)="openProfile(r.userId || r.username, $event)">
+                    {{ '@' + r.username }}
+                  </button>
+
+                  <span class="user-subtitle">Переглянути профіль</span>
+                </div>
               </div>
-              <span class="user-name">{{'@' + r.username }}</span>
-            </div>
-          </td>
-          <td>
-            <span class="type-badge">
-              {{ ICONS[r.verificationType] }} {{ LABELS[r.verificationType] }}
-            </span>
-          </td>
-          <td>
-            <span class="status-badge" [ngClass]="statusClass(r.status)">{{ statusLabel(r.status) }}</span>
-          </td>
-          <td class="td-date">{{ r.createdAt | date:'dd.MM.yy' }}</td>
-          <td>
-            <button class="action-btn" (click)="openDetail(r)">Переглянути →</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
 
-    <div class="admin-empty" *ngIf="filtered.length === 0">
-      <p>Заявок не знайдено</p>
+            <td>
+                <span class="type-badge" [ngClass]="getTypeClass(r.verificationType)">
+                  <span class="type-icon">{{ getTypeIcon(r.verificationType) }}</span>
+                  <span>{{ getTypeLabel(r.verificationType) }}</span>
+                </span>
+            </td>
+
+            <td>
+                <span class="status-badge" [ngClass]="statusClass(r.status)">
+                  {{ statusLabel(r.status) }}
+                </span>
+            </td>
+
+            <td class="td-date">
+              <div class="date-stack">
+                <span>{{ r.createdAt | date:'dd.MM.yy' }}</span>
+                <small>{{ r.createdAt | date:'HH:mm' }}</small>
+              </div>
+            </td>
+
+            <td>
+              <button
+                class="action-btn"
+                type="button"
+                (click)="openDetail(r)">
+                Переглянути
+              </button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+
+    <ng-template #emptyState>
+      <div class="admin-empty">
+        <div class="empty-icon">⌁</div>
+        <h3>Заявок не знайдено</h3>
+        <p>Спробуйте змінити фільтр або оновіть список.</p>
+      </div>
+    </ng-template>
+  </section>
 </div>
 
-<!-- Detail panel -->
-<div class="detail-backdrop" *ngIf="selectedRequest" (click)="selectedRequest = null">
-  <div class="detail-panel" (click)="$event.stopPropagation()">
-    <div class="detail-header">
-      <h3>Заявка від {{'@' + selectedRequest.username }}</h3>
-      <button class="detail-close" (click)="selectedRequest = null">✕</button>
-    </div>
+<div
+  class="detail-backdrop"
+  *ngIf="selectedRequest as request"
+  (click)="closeDetail()">
 
-    <div class="detail-body">
-      <div class="detail-row">
-        <span class="detail-label">Тип:</span>
-        <span>{{ ICONS[selectedRequest.verificationType] }} {{ LABELS[selectedRequest.verificationType] }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Статус:</span>
-        <span class="status-badge" [ngClass]="statusClass(selectedRequest.status)">
-          {{ statusLabel(selectedRequest.status) }}
-        </span>
-      </div>
-      <div class="detail-row" *ngIf="selectedRequest.notes">
-        <span class="detail-label">Пояснення:</span>
-        <p class="detail-notes">{{ selectedRequest.notes }}</p>
-      </div>
+  <div class="detail-modal-shell" (click)="$event.stopPropagation()">
+    <section class="detail-panel">
+      <header class="detail-header">
+        <div class="detail-user-block">
+          <div class="detail-avatar">
+            <ng-container *ngIf="getAvatar(request) as detailAvatar; else detailInitialTpl">
+              <img [src]="detailAvatar" [alt]="request.username">
+            </ng-container>
 
-      <label class="detail-label">Коментар адміністратора</label>
-      <textarea class="detail-textarea" rows="3" [(ngModel)]="adminComment"
-                placeholder="Опціональний коментар для користувача..."></textarea>
+            <ng-template #detailInitialTpl>
+              <span>{{ getInitial(request.username) }}</span>
+            </ng-template>
+          </div>
 
-      <div class="detail-actions" *ngIf="selectedRequest.status === 0">
-        <button class="btn-approve" (click)="decide(true)" [disabled]="processing">
-          ✓ Схвалити
+          <div class="detail-header-meta">
+            <button
+              class="detail-username"
+              type="button"
+              (click)="openProfile(request.userId || request.username, $event)">
+              {{ '@' + request.username }}
+            </button>
+
+            <div class="detail-header-row">
+              <span
+                class="type-badge detail-type"
+                [ngClass]="getTypeClass(request.verificationType)">
+                <span class="type-icon">{{ getTypeIcon(request.verificationType) }}</span>
+                <span>{{ getTypeLabel(request.verificationType) }}</span>
+              </span>
+
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(request.status)">
+                {{ statusLabel(request.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          class="detail-close"
+          type="button"
+          (click)="closeDetail()"
+          aria-label="Закрити">
+          ✕
         </button>
-        <button class="btn-reject" (click)="decide(false)" [disabled]="processing">
-          ✕ Відхилити
-        </button>
+      </header>
+
+      <div class="detail-body">
+        <div class="detail-grid">
+          <article class="detail-info-card">
+            <span class="card-label">Дата подачі</span>
+            <strong>{{ request.createdAt | date:'dd.MM.yyyy' }}</strong>
+            <small>{{ request.createdAt | date:'HH:mm' }}</small>
+          </article>
+
+          <article class="detail-info-card">
+            <span class="card-label">Поточний статус</span>
+            <strong>{{ statusLabel(request.status) }}</strong>
+            <small>{{ getStatusDescription(request.status) }}</small>
+          </article>
+        </div>
+
+        <section class="detail-section" *ngIf="request.notes">
+          <div class="section-title">Пояснення користувача</div>
+
+          <div class="detail-notes">
+            {{ request.notes }}
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Коментар адміністратора</div>
+              <p>Його побачить користувач після розгляду заявки.</p>
+            </div>
+          </div>
+
+          <textarea
+            class="detail-textarea"
+            rows="4"
+            [(ngModel)]="adminComment"
+            placeholder="Наприклад: підтвердження прийнято, дякуємо за надані дані...">
+          </textarea>
+        </section>
+
+        <div class="detail-actions" *ngIf="request.status === 0; else decidedTpl">
+          <button
+            class="btn-reject"
+            type="button"
+            (click)="decide(false)"
+            [disabled]="processing">
+            <span>Відхилити</span>
+          </button>
+
+          <button
+            class="btn-approve"
+            type="button"
+            (click)="decide(true)"
+            [disabled]="processing">
+            <span>{{ processing ? 'Обробка...' : 'Схвалити заявку' }}</span>
+          </button>
+        </div>
+
+        <ng-template #decidedTpl>
+          <div class="detail-decided">
+            <div class="decision-title">Рішення вже прийнято</div>
+
+            <div class="decision-date">
+              {{ request.decidedAt | date:'dd.MM.yyyy HH:mm' }}
+            </div>
+          </div>
+        </ng-template>
       </div>
-      <p class="detail-decided" *ngIf="selectedRequest.status !== 0">
-        Рішення прийнято {{ selectedRequest.decidedAt | date:'dd.MM.yyyy HH:mm' }}
-      </p>
-    </div>
+    </section>
   </div>
 </div>

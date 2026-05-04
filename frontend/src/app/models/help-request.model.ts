@@ -35,6 +35,8 @@ export interface HelpRequest {
   profilePhotoBase64?: string | null;
   photoBase64?: string | null;
   photo?: string | null;
+  authorIsVerified?: boolean;
+  authorVerifiedAs?: number | null;
 
   likesCount: number;
   commentsCount: number;
@@ -78,6 +80,8 @@ export interface HelpRequestDetails {
   authorPhotoBase64?: string | null;
   userPhotoBase64?: string | null;
   profilePhotoBase64?: string | null;
+  authorIsVerified?: boolean;
+  authorVerifiedAs?: number | null;
 
   likesCount: number;
   commentsCount: number;

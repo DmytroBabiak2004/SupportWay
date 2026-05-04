@@ -15,6 +15,8 @@
         [chatName]="selectedChat.displayName"
         [profileKey]="selectedChat.displayName"
         [otherUserPhotoBase64]="selectedChat.otherUserPhotoBase64 || null"
+        [otherUserIsVerified]="selectedChat.otherUserIsVerified || false"
+        [otherUserVerifiedAs]="selectedChat.otherUserVerifiedAs || null"
         [typingText]="typingText"
         (backClicked)="closeChat()"
         (deleteClicked)="onDeleteChat()">

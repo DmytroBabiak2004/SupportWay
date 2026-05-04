@@ -20,6 +20,8 @@ namespace SupportWay.API.DTOs
         public string? AuthorUserName { get; set; }
         public string? AuthorFullName { get; set; }
         public string? AuthorPhotoBase64 { get; set; }
+        public bool AuthorIsVerified { get; set; }
+        public int? AuthorVerifiedAs { get; set; }
 
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
@@ -71,6 +73,8 @@ namespace SupportWay.API.DTOs
         public string? AuthorUserName { get; set; }
         public string? AuthorFullName { get; set; }
         public string? AuthorPhotoBase64 { get; set; }
+        public bool AuthorIsVerified { get; set; }
+        public int? AuthorVerifiedAs { get; set; }
 
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }

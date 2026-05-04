@@ -4,4 +4,6 @@ export interface UserSearch {
   name?: string;
   fullName?: string;
   photoBase64?: string;
+  isVerified?: boolean;
+  verifiedAs?: number | null;
 }

@@ -54,7 +54,7 @@
 
         <div class="user-details">
           <span class="full-name">{{ user.name }} {{ user.fullName }}</span>
-          <span class="username">{{ user.userName }}</span>
+          <span class="username">{{ user.userName }}<app-role-badge [isVerified]="user.isVerified" [verifiedAs]="user.verifiedAs" size="xs"></app-role-badge></span>
         </div>
 
         <div class="action-hint">

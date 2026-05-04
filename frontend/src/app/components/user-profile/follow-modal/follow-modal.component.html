@@ -34,12 +34,7 @@
         <div class="fm-info" (click)="openProfile(user)">
           <div class="fm-name">
             {{ getDisplayName(user) }}
-            <span *ngIf="user.isVerified && user.verifiedAs"
-                  class="fm-verify-icon"
-                  [style.color]="COLORS[user.verifiedAs!]"
-                  [title]="'Верифіковано'">
-              {{ ICONS[user.verifiedAs!] }}
-            </span>
+            <app-role-badge [isVerified]="user.isVerified" [verifiedAs]="user.verifiedAs" size="xs"></app-role-badge>
           </div>
           <div class="fm-handle">{{ '@' + user.username }}</div>
         </div>

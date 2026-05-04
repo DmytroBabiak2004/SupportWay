@@ -35,7 +35,7 @@
           </div>
 
           <div class="meta-info">
-            <span class="username">{{ getAuthorName() }}</span>
+            <span class="username">{{ getAuthorName() }}<app-role-badge [isVerified]="isAuthorVerified()" [verifiedAs]="getAuthorVerifiedAs()"></app-role-badge></span>
             <span class="date">{{ formatDate(preview?.createdAt) }}</span>
           </div>
         </button>

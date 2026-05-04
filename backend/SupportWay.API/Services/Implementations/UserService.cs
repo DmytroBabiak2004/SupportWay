@@ -23,7 +23,9 @@ namespace SupportWay.Services
                 UserName = u.UserName,
                 Name = u.Profile?.Name,
                 FullName = u.Profile?.FullName,
-                PhotoBase64 = u.Profile?.Photo
+                PhotoBase64 = u.Profile?.Photo,
+                IsVerified = u.Profile?.IsVerified ?? false,
+                VerifiedAs = u.Profile?.VerifiedAs.HasValue == true ? (int?)u.Profile.VerifiedAs.Value : null
             }).ToList();
         }
     }

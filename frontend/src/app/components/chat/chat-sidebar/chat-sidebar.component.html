@@ -31,7 +31,7 @@
 
       <div class="chat-info">
         <div class="chat-top">
-          <span class="chat-name">{{ chat.displayName }}</span>
+          <span class="chat-name">{{ chat.displayName }}<app-role-badge [isVerified]="chat.otherUserIsVerified" [verifiedAs]="chat.otherUserVerifiedAs" size="xs"></app-role-badge></span>
           <span class="chat-time" *ngIf="chat.lastMessageAt">{{ formatTime(chat.lastMessageAt) }}</span>
         </div>
 

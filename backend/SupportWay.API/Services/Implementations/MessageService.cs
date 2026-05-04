@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SupportWay.API.DTOs;
 using SupportWay.Data.Context;
 using SupportWay.Data.Models;
@@ -289,6 +289,8 @@ public class MessageService : IMessageService
             EntityType = "post",
             AuthorUserName = post.User?.UserName ?? string.Empty,
             AuthorPhotoBase64 = authorPhotoBase64,
+            AuthorIsVerified = post.User?.Profile?.IsVerified ?? false,
+            AuthorVerifiedAs = post.User?.Profile?.VerifiedAs.HasValue == true ? (int?)post.User.Profile.VerifiedAs.Value : null,
             Title = null,
             Content = post.Content ?? string.Empty,
             ImageBase64 = imageBase64,
@@ -312,6 +314,8 @@ public class MessageService : IMessageService
             EntityType = "helpRequest",
             AuthorUserName = request.User?.UserName ?? string.Empty,
             AuthorPhotoBase64 = authorPhotoBase64,
+            AuthorIsVerified = request.User?.Profile?.IsVerified ?? false,
+            AuthorVerifiedAs = request.User?.Profile?.VerifiedAs.HasValue == true ? (int?)request.User.Profile.VerifiedAs.Value : null,
             Title = null,
             Content = request.Content ?? string.Empty,
             ImageBase64 = imageBase64,

@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
-import { AsyncPipe, NgClass, NgIf } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
 import { Subscription, of } from 'rxjs';
-import { switchMap, tap, catchError } from 'rxjs/operators';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 
 import { AuthService, UserInfo } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
@@ -37,17 +37,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const authSub = this.authService.getUserInfo$().pipe(
       tap(user => {
         this.currentUser = user;
-        this.isAdmin = (user?.roles ?? []).includes('Admin');
+        this.isAdmin = this.hasAdminRole(user);
+
         if (user && !this.userProfile) {
-          this.userProfile = { username: user.username } as Profile;
+          this.userProfile = {
+            username: user.username
+          } as Profile;
+        }
+
+        if (!user) {
+          this.userProfile = null;
         }
       }),
       switchMap(user => {
-        if (!user) return of(null);
-        // Отримуємо свій профіль (метод без параметрів у вашому сервісі йде на /me)
+        if (!user) {
+          return of(null);
+        }
+
         return this.profileService.getProfile().pipe(
-          catchError(err => {
-            console.error('Помилка завантаження профілю:', err);
+          catchError(error => {
+            console.error('Помилка завантаження профілю:', error);
             return of(null);
           })
         );
@@ -61,23 +70,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscription.add(authSub);
   }
 
-  // --- МЕТОД ДЛЯ ПЕРЕХОДУ В ПРОФІЛЬ ---
   goToMyProfile(): void {
     const username = this.userProfile?.username || this.currentUser?.username;
-    if (username) {
-      this.handleNavClick();
-      this.router.navigate(['/profile', username]);
+
+    if (!username) {
+      return;
     }
+
+    this.handleNavClick();
+    this.router.navigate(['/profile', username]);
   }
 
   get initials(): string {
-    const p = this.userProfile;
-    if (p?.name || p?.fullName) {
-      const f = p.name ? p.name[0] : '';
-      const l = p.fullName ? p.fullName[0] : '';
-      return (f + l).toUpperCase();
+    const profile = this.userProfile;
+
+    if (profile?.name || profile?.fullName) {
+      const first = profile.name?.charAt(0) ?? '';
+      const second = profile.fullName?.charAt(0) ?? '';
+      return `${first}${second}`.toUpperCase() || '?';
     }
-    return (p?.username?.[0] || this.currentUser?.username?.[0] || '?').toUpperCase();
+
+    return (
+      profile?.username?.charAt(0) ||
+      this.currentUser?.username?.charAt(0) ||
+      '?'
+    ).toUpperCase();
   }
 
   get displayName(): string {
@@ -86,8 +103,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleMenu(): void {
     this.isMenuOpen = !this.isMenuOpen;
+
     if (!this.isMenuOpen) {
       this.isDropdownOpen = false;
+      this.isUserDropdownOpen = false;
     }
   }
 
@@ -105,5 +124,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+  }
+
+  private hasAdminRole(user: UserInfo | null): boolean {
+    const rawUser = user as any;
+
+    if (!rawUser) {
+      return false;
+    }
+
+    if (Array.isArray(rawUser.roles)) {
+      return rawUser.roles.some((role: string) => role?.toLowerCase() === 'admin');
+    }
+
+    if (typeof rawUser.role === 'string') {
+      return rawUser.role.toLowerCase() === 'admin';
+    }
+
+    return false;
   }
 }

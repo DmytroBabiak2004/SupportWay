@@ -12,6 +12,8 @@ export interface Post {
   authorName?: string;
   authorFullName?: string;
   authorPhotoBase64?: string;
+  authorIsVerified?: boolean;
+  authorVerifiedAs?: number | null;
 
   commentsCount?: number;
 }

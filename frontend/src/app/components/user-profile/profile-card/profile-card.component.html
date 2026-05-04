@@ -48,14 +48,7 @@
               {{ profile.name }} {{ profile.fullName }}
             </span>
             <ng-template #usernameOnly>{{ profile.username }}</ng-template>
-
-            <!-- Verification badge -->
-            <span *ngIf="profile.isVerified && profile.verifiedAs"
-                  class="verify-chip"
-                  [style.color]="verificationColor"
-                  [title]="verificationLabel">
-              {{ verificationIcon }}
-            </span>
+            <app-role-badge [isVerified]="profile.isVerified" [verifiedAs]="profile.verifiedAs" size="md"></app-role-badge>
           </h1>
           <span class="handle">{{ '@' + profile.username }}</span>
         </div>

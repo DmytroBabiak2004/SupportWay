@@ -11,11 +11,12 @@ import { PostLikeService } from '../../services/post-like.service';
 import { PostCommentService } from '../../services/post-comment.service';
 import { AuthService } from '../../services/auth.service';
 import { PostComment, CreatePostCommentDto } from '../../models/post-comment.model';
+import { RoleBadgeComponent } from '../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-shared-post-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
   templateUrl: './shared-post-dialog.component.html',
   styleUrls: ['./shared-post-dialog.component.scss']
 })
@@ -145,8 +146,16 @@ export class SharedPostDialogComponent implements OnChanges {
     return this.preview?.authorUserName?.trim() || 'Користувач';
   }
 
-  getAuthorAvatar(): string {
-    return this.profileService.getAvatarSrc(this.preview?.authorPhotoBase64 || undefined);
+  getAuthorAvatar(): string | null {
+    return this.getImageSrc(
+      this.preview?.authorPhotoBase64 ||
+      (this.preview as any)?.userPhotoBase64 ||
+      (this.preview as any)?.profilePhotoBase64 ||
+      (this.preview as any)?.photoBase64 ||
+      (this.preview as any)?.photo ||
+      (this.preview as any)?.avatarUrl ||
+      (this.preview as any)?.avatar
+    );
   }
 
   getInitials(name?: string | null): string {
@@ -280,8 +289,35 @@ export class SharedPostDialogComponent implements OnChanges {
     });
   }
 
-  getCommentAvatar(comment: PostComment): string {
-    return this.profileService.getAvatarSrc(comment.userPhotoBase64);
+  getCommentAvatar(comment: PostComment): string | null {
+    return this.getImageSrc(
+      comment.userPhotoBase64 ||
+      (comment as any).authorPhotoBase64 ||
+      (comment as any).profilePhotoBase64 ||
+      (comment as any).photoBase64 ||
+      (comment as any).photo ||
+      (comment as any).avatarUrl ||
+      (comment as any).avatar
+    );
+  }
+
+  isAuthorVerified(): boolean {
+    return !!((this.preview as any)?.authorIsVerified || (this.preview as any)?.isVerified);
+  }
+
+  getAuthorVerifiedAs(): number | null {
+    const value = (this.preview as any)?.authorVerifiedAs ?? (this.preview as any)?.verifiedAs;
+    return typeof value === 'number' ? value : value ? Number(value) : null;
+  }
+
+  private getImageSrc(raw?: string | null): string | null {
+    if (!raw || typeof raw !== 'string') return null;
+    const value = raw.trim();
+    if (!value) return null;
+    if (value.startsWith('data:image/') || value.startsWith('http://') || value.startsWith('https://') || value.startsWith('blob:')) {
+      return value;
+    }
+    return `data:image/jpeg;base64,${value}`;
   }
 
   formatDate(value?: string | Date | null): string {

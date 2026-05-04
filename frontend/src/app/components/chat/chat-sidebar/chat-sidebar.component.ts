@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../../services/chat.service';
 import { ChatListItem } from '../../../models/chat.model';
 import { ProfileService } from '../../../services/profile.service';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-chat-sidebar',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
   templateUrl: './chat-sidebar.component.html',
   styleUrls: ['./chat-sidebar.component.scss'],
 })

@@ -1,4 +1,4 @@
-﻿public class PostDto
+public class PostDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; } = null!;
@@ -10,6 +10,8 @@
     public string? AuthorUserName { get; set; }
     public string? AuthorFullName { get; set; }
     public byte[]? AuthorPhotoBase64 { get; set; }
+    public bool AuthorIsVerified { get; set; }
+    public int? AuthorVerifiedAs { get; set; }
 
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }

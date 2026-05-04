@@ -50,7 +50,9 @@ namespace SupportWay.Services
 
                 Rating = rating,
                 FollowersCount = followersCount,
-                FollowingCount = followingCount
+                FollowingCount = followingCount,
+                IsVerified = profile.IsVerified,
+                VerifiedAs = profile.VerifiedAs.HasValue ? (int?)profile.VerifiedAs.Value : null
             };
         }
 
@@ -102,7 +104,9 @@ namespace SupportWay.Services
                 PhotoBase64 = profile.Photo != null ? Convert.ToBase64String(profile.Photo) : null,
                 Rating = rating,
                 FollowersCount = followersCount,
-                FollowingCount = followingCount
+                FollowingCount = followingCount,
+                IsVerified = profile.IsVerified,
+                VerifiedAs = profile.VerifiedAs.HasValue ? (int?)profile.VerifiedAs.Value : null
             };
         }
 

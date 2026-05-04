@@ -23,7 +23,6 @@ export class AuthorizationComponent {
     name: new FormControl('', []),
     fullName: new FormControl('', []),
 
-    role: new FormControl('', { nonNullable: true })
   });
 
 
@@ -38,31 +37,23 @@ export class AuthorizationComponent {
   }
 
   toggleFormControls() {
-    const roleControl = this.authForm.get('role');
     const nameControl = this.authForm.get('name');
     const fullNameControl = this.authForm.get('fullName');
 
     if (this.isRegisterMode) {
-      roleControl?.setValidators([Validators.required]);
-
       nameControl?.setValidators([Validators.required, Validators.minLength(2)]);
       fullNameControl?.setValidators([Validators.required, Validators.minLength(2)]);
 
-      roleControl?.setValue('');
       nameControl?.setValue('');
       fullNameControl?.setValue('');
     } else {
-      roleControl?.clearValidators();
-
       nameControl?.clearValidators();
       fullNameControl?.clearValidators();
 
-      roleControl?.setValue('');
       nameControl?.setValue('');
       fullNameControl?.setValue('');
     }
 
-    roleControl?.updateValueAndValidity();
     nameControl?.updateValueAndValidity();
     fullNameControl?.updateValueAndValidity();
   }
@@ -74,10 +65,10 @@ export class AuthorizationComponent {
       return;
     }
 
-    const { username, password, role, name, fullName } = this.authForm.value;
+    const { username, password, name, fullName } = this.authForm.value;
 
     if (this.isRegisterMode) {
-      this.authService.register(username!, password!, role!, name!, fullName!).subscribe({
+      this.authService.register(username!, password!, name!, fullName!).subscribe({
         next: () => {
           this.errorMessage = null;
           this.isRegisterMode = false;

@@ -14,11 +14,12 @@ import { PostLikeService } from '../../../services/post-like.service';
 import { PostCommentService } from '../../../services/post-comment.service';
 import { ShareToChatModalComponent } from '../../../dialog/share-to-chat-modal/share-to-chat-modal.component';
 import { DonateModalComponent } from '../../../dialog/donate-modal/donate-modal.component';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-help-request-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, RelativeTimePipe, ShareToChatModalComponent, DonateModalComponent],
+  imports: [CommonModule, FormsModule, RelativeTimePipe, ShareToChatModalComponent, DonateModalComponent, RoleBadgeComponent],
   templateUrl: './help-request-card.component.html',
   styleUrls: ['./help-request-card.component.scss']
 })

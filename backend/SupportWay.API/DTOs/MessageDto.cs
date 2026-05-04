@@ -27,6 +27,10 @@ namespace SupportWay.API.DTOs
 
         public string? AuthorPhotoBase64 { get; set; }
 
+        public bool AuthorIsVerified { get; set; }
+
+        public int? AuthorVerifiedAs { get; set; }
+
         public string? Title { get; set; }
 
         public string Content { get; set; } = string.Empty;

@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Profile } from '../../../models/profile.model';
 import { ProfileService } from '../../../services/profile.service';
-import { VERIFICATION_ICONS, VERIFICATION_COLORS, VERIFICATION_LABELS } from '../../../models/verification.model';
+import { VERIFICATION_LABELS } from '../../../models/verification.model';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-profile-card',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
   templateUrl: './profile-card.component.html',
   styleUrls: ['./profile-card.component.scss']
 })
@@ -35,8 +36,6 @@ export class ProfileCardComponent {
   bioExpanded = false;
   settingsOpen = false;
 
-  readonly ICONS   = VERIFICATION_ICONS;
-  readonly COLORS  = VERIFICATION_COLORS;
   readonly LABELS  = VERIFICATION_LABELS;
 
   constructor(public profileService: ProfileService) {}
@@ -47,18 +46,6 @@ export class ProfileCardComponent {
     const l = this.profile.fullName?.trim()[0] || '';
     if (f || l) return (f + l).toUpperCase();
     return (this.profile.username?.[0] || '?').toUpperCase();
-  }
-
-  get verificationIcon(): string {
-    return this.profile?.isVerified && this.profile.verifiedAs
-      ? this.ICONS[this.profile.verifiedAs] ?? ''
-      : '';
-  }
-
-  get verificationColor(): string {
-    return this.profile?.isVerified && this.profile.verifiedAs
-      ? this.COLORS[this.profile.verifiedAs] ?? ''
-      : '';
   }
 
   get verificationLabel(): string {

@@ -6,12 +6,12 @@ import { FollowService } from '../../../services/follow.service';
 import { AuthService } from '../../../services/auth.service';
 import { ProfileService } from '../../../services/profile.service';
 import { FollowUser } from '../../../models/follow-user.model';
-import { VERIFICATION_ICONS, VERIFICATION_COLORS } from '../../../models/verification.model';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-follow-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RoleBadgeComponent],
   templateUrl: './follow-modal.component.html',
   styleUrls: ['./follow-modal.component.scss']
 })
@@ -28,8 +28,6 @@ export class FollowModalComponent implements OnInit {
   loading = true;
   currentUserId = '';
 
-  readonly ICONS   = VERIFICATION_ICONS;
-  readonly COLORS  = VERIFICATION_COLORS;
 
   constructor(
     private followService: FollowService,

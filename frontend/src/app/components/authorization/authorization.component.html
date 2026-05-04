@@ -83,29 +83,7 @@
            Вкажіть повне ім'я та прізвище
         </span>
 
-        <div class="input-group">
-          <div class="input-wrapper select-wrapper">
-            <select
-              id="role"
-              formControlName="role"
-              required
-              [class.has-error]="authForm.get('role')?.invalid && authForm.get('role')?.touched"
-            >
-              <option value="" disabled selected hidden></option>
-              <option value="User">Користувач</option>
-              <option value="Volunteer">Волонтер</option>
-              <option value="Military">Військовий</option>
-            </select>
-            <label for="role">Оберіть роль</label>
-
-            <div class="select-arrow">
-              <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1L5 5L9 1"/></svg>
-            </div>
-          </div>
-          <span class="error-text" *ngIf="authForm.get('role')?.invalid && authForm.get('role')?.touched">
-            Оберіть вашу роль
-          </span>
-        </div>
+        <p class="role-note">Після реєстрації ви отримаєте звичайний акаунт. Статус волонтера або військового можна отримати через заявку на верифікацію в профілі.</p>
       </ng-container>
 
       <div class="actions-row" *ngIf="!isRegisterMode">

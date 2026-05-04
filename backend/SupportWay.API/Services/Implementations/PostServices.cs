@@ -75,6 +75,8 @@ public class PostService : IPostService
                 AuthorUserName = post.User?.UserName,
                 AuthorFullName = post.User?.Profile?.FullName,
                 AuthorPhotoBase64 = post.User?.Profile?.Photo,
+                AuthorIsVerified = post.User?.Profile?.IsVerified ?? false,
+                AuthorVerifiedAs = post.User?.Profile?.VerifiedAs.HasValue == true ? (int?)post.User.Profile.VerifiedAs.Value : null,
 
                 LikesCount = likesCount,
                 CommentsCount = commentsCount,

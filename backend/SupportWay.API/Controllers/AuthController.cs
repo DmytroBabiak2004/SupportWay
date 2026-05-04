@@ -39,7 +39,6 @@ namespace SupportWay.API.Controllers
             if (request == null || !ModelState.IsValid)
                 return BadRequest("Invalid registration data");
 
-            // (Опційно) простий захист від пробілів
             request.Username = request.Username?.Trim();
             request.Name = request.Name?.Trim();
             request.FullName = request.FullName?.Trim();
@@ -52,18 +51,15 @@ namespace SupportWay.API.Controllers
 
             try
             {
-
                 await _profileService.AddProfileAsync(user.Id, request.Name, request.FullName);
 
-                if (!string.IsNullOrEmpty(request.Role))
+                // Реєстрація завжди створює тільки звичайного користувача.
+                // Волонтер/військовий додається тільки після схвалення заявки адміністратором.
+                var userRoleResult = await _userManager.AddToRoleAsync(user, "User");
+                if (!userRoleResult.Succeeded)
                 {
-                    var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
-                    if (!roleResult.Succeeded)
-                    {
-                        // якщо роль не додалась — прибираємо користувача, щоб не було “напівреєстрації”
-                        await _userManager.DeleteAsync(user);
-                        return BadRequest(new { Errors = roleResult.Errors.Select(e => e.Description) });
-                    }
+                    await _userManager.DeleteAsync(user);
+                    return BadRequest(new { Errors = userRoleResult.Errors.Select(e => e.Description) });
                 }
 
                 var roles = await _userManager.GetRolesAsync(user);
@@ -79,7 +75,6 @@ namespace SupportWay.API.Controllers
             }
             catch
             {
-
                 await _userManager.DeleteAsync(user);
                 throw;
             }

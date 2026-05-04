@@ -11,7 +11,7 @@
       </div>
 
       <div class="meta-info">
-        <span class="username">{{ authorName }}</span>
+        <span class="username">{{ authorName }}<app-role-badge [isVerified]="request.authorIsVerified" [verifiedAs]="request.authorVerifiedAs"></app-role-badge></span>
         <span class="date" [title]="request.createdAt | date:'medium'">
           {{ request.createdAt | relativeTime }}
         </span>
@@ -33,7 +33,7 @@
   <section class="request-body">
     <div class="caption-block">
       <button type="button" class="author-name-inline" (click)="openRequestAuthorProfile()">
-        {{ authorName }}
+        {{ authorName }}<app-role-badge [isVerified]="request.authorIsVerified" [verifiedAs]="request.authorVerifiedAs" size="xs"></app-role-badge>
       </button>
       <span class="post-text">{{ request.content }}</span>
     </div>

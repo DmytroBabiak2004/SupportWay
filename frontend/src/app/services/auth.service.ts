@@ -49,12 +49,22 @@ export class AuthService {
       );
   }
 
-  register(username: string, password: string, role: string, name: string, fullName: string): Observable<UserInfo> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, password, role, name, fullName })
-      .pipe(
-        tap(res => this.handleAuthSuccess(res)),
-        map(res => this.mapToUserInfo(res))
-      );
+  register(
+    username: string,
+    password: string,
+    name: string,
+    fullName: string
+  ): Observable<UserInfo> {
+    return this.http.post<UserInfo>(
+      `${this.apiUrl}/register`,
+      {
+        username,
+        password,
+        name,
+        fullName
+      },
+      { withCredentials: true }
+    );
   }
 
 

@@ -12,7 +12,7 @@
       </div>
 
       <div class="meta-info">
-        <span class="username">{{ post.authorUserName || 'Unknown' }}</span>
+        <span class="username">{{ post.authorUserName || 'Unknown' }}<app-role-badge [isVerified]="post.authorIsVerified" [verifiedAs]="post.authorVerifiedAs"></app-role-badge></span>
         <span class="date" [title]="post.createdAt | date:'medium'">
           {{ post.createdAt | relativeTime }}
         </span>
@@ -52,7 +52,7 @@
     <div class="caption-block">
       <ng-container *ngIf="post.content">
         <span class="author-name-inline" (click)="openProfile(post.authorUserName)">
-          {{ post.authorUserName }}
+          {{ post.authorUserName }}<app-role-badge [isVerified]="post.authorIsVerified" [verifiedAs]="post.authorVerifiedAs" size="xs"></app-role-badge>
         </span>
         <span class="post-text">{{ post.content }}</span>
       </ng-container>

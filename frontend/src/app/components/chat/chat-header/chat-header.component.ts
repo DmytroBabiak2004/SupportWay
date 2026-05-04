@@ -2,11 +2,12 @@ import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ProfileService } from '../../../services/profile.service';
+import { RoleBadgeComponent } from '../../../shared/role-badge/role-badge.component';
 
 @Component({
   selector: 'app-chat-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RoleBadgeComponent],
   templateUrl: './chat-header.component.html',
   styleUrls: ['./chat-header.component.scss']
 })
@@ -18,6 +19,8 @@ export class ChatHeaderComponent {
   // Переконайся, що батьківський компонент передає сюди ID або Username
   @Input() profileKey: string | undefined | null = null;
   @Input() otherUserPhotoBase64: string | null = null;
+  @Input() otherUserIsVerified: boolean | null = false;
+  @Input() otherUserVerifiedAs: number | null = null;
   @Input() typingText: string | null = null;
 
   @Output() backClicked = new EventEmitter<void>();
