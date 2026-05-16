@@ -31,6 +31,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   userProfile: Profile | null = null;
 
   private subscription = new Subscription();
+  private lastToastedNotificationId: string | null = null;
 
   constructor(
     public authService: AuthService,
@@ -45,7 +46,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const notifSub = this.authService.getUserInfo$().subscribe(user => {
       if (user) {
         this.notificationService.startConnection();
-        } else {
+      } else {
         this.notificationService.stopConnection();
       }
     });
@@ -90,6 +91,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const toastSub = this.notificationService.notifications$.subscribe(notifications => {
       const latest = notifications[0];
       if (!latest || latest.isRead) return;
+
+      // ✅ Не показувати toast якщо цю нотифікацію вже показували
+      if (latest.id === this.lastToastedNotificationId) return;
+      this.lastToastedNotificationId = latest.id;
 
       const url = this.router.url;
       if (url.startsWith('/chat')) return;

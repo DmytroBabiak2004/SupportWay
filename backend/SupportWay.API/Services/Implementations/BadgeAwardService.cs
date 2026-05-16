@@ -29,13 +29,15 @@ namespace SupportWay.API.Services.Implementations
             IBadgeRepository badgeRepository,
             IProfileBadgeRepository profileBadgeRepository,
             IProfilesRepository profilesRepository,
-            ILogger<BadgeAwardService> logger)
+            ILogger<BadgeAwardService> logger,
+            INotificationService notificationService) // ✅ БАГ 1 ВИПРАВЛЕНО: додано параметр
         {
             _requestItemsRepository = requestItemsRepository;
             _badgeRepository = badgeRepository;
             _profileBadgeRepository = profileBadgeRepository;
             _profilesRepository = profilesRepository;
             _logger = logger;
+            _notificationService = notificationService; // ✅ тепер не null
         }
 
         public async Task CheckAndAwardRequestItemBadgesAsync(Guid requestItemId)
@@ -103,15 +105,14 @@ namespace SupportWay.API.Services.Implementations
                 return;
             }
 
-            var awardedCount = 0;
+            // ✅ БАГ 2 ВИПРАВЛЕНО: збираємо нові нагороди ДО SaveChanges
+            var newlyAwardedBadges = new List<Badge>();
 
             foreach (var badge in eligibleBadges)
             {
                 var alreadyHasBadge = await _profileBadgeRepository.ExistsAsync(profile.Id, badge.Id);
                 if (alreadyHasBadge)
-                {
                     continue;
-                }
 
                 await _profileBadgeRepository.AddAsync(new ProfileBadge
                 {
@@ -121,7 +122,7 @@ namespace SupportWay.API.Services.Implementations
                     AwardedAt = DateTime.UtcNow
                 });
 
-                awardedCount++;
+                newlyAwardedBadges.Add(badge); // запам'ятовуємо нові нагороди
 
                 _logger.LogInformation(
                     "BadgeAwardService: нагороду '{BadgeName}' видано користувачу {UserId} для SupportType '{SupportType}'. Count={Count}, Threshold={Threshold}.",
@@ -132,15 +133,13 @@ namespace SupportWay.API.Services.Implementations
                     badge.Threshold);
             }
 
-            if (awardedCount > 0)
+            if (newlyAwardedBadges.Count > 0)
             {
                 await _profileBadgeRepository.SaveChangesAsync();
 
-                               foreach (var badge in eligibleBadges)
+                // ✅ тепер ітеруємо по вже відомих нових нагородах — без повторної перевірки ExistsAsync
+                foreach (var badge in newlyAwardedBadges)
                 {
-                    var alreadyHad = await _profileBadgeRepository.ExistsAsync(profile.Id, badge.Id);
-                    if (alreadyHad) continue; 
-
                     var imageBase64 = badge.Image is { Length: > 0 }
                         ? Convert.ToBase64String(badge.Image)
                         : null;
@@ -160,9 +159,7 @@ namespace SupportWay.API.Services.Implementations
         private static bool TryResolveBadgeTypeName(string supportTypeName, out string badgeTypeName)
         {
             if (SupportTypeToBadgeTypeMap.TryGetValue(supportTypeName.Trim(), out badgeTypeName!))
-            {
                 return true;
-            }
 
             badgeTypeName = string.Empty;
             return false;
@@ -172,9 +169,7 @@ namespace SupportWay.API.Services.Implementations
         {
             var existingProfile = await _profilesRepository.GetByUserIdAsync(userId);
             if (existingProfile is not null)
-            {
                 return existingProfile;
-            }
 
             var profile = new Profile
             {
