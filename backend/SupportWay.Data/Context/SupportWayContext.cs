@@ -30,6 +30,8 @@ namespace SupportWay.Data.Context
         public DbSet<Badge> Badges { get; set; }
         public DbSet<ProfileBadge> ProfileBadges { get; set; }
         public DbSet<VerificationRequest> VerificationRequests { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,6 +54,7 @@ namespace SupportWay.Data.Context
             modelBuilder.ApplyConfiguration(new ProfileBadgeConfiguration());
             modelBuilder.ApplyConfiguration(new VerificationRequestConfiguration());
             modelBuilder.ApplyConfiguration(new RoleConfiguration());
+            modelBuilder.ApplyConfiguration(new NotificationConfiguration());
         }
     }
 }

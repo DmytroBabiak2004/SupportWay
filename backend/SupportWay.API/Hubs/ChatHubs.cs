@@ -1,19 +1,26 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using SupportWay.API.DTOs;
+using SupportWay.API.Services.Interface;
+using SupportWay.Data.Models;
 
 [Authorize]
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
     private readonly IMessageService _messageService;
-
+    private readonly INotificationService _notificationService;
+    private readonly IProfileService _profileService;
     public ChatHub(
-        IChatService chatService,
-        IMessageService messageService)
+         IChatService chatService,
+        IMessageService messageService,
+        INotificationService notificationService,
+        IProfileService profileService)
     {
         _chatService = chatService;
         _messageService = messageService;
+        _notificationService = notificationService;
+        _profileService = profileService;
     }
 
     public override async Task OnConnectedAsync()
@@ -37,6 +44,24 @@ public class ChatHub : Hub
 
         var dto = await _messageService.CreateTextMessageAsync(chatGuid, fromUserId, text);
         await BroadcastMessageToChatUsers(chatGuid, dto);
+
+        // Notify all participants except the sender
+        var participants = await _chatService.GetParticipantUserIdsAsync(chatGuid);
+        var senderProfile = await _profileService.GetProfileAsync(fromUserId);
+        var senderName = senderProfile?.Username ?? "Someone";
+        var preview = text.Length > 60 ? text[..60] + "…" : text;
+
+        foreach (var recipientId in participants.Where(id => id != fromUserId))
+        {
+            await _notificationService.CreateAndSendAsync(
+                userId: recipientId,
+                title: senderName,
+                message: preview,
+                type: NotificationType.Message,
+                relatedEntityId: chatGuid,
+                relatedEntityType: "chat",
+                imageBase64: senderProfile?.PhotoBase64);
+        }
     }
 
     public async Task SharePost(string chatId, string postId, string? caption)

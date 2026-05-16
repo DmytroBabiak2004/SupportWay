@@ -1,0 +1,38 @@
+<div class="toast-container" aria-live="polite">
+  <div
+    class="toast"
+    *ngFor="let t of toasts; trackBy: trackById"
+    [class]="'toast--' + t.type"
+    (click)="dismiss(t.id)">
+
+    <div class="toast-icon" *ngIf="t.imageBase64">
+      <img [src]="getImageSrc(t.imageBase64)" alt="" />
+    </div>
+
+    <div class="toast-body">
+      <p class="toast-title">{{ t.title }}</p>
+      <p class="toast-message">{{ t.message }}</p>
+    </div>
+
+    <button class="toast-close" (click)="dismiss(t.id)" aria-label="Закрити">✕</button>
+  </div>
+</div>
+<div class="toast-container" aria-live="polite">
+  <div
+    class="toast"
+    *ngFor="let t of toasts; trackBy: trackById"
+    [class]="'toast--' + t.type"
+    (click)="dismiss(t.id)">
+
+    <div class="toast-icon" *ngIf="t.imageBase64">
+      <img [src]="getImageSrc(t.imageBase64)" alt="" />
+    </div>
+
+    <div class="toast-body">
+      <p class="toast-title">{{ t.title }}</p>
+      <p class="toast-message">{{ t.message }}</p>
+    </div>
+
+    <button class="toast-close" (click)="dismiss(t.id)" aria-label="Закрити">✕</button>
+  </div>
+</div>

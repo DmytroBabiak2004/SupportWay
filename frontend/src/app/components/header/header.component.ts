@@ -4,16 +4,21 @@ import { Router, RouterModule } from '@angular/router';
 import { Subscription, of } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 
+import { NotificationBellComponent } from './notification-bell/notification-bell.component';
+import { NotificationService } from '../../services/notification.service';
+import { ToastService } from '../../services/toast.service';
+import { NotificationType } from '../../models/notification.model';
 import { AuthService, UserInfo } from '../../services/auth.service';
 import { ProfileService } from '../../services/profile.service';
 import { Profile } from '../../models/profile.model';
 import { UserSearchComponent } from './user-search/user-search.component';
+import {ToastContainerComponent} from '../toast/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
   standalone: true,
-  imports: [RouterModule, UserSearchComponent, NgIf],
+  imports: [RouterModule, UserSearchComponent, NgIf, NotificationBellComponent, ToastContainerComponent],
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
@@ -30,10 +35,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor(
     public authService: AuthService,
     public profileService: ProfileService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
+    this.setupToastListener();
+    const notifSub = this.authService.getUserInfo$().subscribe(user => {
+      if (user) {
+        this.notificationService.startConnection();
+        } else {
+        this.notificationService.stopConnection();
+      }
+    });
+    this.subscription.add(notifSub);
     const authSub = this.authService.getUserInfo$().pipe(
       tap(user => {
         this.currentUser = user;
@@ -68,6 +84,34 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
 
     this.subscription.add(authSub);
+  }
+
+  private setupToastListener(): void {
+    const toastSub = this.notificationService.notifications$.subscribe(notifications => {
+      const latest = notifications[0];
+      if (!latest || latest.isRead) return;
+
+      const url = this.router.url;
+      if (url.startsWith('/chat')) return;
+
+      if (latest.type === NotificationType.Message) {
+        this.toastService.show(
+          'info',
+          latest.title,
+          latest.message,
+          latest.imageBase64
+        );
+      } else if (latest.type === NotificationType.BadgeAwarded) {
+        this.toastService.show(
+          'badge',
+          latest.title,
+          latest.message,
+          latest.imageBase64
+        );
+      }
+    });
+
+    this.subscription.add(toastSub);
   }
 
   goToMyProfile(): void {

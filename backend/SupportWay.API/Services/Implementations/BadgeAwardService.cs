@@ -1,23 +1,11 @@
 using SupportWay.API.Repositories.Interfaces;
+using SupportWay.API.Services.Interface;
 using SupportWay.API.Services.Interfaces;
 using SupportWay.Data.Models;
 using SupportWay.Data.Repositories.Interfaces;
 
 namespace SupportWay.API.Services.Implementations
 {
-    /// <summary>
-    /// Видає нагороди на основі типу підтримки RequestItem.
-    ///
-    /// Правило:
-    ///   SupportType RequestItem -> BadgeType з відповідною назвою.
-    ///   Наприклад: "Медична допомога" -> BadgeType "Медична допомога".
-    ///
-    /// Після створення RequestItem:
-    ///   1. знаходимо автора HelpRequest;
-    ///   2. визначаємо відповідний BadgeType;
-    ///   3. рахуємо, скільки RequestItem цього SupportType уже створив користувач;
-    ///   4. видаємо всі Badge цього BadgeType, де Threshold <= кількість.
-    /// </summary>
     public class BadgeAwardService : IBadgeAwardService
     {
         private static readonly Dictionary<string, string> SupportTypeToBadgeTypeMap =
@@ -34,6 +22,7 @@ namespace SupportWay.API.Services.Implementations
         private readonly IProfileBadgeRepository _profileBadgeRepository;
         private readonly IProfilesRepository _profilesRepository;
         private readonly ILogger<BadgeAwardService> _logger;
+        private readonly INotificationService _notificationService;
 
         public BadgeAwardService(
             IRequestItemsRepository requestItemsRepository,
@@ -146,6 +135,25 @@ namespace SupportWay.API.Services.Implementations
             if (awardedCount > 0)
             {
                 await _profileBadgeRepository.SaveChangesAsync();
+
+                               foreach (var badge in eligibleBadges)
+                {
+                    var alreadyHad = await _profileBadgeRepository.ExistsAsync(profile.Id, badge.Id);
+                    if (alreadyHad) continue; 
+
+                    var imageBase64 = badge.Image is { Length: > 0 }
+                        ? Convert.ToBase64String(badge.Image)
+                        : null;
+
+                    await _notificationService.CreateAndSendAsync(
+                        userId: userId,
+                        title: "Нову нагороду отримано!",
+                        message: $"Ви отримали нагороду «{badge.Name}»",
+                        type: NotificationType.BadgeAwarded,
+                        relatedEntityId: badge.Id,
+                        relatedEntityType: "badge",
+                        imageBase64: imageBase64);
+                }
             }
         }
 

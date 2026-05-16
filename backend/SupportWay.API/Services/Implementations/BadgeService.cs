@@ -1,6 +1,7 @@
 ﻿using SupportWay.API.DTOs;
 using SupportWay.API.Helpers;
 using SupportWay.API.Repositories.Interfaces;
+using SupportWay.API.Services.Interface;
 using SupportWay.API.Services.Interfaces;
 using SupportWay.Data.Models;
 
@@ -9,7 +10,7 @@ namespace SupportWay.API.Services
     public class BadgeService : IBadgeService
     {
         private readonly IBadgeRepository _badgeRepository;
-
+       
         public BadgeService(IBadgeRepository badgeRepository)
         {
             _badgeRepository = badgeRepository;

@@ -481,3 +481,39 @@
   .badge-grid { grid-template-columns: 1fr; }
   .badge-card { padding: 16px; }
 }
+.btn-remove-badge {
+  margin-top: 10px;
+
+  align-self: flex-start;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: var(--c-text-muted);
+
+  background: transparent;
+  border: 1px solid transparent;
+
+  padding: 6px 10px;
+  border-radius: 10px;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+
+  opacity: 0.65;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-remove-badge:hover {
+  opacity: 1;
+
+  color: #ef4444; /* м’який red */
+  background: rgba(239, 68, 68, 0.06);
+
+  border-color: rgba(239, 68, 68, 0.15);
+
+  transform: translateY(-1px);
+}

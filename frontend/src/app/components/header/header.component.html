@@ -1,60 +1,92 @@
 <header class="main-header">
   <div class="nav-container">
 
+    <!-- LOGO -->
     <a routerLink="/home" class="logo" (click)="handleNavClick()">
       Support<span class="highlight">Way</span>
     </a>
 
+    <!-- MOBILE BUTTON -->
     <div class="mobile-controls">
       <button class="burger-btn" (click)="toggleMenu()" aria-label="Menu">
-        <svg *ngIf="!isMenuOpen" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        <svg *ngIf="isMenuOpen" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <svg *ngIf="!isMenuOpen" viewBox="0 0 24 24" width="24" height="24"
+             stroke="currentColor" stroke-width="2" fill="none">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+
+        <svg *ngIf="isMenuOpen" viewBox="0 0 24 24" width="24" height="24"
+             stroke="currentColor" stroke-width="2" fill="none">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
       </button>
     </div>
 
+    <!-- NAV WRAPPER -->
     <div class="nav-wrapper" [class.open]="isMenuOpen">
 
+      <!-- SEARCH -->
       <div class="header-search">
         <app-user-search></app-user-search>
       </div>
 
+      <!-- LINKS -->
       <ul class="nav-list">
         <li class="nav-item">
           <a (click)="handleNavClick()" routerLink="/chat" routerLinkActive="active">Чати</a>
         </li>
+
         <li class="nav-item">
           <a (click)="handleNavClick()" routerLink="/map" routerLinkActive="active">Карта</a>
         </li>
+
         <li class="nav-item">
           <a (click)="handleNavClick()" routerLink="/requests" routerLinkActive="active">Запити</a>
         </li>
+
         <li class="nav-item">
           <a (click)="handleNavClick()" routerLink="/posts" routerLinkActive="active">Публікації</a>
         </li>
 
-        <li class="nav-item dropdown" [class.open]="isDropdownOpen" *ngIf="isAdmin">
-          <a (click)="handleNavClick()" routerLink="/admin" routerLinkActive="active">Верифікація</a>
+        <li class="nav-item dropdown" *ngIf="isAdmin">
+          <a (click)="handleNavClick()" routerLink="/admin" routerLinkActive="active">
+            Верифікація
+          </a>
         </li>
       </ul>
 
-      <div class="mini-profile" *ngIf="currentUser && userProfile">
+      <!-- RIGHT SIDE (IMPORTANT FIX) -->
+      <div class="nav-right" *ngIf="currentUser">
 
-        <a (click)="goToMyProfile()" class="name" style="cursor: pointer;">
-          {{ displayName }}
-        </a>
+        <!-- NOTIFICATIONS -->
+        <app-notification-bell></app-notification-bell>
 
-        <a (click)="goToMyProfile()" class="avatar-wrapper" style="cursor: pointer;">
-          <div class="avatar-circle">
-            <img
-              *ngIf="userProfile.photoBase64; else initialFallback"
-              [src]="profileService.getAvatarSrc(userProfile.photoBase64)"
-              alt="avatar"
-            >
-            <ng-template #initialFallback>
-              <div class="initials-text">{{ initials }}</div>
-            </ng-template>
-          </div>
-        </a>
+        <!-- PROFILE -->
+        <div class="mini-profile" *ngIf="userProfile">
+
+          <a (click)="goToMyProfile()" class="name">
+            {{ displayName }}
+          </a>
+
+          <a (click)="goToMyProfile()" class="avatar-wrapper">
+            <div class="avatar-circle">
+
+              <img
+                *ngIf="userProfile.photoBase64; else initialFallback"
+                [src]="profileService.getAvatarSrc(userProfile.photoBase64)"
+                alt="avatar"
+              />
+
+              <ng-template #initialFallback>
+                <div class="initials-text">{{ initials }}</div>
+              </ng-template>
+
+            </div>
+          </a>
+
+        </div>
 
       </div>
 

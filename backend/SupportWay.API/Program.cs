@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using SupportWay.API.Hubs;
 using SupportWay.API.Infrastructure;
 using SupportWay.API.Repositories;
 using SupportWay.API.Repositories.Interfaces;
@@ -79,6 +80,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 
 builder.Services.ConfigAuthentication(builder.Configuration);
 
+// --- Repositories ---
 builder.Services.AddScoped<IFollowRepository, FollowsRepository>();
 builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
@@ -96,14 +98,12 @@ builder.Services.AddScoped<IPostAnalyticsRepository, PostAnalyticsRepository>();
 builder.Services.AddScoped<IHelpRequestAnalyticsRepository, HelpRequestAnalyticsRepository>();
 builder.Services.AddScoped<IRequestItemAnalyticsRepository, RequestItemAnalyticsRepository>();
 builder.Services.AddScoped<ISupportTypesRepository, SupportTypesRepository>();
-
-// Старий SQL chat repository потрібен, бо ChatService ще його використовує
 builder.Services.AddScoped<IChatsRepository, ChatsRepository>();
-
-// MongoDB repositories для повідомлень і Mongo-чату
 builder.Services.AddScoped<IMongoMessagesRepository, MongoMessagesRepository>();
 builder.Services.AddScoped<IMongoChatsRepository, MongoChatsRepository>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
+// --- Services ---
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IFollowService, FollowService>();
 builder.Services.AddScoped<IHelpRequestService, HelpRequestService>();
@@ -125,10 +125,10 @@ builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IMapService, MapService>();
 builder.Services.AddHttpClient<IFaqBotService, FaqBotService>();
+builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
-builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
-
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddCors(options =>
@@ -154,20 +154,20 @@ builder.Services.AddControllers()
 var app = builder.Build();
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
-
 app.UseCors("AllowAngular");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.MapControllers();
 
 app.MapHub<ChatHub>("/chatHub")
+   .RequireCors("AllowAngular");
+
+// --- Notification hub ---
+app.MapHub<NotificationHub>("/notificationHub")
    .RequireCors("AllowAngular");
 
 app.Run();
