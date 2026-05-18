@@ -1,106 +1,148 @@
-/* --- Palette --- */
-$bg-chat: #f3f4f6;          /* Основний фон (збігається з чатом) */
-$bg-icon: #ffffff;          /* Білий круг під іконкою */
-$text-main: #1f2937;        /* Темний текст */
-$text-muted: #9ca3af;       /* Сірий текст */
-$primary-light: #eff6ff;    /* Легкий блакитний відтінок */
-$primary-color: #2563eb;    /* Акцентний синій */
-$shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+/* =========================
+   Palette
+========================= */
+
+$bg-chat: #f3f4f6;
+$bg-icon: #ffffff;
+
+$text-main: #111827;
+$text-muted: #9ca3af;
+
+$primary-color: #2563eb;
+
+$border-color: rgba(15, 23, 42, 0.06);
+
+$shadow-soft:
+  0 1px 2px rgba(0, 0, 0, 0.04),
+  0 8px 24px rgba(0, 0, 0, 0.04);
+
+/* =========================
+   Host
+========================= */
 
 :host {
   display: flex;
   flex: 1;
-  height: 100%;
   width: 100%;
+  height: 100%;
 }
+
+/* =========================
+   Empty state
+========================= */
 
 .empty-screen {
   flex: 1;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  padding: 24px;
-  background-color: $bg-chat;
+  padding: 32px;
+
+  background: $bg-chat;
   color: $text-main;
 
-  /* Анімація появи */
-  animation: fadeIn 0.4s ease-out;
+  text-align: center;
 }
 
-/* Круглий контейнер для іконки */
+/* =========================
+   Icon
+========================= */
+
 .icon-wrapper {
-  width: 80px;
-  height: 80px;
-  background-color: $bg-icon;
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
 
-  /* Тінь і легка рамка */
+  margin-bottom: 20px;
+
+  border-radius: 20px;
+
+  background: $bg-icon;
+  border: 1px solid $border-color;
+
   box-shadow: $shadow-soft;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-
-  /* Ефект "дихання" при наведенні (опціонально) */
-  transition: transform 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
 }
 
 .empty-icon {
-  font-size: 36px;
-  line-height: 1;
-  /* Якщо це емодзі, робимо його трохи прозорим або чітким */
-  /* Якщо це SVG (краще), то fill буде керуватися тут */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   color: $primary-color;
-  user-select: none;
+
+  svg {
+    width: 32px;
+    height: 32px;
+
+    stroke: currentColor;
+  }
 }
 
+/* =========================
+   Typography
+========================= */
+
 .empty-title {
-  margin: 0 0 8px 0;
-  font-weight: 700;
-  font-size: 18px;
+  margin: 0 0 8px;
+
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+
   color: $text-main;
-  text-align: center;
 }
 
 .empty-subtitle {
   margin: 0;
+
+  max-width: 340px;
+
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
+
   color: $text-muted;
-  text-align: center;
-  max-width: 300px; /* Щоб текст не розтягувався занадто широко */
 }
 
-/* Badge (опціонально, якщо subtitle - це статус) */
-.badge {
-  display: inline-block;
-  margin-top: 12px;
-  padding: 6px 12px;
-  background-color: rgba(37, 99, 235, 0.1);
-  color: $primary-color;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
+/* =========================
+   Dark theme
+========================= */
 
-/* На мобільному цей екран зазвичай ховають,
-   але якщо логіка дозволяє показувати - залишаємо */
-@media (max-width: 768px) {
+:host-context(.dark) {
   .empty-screen {
-    display: none;
-    /* Або display: flex, якщо ви хочете показувати це,
-       коли юзер ще не натиснув на чат */
+    background: #0f172a;
+  }
+
+  .icon-wrapper {
+    background: #111827;
+    border-color: rgba(255, 255, 255, 0.06);
+
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+
+  .empty-title {
+    color: #f9fafb;
+  }
+
+  .empty-subtitle {
+    color: #94a3b8;
   }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 768px) {
+  .empty-screen {
+    display: none;
+  }
 }

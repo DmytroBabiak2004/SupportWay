@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SupportWay.API.Services.Implementations;
 using SupportWay.Data.Context;
 using SupportWay.Data.DTOs;
 using SupportWay.Data.Models;
@@ -12,90 +13,156 @@ namespace SupportWay.API.Controllers
     [Route("api/[controller]")]
     public class PaymentsController : ControllerBase
     {
-        private const string AwaitingManualTransferStatus = "AwaitingManualTransfer";
-        private const string ManualProvider = "ManualTransfer";
+        private const string StatusPending = "Pending";
+        private const string ProviderJar = "MonobankJar";
+        private const string ProviderManual = "ManualTransfer";
 
         private readonly SupportWayContext _db;
         private readonly IConfiguration _config;
+        private readonly MonobankJarService _jarService;
 
-        public PaymentsController(SupportWayContext db, IConfiguration config)
+        public PaymentsController(
+            SupportWayContext db,
+            IConfiguration config,
+            MonobankJarService jarService)
         {
             _db = db;
             _config = config;
+            _jarService = jarService;
         }
+
+        // ── POST /api/payments/donate ──────────────────────────────────────
 
         [HttpPost("donate")]
         [Authorize]
-        public async Task<IActionResult> Donate([FromBody] DonateRequestDto dto, CancellationToken ct)
+        public async Task<IActionResult> Donate(
+            [FromBody] DonateRequestDto dto, CancellationToken ct)
         {
             if (dto.Amount <= 0)
                 return BadRequest("Сума донату має бути більше 0.");
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? User.FindFirstValue("nameid");
             if (string.IsNullOrWhiteSpace(userId))
                 return Unauthorized();
 
             var helpRequest = await _db.HelpRequests
                 .FirstOrDefaultAsync(h => h.Id == dto.HelpRequestId, ct);
 
-            if (helpRequest == null)
-                return NotFound("Запит не знайдено.");
+            if (helpRequest is null) return NotFound("Запит не знайдено.");
+            if (!helpRequest.IsActive) return BadRequest("Збір вже завершено.");
 
-            if (!helpRequest.IsActive)
-                return BadRequest("Збір вже завершено.");
+            var roundedAmount = decimal.Round(dto.Amount, 2, MidpointRounding.AwayFromZero);
 
-            var destination = ResolveDonationDestination(helpRequest, dto.Amount);
-            if (destination == null)
-            {
-                return BadRequest("Для цього збору не налаштовано реквізити для донату. Додайте картку, IBAN або платіжне посилання в реквесті або в appsettings як дефолтні реквізити.");
-            }
+            // Визначаємо jar ID — специфічний для реквесту або дефолтний
+            var jarId = !string.IsNullOrWhiteSpace(helpRequest.MonobankJarId)
+                ? helpRequest.MonobankJarId
+                : _config["Monobank:DefaultJarId"];
+
+            var hasJar = !string.IsNullOrWhiteSpace(jarId);
+
+            // Картка як fallback якщо банки немає
+            var card = FirstNonEmpty(
+                NormalizeCard(helpRequest.DonationRecipientCardNumber),
+                NormalizeCard(_config["App:DefaultDonationRecipientCardNumber"]));
+
+            if (!hasJar && string.IsNullOrWhiteSpace(card))
+                return BadRequest(
+                    "Для цього збору не налаштовано реквізити. " +
+                    "Зверніться до організатора.");
+
+            var statusId = await EnsureStatusAsync(StatusPending, ct);
+            var providerId = await EnsureProviderAsync(hasJar ? ProviderJar : ProviderManual, ct);
 
             var payment = new Payment
             {
                 Id = Guid.NewGuid(),
-                Amount = decimal.Round(dto.Amount, 2, MidpointRounding.AwayFromZero),
+                Amount = roundedAmount,
                 CreatedAt = DateTime.UtcNow,
-                TransactionId = BuildTransactionReference(dto.HelpRequestId),
-                Comment = BuildPaymentComment(dto.Comment, destination),
+                TransactionId = $"sw_{helpRequest.Id:N}_{Guid.NewGuid():N}",
+                Comment = dto.Comment?.Trim() ?? $"Донат SupportWay",
                 UserId = userId,
                 HelpRequestId = helpRequest.Id,
-                PaymentStatusId = await EnsurePaymentStatusAsync(AwaitingManualTransferStatus, ct),
-                PaymentProviderId = await EnsurePaymentProviderAsync(ManualProvider, ct)
+                PaymentStatusId = statusId,
+                PaymentProviderId = providerId
             };
+
+            // Якщо немає jar — оновлюємо суму одразу (ручний переказ, довіряємо донору)
+            if (!hasJar)
+            {
+                helpRequest.CollectedAmount += roundedAmount;
+                if (helpRequest.TargetAmount > 0 &&
+                    helpRequest.CollectedAmount >= helpRequest.TargetAmount)
+                    helpRequest.IsActive = false;
+            }
+            // Якщо є jar — CollectedAmount оновить JarSyncBackgroundService автоматично
 
             _db.Payments.Add(payment);
             await _db.SaveChangesAsync(ct);
 
+            var recipientName = FirstNonEmpty(
+                helpRequest.DonationRecipientName,
+                _config["App:DefaultDonationRecipientName"],
+                "Отримувач збору");
+
+            var notes = FirstNonEmpty(
+                helpRequest.DonationNotes,
+                _config["App:DefaultDonationNotes"]);
+
+            if (hasJar)
+            {
+                var paymentLink = $"https://send.monobank.ua/jar/{jarId}";
+                return Ok(new DonateResponseDto
+                {
+                    PaymentId = payment.Id,
+                    Status = StatusPending,
+                    PaymentMethod = "payment_link",
+                    IsManualTransfer = false,
+                    PaymentLink = paymentLink,
+                    CardNumber = card,     // fallback якщо банка не відкрилась
+                    RecipientName = recipientName,
+                    Instructions = $"Натисніть кнопку — відкриється платіжна сторінка Monobank. " +
+                                       $"Рекомендована сума: {roundedAmount:0.##} ₴." +
+                                       (string.IsNullOrWhiteSpace(notes) ? "" : $" {notes}"),
+                    OrderReference = payment.TransactionId
+                });
+            }
+
+            // Fallback — тільки картка
+            var instructions = $"Скопіюйте номер картки та виконайте переказ у банківському застосунку. " +
+                               $"Сума: {roundedAmount:0.##} ₴." +
+                               (string.IsNullOrWhiteSpace(notes) ? "" : $" {notes}");
+
             return Ok(new DonateResponseDto
             {
                 PaymentId = payment.Id,
-                Status = AwaitingManualTransferStatus,
-                PaymentMethod = destination.PaymentMethod,
-                RecipientName = destination.RecipientName,
-                CardNumber = destination.CardNumber,
-                Iban = destination.Iban,
-                PaymentLink = destination.PaymentLink,
-                Instructions = destination.Instructions,
+                Status = StatusPending,
+                PaymentMethod = "bank_card",
                 IsManualTransfer = true,
+                CardNumber = card,
+                RecipientName = recipientName,
+                Instructions = instructions,
                 OrderReference = payment.TransactionId
             });
         }
 
+        // ── GET /api/payments/{id} ─────────────────────────────────────────
+
         [HttpGet("{paymentId:guid}")]
         [Authorize]
-        public async Task<IActionResult> GetPaymentStatus(Guid paymentId, CancellationToken ct)
+        public async Task<IActionResult> GetPaymentStatus(
+            Guid paymentId, CancellationToken ct)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrWhiteSpace(userId))
-                return Unauthorized();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? User.FindFirstValue("nameid");
+            if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
 
             var payment = await _db.Payments
                 .Include(p => p.PaymentStatus)
                 .Include(p => p.PaymentProvider)
                 .FirstOrDefaultAsync(p => p.Id == paymentId && p.UserId == userId, ct);
 
-            if (payment == null)
-                return NotFound();
+            if (payment is null) return NotFound();
 
             return Ok(new PaymentStatusDto
             {
@@ -105,125 +172,101 @@ namespace SupportWay.API.Controllers
                 Amount = payment.Amount,
                 HelpRequestId = payment.HelpRequestId,
                 CreatedAt = payment.CreatedAt,
-                Comment = payment.Comment,
-                CheckoutUrl = null
+                Comment = payment.Comment
             });
         }
 
-        private DonationDestination? ResolveDonationDestination(HelpRequest helpRequest, decimal donationAmount)
+        // ── GET /api/payments/my ───────────────────────────────────────────
+
+        [HttpGet("my")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPayments(CancellationToken ct)
         {
-            var recipientName = FirstNonEmpty(
-                Normalize(helpRequest.DonationRecipientName),
-                Normalize(_config["App:DefaultDonationRecipientName"]),
-                "Отримувач збору");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                      ?? User.FindFirstValue("nameid");
+            if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
 
-            var card = FirstNonEmpty(
-                NormalizeCard(helpRequest.DonationRecipientCardNumber),
-                NormalizeCard(_config["App:DefaultDonationRecipientCardNumber"]));
+            var payments = await _db.Payments
+                .Where(p => p.UserId == userId)
+                .Include(p => p.PaymentStatus)
+                .Include(p => p.PaymentProvider)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new PaymentStatusDto
+                {
+                    PaymentId = p.Id,
+                    Status = p.PaymentStatus != null ? p.PaymentStatus.NameOfStatus : "",
+                    Provider = p.PaymentProvider != null ? p.PaymentProvider.NameOfProvider : null,
+                    Amount = p.Amount,
+                    HelpRequestId = p.HelpRequestId,
+                    CreatedAt = p.CreatedAt,
+                    Comment = p.Comment
+                })
+                .ToListAsync(ct);
 
-            var iban = FirstNonEmpty(
-                Normalize(helpRequest.DonationRecipientIban)?.ToUpperInvariant(),
-                Normalize(_config["App:DefaultDonationRecipientIban"])?.ToUpperInvariant());
-
-            var link = FirstNonEmpty(
-                Normalize(helpRequest.DonationPaymentLink),
-                Normalize(_config["App:DefaultDonationLink"]));
-
-            var preferredMethod = Normalize(helpRequest.PreferredDonationMethod)?.ToLowerInvariant();
-            var effectiveMethod = preferredMethod switch
-            {
-                "bank_card" when !string.IsNullOrWhiteSpace(card) => "bank_card",
-                "iban" when !string.IsNullOrWhiteSpace(iban) => "iban",
-                "payment_link" when !string.IsNullOrWhiteSpace(link) => "payment_link",
-                _ when !string.IsNullOrWhiteSpace(card) => "bank_card",
-                _ when !string.IsNullOrWhiteSpace(link) => "payment_link",
-                _ when !string.IsNullOrWhiteSpace(iban) => "iban",
-                _ => null
-            };
-
-            if (effectiveMethod == null)
-                return null;
-
-            var coreInstruction = effectiveMethod switch
-            {
-                "bank_card" => "Скопіюйте номер картки, виконайте переказ у своєму банківському застосунку та за потреби вкажіть коментар до платежу.",
-                "iban" => "Скопіюйте IBAN, виконайте переказ у своєму банківському застосунку та за потреби вкажіть коментар до платежу.",
-                _ => "Відкрийте платіжне посилання та завершіть переказ у своєму банківському застосунку."
-            };
-
-            var notes = Normalize(helpRequest.DonationNotes);
-            var instructions = $"{coreInstruction} Рекомендована сума цього донату: {decimal.Round(donationAmount, 2, MidpointRounding.AwayFromZero):0.##} ₴. Реквізити прив’язані до цього запиту.";
-            if (!string.IsNullOrWhiteSpace(notes))
-                instructions += $" Додатково: {notes}.";
-
-            return new DonationDestination
-            {
-                PaymentMethod = effectiveMethod,
-                RecipientName = recipientName!,
-                CardNumber = card,
-                Iban = iban,
-                PaymentLink = link,
-                Instructions = instructions
-            };
+            return Ok(payments);
         }
 
-        private async Task<Guid> EnsurePaymentStatusAsync(string name, CancellationToken ct)
+        // ── GET /api/payments/jar-info/{jarId} ────────────────────────────
+        // Публічний endpoint — фронтенд може показати актуальний баланс банки
+
+        [HttpGet("jar-info/{jarId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetJarInfo(string jarId, CancellationToken ct)
         {
-            var existing = await _db.PaymentStatuses.FirstOrDefaultAsync(s => s.NameOfStatus == name, ct);
-            if (existing != null) return existing.Id;
+            var info = await _jarService.GetJarInfoAsync(jarId, ct);
+            if (info is null)
+                return NotFound("Не вдалося отримати інформацію про банку.");
+
+            return Ok(info);
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────────
+
+        private async Task<Guid> EnsureStatusAsync(string name, CancellationToken ct)
+        {
+            var existing = await _db.PaymentStatuses
+                .FirstOrDefaultAsync(s => s.NameOfStatus == name, ct);
+            if (existing is not null) return existing.Id;
 
             var status = new PaymentStatus { Id = Guid.NewGuid(), NameOfStatus = name };
             _db.PaymentStatuses.Add(status);
-            await _db.SaveChangesAsync(ct);
+            try { await _db.SaveChangesAsync(ct); }
+            catch (DbUpdateException)
+            {
+                _db.ChangeTracker.Clear();
+                return (await _db.PaymentStatuses.FirstAsync(s => s.NameOfStatus == name, ct)).Id;
+            }
             return status.Id;
         }
 
-        private async Task<Guid> EnsurePaymentProviderAsync(string name, CancellationToken ct)
+        private async Task<Guid> EnsureProviderAsync(string name, CancellationToken ct)
         {
-            var existing = await _db.PaymentProviders.FirstOrDefaultAsync(p => p.NameOfProvider == name, ct);
-            if (existing != null) return existing.Id;
+            var existing = await _db.PaymentProviders
+                .FirstOrDefaultAsync(p => p.NameOfProvider == name, ct);
+            if (existing is not null) return existing.Id;
 
             var provider = new PaymentProvider { Id = Guid.NewGuid(), NameOfProvider = name };
             _db.PaymentProviders.Add(provider);
-            await _db.SaveChangesAsync(ct);
+            try { await _db.SaveChangesAsync(ct); }
+            catch (DbUpdateException)
+            {
+                _db.ChangeTracker.Clear();
+                return (await _db.PaymentProviders.FirstAsync(p => p.NameOfProvider == name, ct)).Id;
+            }
             return provider.Id;
         }
 
-        private static string BuildTransactionReference(Guid helpRequestId)
-            => $"sw_manual_{helpRequestId:N}_{Guid.NewGuid():N}";
+        private static string? Normalize(string? v)
+            => string.IsNullOrWhiteSpace(v) ? null : v.Trim();
 
-        private static string BuildPaymentComment(string? userComment, DonationDestination destination)
+        private static string? NormalizeCard(string? v)
         {
-            var parts = new List<string>();
-            if (!string.IsNullOrWhiteSpace(userComment)) parts.Add(userComment.Trim());
-            parts.Add($"method={destination.PaymentMethod}");
-            if (!string.IsNullOrWhiteSpace(destination.CardNumber)) parts.Add($"card={destination.CardNumber}");
-            if (!string.IsNullOrWhiteSpace(destination.Iban)) parts.Add($"iban={destination.Iban}");
-            if (!string.IsNullOrWhiteSpace(destination.PaymentLink)) parts.Add($"paymentLink={destination.PaymentLink}");
-            return string.Join(" | ", parts);
-        }
-
-        private static string? Normalize(string? value)
-            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-        private static string? NormalizeCard(string? value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return null;
-            var digits = new string(value.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrWhiteSpace(v)) return null;
+            var digits = new string(v.Where(char.IsDigit).ToArray());
             return string.IsNullOrWhiteSpace(digits) ? null : digits;
         }
 
         private static string? FirstNonEmpty(params string?[] values)
             => values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
-
-        private sealed class DonationDestination
-        {
-            public string PaymentMethod { get; init; } = string.Empty;
-            public string RecipientName { get; init; } = string.Empty;
-            public string? CardNumber { get; init; }
-            public string? Iban { get; init; }
-            public string? PaymentLink { get; init; }
-            public string Instructions { get; init; } = string.Empty;
-        }
     }
 }

@@ -127,6 +127,7 @@ namespace SupportWay.API.DTOs
         public string? DonationRecipientIban { get; set; }
         public string? DonationPaymentLink { get; set; }
         public string? DonationNotes { get; set; }
+        public string? MonobankJarId { get; set; }
     }
 
     public class SupportTypeDto

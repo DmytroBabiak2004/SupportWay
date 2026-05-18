@@ -37,5 +37,6 @@ namespace SupportWay.Data.DTOs
 
         [MaxLength(1000)]
         public string? DonationNotes { get; set; }
+        public string? MonobankJarId { get; set; }
     }
 }

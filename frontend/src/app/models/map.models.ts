@@ -172,15 +172,12 @@ export interface DonateResponseDto {
   paymentId: string;
   status: string;
   paymentMethod: DonatePaymentMethod | string;
-
   checkoutUrl?: string | null;
   orderReference?: string | null;
-
   recipientName?: string | null;
   cardNumber?: string | null;
   iban?: string | null;
   paymentLink?: string | null;
   instructions?: string | null;
-
   isManualTransfer: boolean;
 }

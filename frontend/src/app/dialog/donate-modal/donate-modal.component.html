@@ -1,8 +1,9 @@
 <div class="sw-backdrop" (click)="close()">
   <div class="sw-modal" (click)="$event.stopPropagation()">
+
     <button class="sw-close" (click)="close()" aria-label="Закрити">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" />
+        <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/>
       </svg>
     </button>
 
@@ -11,7 +12,8 @@
       <h3 class="sw-title">{{ title }}</h3>
       <p class="sw-region" *ngIf="region">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 21s6-5.686 6-11a6 6 0 1 0-12 0c0 5.314 6 11 6 11Z" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 21s6-5.686 6-11a6 6 0 1 0-12 0c0 5.314 6 11 6 11Z"
+                stroke-linecap="round" stroke-linejoin="round"/>
           <circle cx="12" cy="10" r="2.5"/>
         </svg>
         <span>{{ region }}</span>
@@ -22,7 +24,9 @@
       <div class="sw-progress-top">
         <div class="sw-progress-stat">
           <span class="sw-progress-label">Зібрано</span>
-          <span class="sw-progress-value sw-progress-value--accent">{{ collected | number:'1.0-0' }} ₴</span>
+          <span class="sw-progress-value sw-progress-value--accent">
+            {{ collected | number:'1.0-0' }} ₴
+          </span>
         </div>
         <div class="sw-progress-stat sw-progress-stat--right">
           <span class="sw-progress-label">Ціль</span>
@@ -43,8 +47,8 @@
     <div class="sw-inactive-notice" *ngIf="!canDonate">
       <div class="sw-inactive-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="5" y="11" width="14" height="9" rx="2"></rect>
-          <path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
+          <rect x="5" y="11" width="14" height="9" rx="2"/>
+          <path d="M8 11V8a4 4 0 1 1 8 0v3"/>
         </svg>
       </div>
       <div class="sw-inactive-text">
@@ -53,79 +57,183 @@
       </div>
     </div>
 
-    <ng-container *ngIf="canDonate">
+    <!-- ══ КРОК 1: вибір суми ══ -->
+    <ng-container *ngIf="canDonate && step() === 'amount'">
+
       <div class="sw-form-section">
         <label class="sw-label">Сума внеску</label>
         <div class="sw-presets">
           @for (p of presets; track p) {
-            <button type="button" class="sw-preset" [class.active]="amount() === p" (click)="amount.set(p)">
+            <button type="button" class="sw-preset"
+                    [class.active]="amount() === p"
+                    (click)="amount.set(p)">
               {{ p | number }} ₴
             </button>
           }
         </div>
         <div class="sw-input-wrap">
-          <input class="sw-amount-input" type="number" placeholder="Введіть суму" [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" min="1" />
+          <span class="sw-currency">₴</span>
+          <input class="sw-amount-input"
+                 type="number"
+                 placeholder="Інша сума"
+                 [ngModel]="amount()"
+                 (ngModelChange)="amount.set(+$event)"
+                 min="1"/>
         </div>
       </div>
 
       <div class="sw-form-section">
-        <label class="sw-label">Коментар до платежу</label>
-        <div class="sw-input-wrap">
-          <input class="sw-comment-input" type="text" placeholder="Необов’язково" [ngModel]="comment()" (ngModelChange)="comment.set($event)" maxlength="100" />
-        </div>
+        <label class="sw-label">
+          Коментар <span class="sw-optional">необов'язково</span>
+        </label>
+        <input class="sw-comment-input"
+               type="text"
+               placeholder="Наприклад: від Івана та родини"
+               [ngModel]="comment()"
+               (ngModelChange)="comment.set($event)"
+               maxlength="100"/>
       </div>
 
       @if (error()) {
         <p class="sw-error">{{ error() }}</p>
       }
 
-      <button class="sw-pay-btn" (click)="donate()" [disabled]="isProcessing()">
+      <button class="sw-pay-btn" (click)="prepare()" [disabled]="isProcessing()">
         @if (!isProcessing()) {
-          <span class="sw-pay-btn-main">Задонатити {{ amount() | number:'1.0-0' }} ₴</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" width="16" height="16">
+            <rect x="2" y="5" width="20" height="14" rx="2"/>
+            <path d="M2 10h20"/>
+          </svg>
+          Задонатити {{ amount() | number:'1.0-0' }} ₴
         } @else {
           <span class="sw-spinner"></span>
-          <span>Підготовка реквізитів...</span>
+          Підготовка...
         }
       </button>
 
-      <div class="sw-secure">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 3l7 4v5c0 5-3.5 7.5-7 9-3.5-1.5-7-4-7-9V7l7-4Z" stroke-linejoin="round"/>
-        </svg>
-        <span>Переказ виконується у вашому банківському застосунку за реквізитами нижче</span>
-      </div>
+      <p class="sw-footnote">
+        Безпечний переказ · 0% комісія · через Monobank
+      </p>
 
-      <div class="sw-manual-result" *ngIf="paymentResponse() as response">
-        <h4 class="sw-label">Статус платежу</h4>
-        <p class="sw-result-status">
-          {{ response.isManualTransfer ? 'Реквізити для переказу готові' : 'Платіж ініційовано' }}
-        </p>
+    </ng-container>
 
-        <a *ngIf="response.checkoutUrl" class="sw-pay-btn" [href]="response.checkoutUrl" target="_blank" rel="noopener">
-          Відкрити платіжне посилання
-        </a>
+    <!-- ══ КРОК 2a: є Jar банка — реальна оплата ══ -->
+    <ng-container *ngIf="step() === 'jar_pay'">
 
-        <div *ngIf="response.isManualTransfer" class="sw-manual-box">
-          <div class="sw-manual-row" *ngIf="response.recipientName">
-            <span class="sw-manual-key">Отримувач</span>
-            <span class="sw-manual-value">{{ response.recipientName }}</span>
-          </div>
-          <div class="sw-manual-row" *ngIf="response.cardNumber">
-            <span class="sw-manual-key">Картка</span>
-            <button type="button" class="sw-manual-copy" (click)="copyValue(response.cardNumber)">{{ response.cardNumber }}</button>
-          </div>
-          <div class="sw-manual-row" *ngIf="response.iban">
-            <span class="sw-manual-key">IBAN</span>
-            <button type="button" class="sw-manual-copy" (click)="copyValue(response.iban)">{{ response.iban }}</button>
-          </div>
-          <div class="sw-manual-row" *ngIf="response.paymentLink">
-            <span class="sw-manual-key">{{ donationDestinationLabel }}</span>
-            <a class="sw-manual-link" [href]="response.paymentLink" target="_blank" rel="noopener">Відкрити посилання</a>
-          </div>
-          <p class="sw-result-note" *ngIf="response.instructions">{{ response.instructions }}</p>
-          <p class="sw-result-note" *ngIf="copyFeedback()">{{ copyFeedback() }}</p>
+      <div class="sw-success-header">
+        <div class="sw-success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" width="22" height="22">
+            <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <p class="sw-success-title">Готово до оплати</p>
+          <p class="sw-success-sub">
+            {{ paidAmount() | number:'1.0-0' }} ₴ ·
+            {{ recipientName() ?? 'SupportWay' }}
+          </p>
         </div>
       </div>
+
+      <!-- Головна кнопка — реальна платіжна сторінка -->
+      <button class="sw-jar-btn" (click)="openJar()">
+        <span class="sw-jar-logo">м</span>
+        <span class="sw-jar-btn-text">
+          <span class="sw-jar-btn-main">Оплатити через Monobank</span>
+          <span class="sw-jar-btn-sub">Введіть картку на сторінці банку</span>
+        </span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" width="14" height="14">
+          <path d="M7 17L17 7M17 7H7M17 7v10" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="sw-divider">
+        <span>або переказати вручну</span>
+      </div>
+
+      <!-- Картка як запасний варіант -->
+      <div class="sw-card-fallback" *ngIf="cardNumber()">
+        <div class="sw-card-row">
+          <div>
+            <p class="sw-card-label">Картка</p>
+            <p class="sw-card-num">{{ cardNumber() }}</p>
+            <p class="sw-card-owner" *ngIf="recipientName()">{{ recipientName() }}</p>
+          </div>
+          <button class="sw-copy-btn" type="button" (click)="copyCard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" width="13" height="13">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            {{ copyFeedback() || 'Копіювати' }}
+          </button>
+        </div>
+      </div>
+
+      <p class="sw-hint" *ngIf="instructions()">{{ instructions() }}</p>
+
+      <button class="sw-back-btn" (click)="backToAmount()">← Змінити суму</button>
+
     </ng-container>
+
+    <!-- ══ КРОК 2b: тільки картка (fallback) ══ -->
+    <ng-container *ngIf="step() === 'card_only'">
+
+      <div class="sw-success-header">
+        <div class="sw-success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" width="22" height="22">
+            <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <p class="sw-success-title">Реквізити готові</p>
+          <p class="sw-success-sub">
+            Переведіть {{ paidAmount() | number:'1.0-0' }} ₴ на картку нижче
+          </p>
+        </div>
+      </div>
+
+      <div class="sw-card-box">
+        <p class="sw-card-label">Картка отримувача</p>
+        <div class="sw-card-row">
+          <div>
+            <p class="sw-card-num">{{ cardNumber() }}</p>
+            <p class="sw-card-owner" *ngIf="recipientName()">{{ recipientName() }}</p>
+          </div>
+          <button class="sw-copy-btn sw-copy-btn--lg" type="button" (click)="copyCard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" width="13" height="13">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            {{ copyFeedback() || 'Скопіювати номер' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="sw-steps">
+        <div class="sw-step">
+          <span class="sw-step-n">1</span>
+          <span>Скопіюйте номер картки</span>
+        </div>
+        <div class="sw-step">
+          <span class="sw-step-n">2</span>
+          <span>Відкрийте Monobank або Приват24</span>
+        </div>
+        <div class="sw-step">
+          <span class="sw-step-n">3</span>
+          <span>Переказ на картку · сума {{ paidAmount() | number:'1.0-0' }} ₴</span>
+        </div>
+      </div>
+
+      <p class="sw-hint" *ngIf="instructions()">{{ instructions() }}</p>
+      <button class="sw-back-btn" (click)="backToAmount()">← Змінити суму</button>
+
+    </ng-container>
+
   </div>
 </div>

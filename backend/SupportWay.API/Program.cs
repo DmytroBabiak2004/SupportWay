@@ -125,8 +125,14 @@ builder.Services.AddScoped<ISupportTypeService, SupportTypeService>();
 builder.Services.AddScoped<IVerificationService, VerificationService>();
 builder.Services.AddScoped<IMapService, MapService>();
 builder.Services.AddHttpClient<IFaqBotService, FaqBotService>();
-builder.Services.AddHttpClient<IPaymentService, MonobankPaymentService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHttpClient<MonobankJarService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.monobank.ua");
+    client.DefaultRequestHeaders.Add("User-Agent", "SupportWay/1.0");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddHostedService<JarSyncBackgroundService>();
 
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
