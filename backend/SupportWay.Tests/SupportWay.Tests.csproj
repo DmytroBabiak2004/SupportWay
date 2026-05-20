@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>SupportWay.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Залежності тестового проєкту:
+      - xunit          : фреймворк тестів (атрибути [Fact], [Theory], Assert.*)
+      - Moq            : бібліотека мокування залежностей
+      - coverlet       : покриття коду (опційно, для звіту в розділі 4)
+  -->
+  <ItemGroup>
+    <PackageReference Include="xunit"                        Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio"   Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk"       Version="17.10.0" />
+    <PackageReference Include="Moq"                          Version="4.20.72" />
+    <PackageReference Include="coverlet.collector"           Version="6.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!--
+    Посилання на проєкти основного застосунку.
+    Шляхи відносні від папки SupportWay.Tests/
+    (припускається, що структура: backend/SupportWay.API, backend/SupportWay.Data,
+     backend/SupportWay.Tests поруч)
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\SupportWay.API\SupportWay.API.csproj" />
+    <ProjectReference Include="..\SupportWay.Data\SupportWay.Data.csproj" />
+  </ItemGroup>
+
+</Project>

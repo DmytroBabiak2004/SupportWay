@@ -85,7 +85,7 @@ builder.Services.AddScoped<IFollowRepository, FollowsRepository>();
 builder.Services.AddScoped<ILocationsRepository, LocationRepository>();
 builder.Services.AddScoped<IHelpRequestsRepository, HelpRequestsRepository>();
 builder.Services.AddScoped<IPostCommentsRepository, PostCommentsRepository>();
-builder.Services.AddScoped<IPostLikesRepoository, PostLikesRepository>();
+builder.Services.AddScoped<IPostLikesRepository, PostLikesRepository>();
 builder.Services.AddScoped<IPostRepository, PostsRepository>();
 builder.Services.AddScoped<IRequestItemsRepository, RequestItemsRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();

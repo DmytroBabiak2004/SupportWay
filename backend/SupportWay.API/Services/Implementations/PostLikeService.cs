@@ -8,9 +8,9 @@ namespace SupportWay.Services
 {
     public class PostLikeService : IPostLikeService
     {
-        private readonly IPostLikesRepoository _postLikesRepo; 
+        private readonly IPostLikesRepository _postLikesRepo; 
 
-        public PostLikeService(IPostLikesRepoository postLikesRepo)
+        public PostLikeService(IPostLikesRepository postLikesRepo)
         {
             _postLikesRepo = postLikesRepo;
         }

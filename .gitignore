@@ -362,4 +362,28 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-backend/SupportWay.FaqPython/.env
+# Python virtual environments
+env/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+.env.*
+
+# Python packages
+*.egg-info/
+dist/
+build/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log

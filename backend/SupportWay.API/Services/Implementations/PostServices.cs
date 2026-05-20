@@ -5,12 +5,12 @@ using SupportWay.Data.Repositories.Interfaces;
 public class PostService : IPostService
 {
     private readonly IPostRepository _postsRepo;
-    private readonly IPostLikesRepoository _likesRepo;
+    private readonly IPostLikesRepository _likesRepo;
     private readonly IPostCommentsRepository _commentsRepo;
 
     public PostService(
         IPostRepository postsRepo,
-        IPostLikesRepoository likesRepo,
+        IPostLikesRepository likesRepo,
         IPostCommentsRepository commentsRepo)
     {
         _postsRepo = postsRepo;

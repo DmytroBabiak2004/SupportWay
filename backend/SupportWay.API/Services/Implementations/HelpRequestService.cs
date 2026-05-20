@@ -8,12 +8,12 @@ public class HelpRequestService : IHelpRequestService
 {
     private readonly IHelpRequestsRepository _helpRepo;
     private readonly ILocationsRepository _locationRepo;
-    private readonly IPostLikesRepoository _likesRepo;
+    private readonly IPostLikesRepository _likesRepo;
 
     public HelpRequestService(
         IHelpRequestsRepository helpRepo,
         ILocationsRepository locationRepo,
-        IPostLikesRepoository likesRepo)
+        IPostLikesRepository likesRepo)
     {
         _helpRepo = helpRepo;
         _locationRepo = locationRepo;

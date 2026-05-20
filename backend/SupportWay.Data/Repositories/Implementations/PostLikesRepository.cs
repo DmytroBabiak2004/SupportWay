@@ -5,7 +5,7 @@ using SupportWay.Data.Repositories.Interfaces;
 
 namespace SupportWay.Data.Repositories.Implementations
 {
-    public class PostLikesRepository : IPostLikesRepoository
+    public class PostLikesRepository : IPostLikesRepository
     {
         private readonly SupportWayContext _context;
 
